@@ -3,7 +3,7 @@ import { db } from "../lib/firebase";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form";
+type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "faq-admin";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -14,27 +14,40 @@ const Q_CATS = [
   "المخالفات واحتساب النقاط",
 ];
 
-// ── Reusable UI helpers ──────────────────────────────────
-type IconColor = "green" | "blue" | "gold" | "red" | "purple" | "cyan";
-const iconBg: Record<IconColor, string> = { green: "#ECFDF3", blue: "#EEF4FF", gold: "#FEF3C7", red: "#FEF2F2", purple: "#EDE9FE", cyan: "#CFFAFE" };
-const iconColor: Record<IconColor, string> = { green: "#16A34A", blue: "#246BFD", gold: "#D97706", red: "#DC2626", purple: "#7C3AED", cyan: "#0891B2" };
+// ── Design tokens ────────────────────────────────
+const C = {
+  primary: "#246BFD", primaryLight: "#E8F0FE",
+  bg: "#F6F8FB", surface: "#FFFFFF",
+  border: "#E8EAED", borderHover: "#246BFD",
+  text: "#1A1D1F", textSec: "#6B7280", textLight: "#9CA3AF",
+  green: "#16A34A", greenLight: "#DCFCE7",
+  red: "#DC2626", redLight: "#FEE2E2",
+  gold: "#D97706", goldLight: "#FEF3C7",
+  purple: "#7C3AED", purpleLight: "#EDE9FE",
+  cyan: "#0891B2", cyanLight: "#CFFAFE",
+};
 
-function Card({ icon, color, title, desc, onClick }: { icon: string; color: IconColor; title: string; desc: string; onClick: () => void }) {
+// ── Reusable UI helpers ─────────────────────────────
+function Card({ icon, color, colorBg, title, desc, onClick, count }: { icon: string; color: string; colorBg: string; title: string; desc: string; onClick: () => void; count?: number }) {
   return (
     <button onClick={onClick} style={{
-      width: "100%", background: "#fff", border: "1.5px solid #F0F1F3",
-      borderRadius: 16, padding: "14px", display: "flex", alignItems: "center", gap: 13,
+      width: "100%", background: C.surface, border: `1px solid ${C.border}`,
+      borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12,
       cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "border-color .15s",
-    }}>
-      <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: iconBg[color], color: iconColor[color], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>
+      boxShadow: "0 1px 2px rgba(0,0,0,0.03)", transition: "all .15s",
+    }} onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: colorBg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
         <i className={`ph ph-${icon}`} />
       </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: "#111827", marginBottom: 3 }}>{title}</div>
-        <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{desc}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{title}</span>
+          {count !== undefined && <span style={{ fontSize: 11, fontWeight: 800, padding: "1px 7px", borderRadius: 20, background: colorBg, color }}>{count}</span>}
+        </div>
+        <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
       </div>
-      <i className="ph ph-caret-left" style={{ fontSize: 17, color: "#D1D5DB", flexShrink: 0 }} />
+      <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight, flexShrink: 0 }} />
     </button>
   );
 }
@@ -42,9 +55,9 @@ function Card({ icon, color, title, desc, onClick }: { icon: string; color: Icon
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      background: "none", border: "none", color: "#246BFD",
+      background: "none", border: "none", color: C.primary,
       cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 800,
-      display: "flex", alignItems: "center", gap: 6, marginBottom: 14, padding: "4px 0",
+      display: "flex", alignItems: "center", gap: 6, marginBottom: 16, padding: "4px 0",
     }}>
       <i className="ph ph-arrow-right" style={{ fontSize: 16 }} />
       رجوع
@@ -52,18 +65,37 @@ function BackBtn({ onClick }: { onClick: () => void }) {
   );
 }
 
-function Title({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 17, fontWeight: 900, color: "#111827", marginBottom: 14 }}>{children}</div>;
+function SectionTitle({ children, count }: { children: React.ReactNode; count?: number }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div style={{ fontSize: 18, fontWeight: 900, color: C.text }}>{children}</div>
+      {count !== undefined && <span style={{ background: C.primaryLight, color: C.primary, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>{count}</span>}
+    </div>
+  );
 }
 
 function Input({ label, value, onChange, placeholder, type = "text", ...rest }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; [k: string]: any }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: "#111827" }}>{label}</label>
+      <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} {...rest} style={{
-        width: "100%", padding: "14px", border: "1.5px solid #F0F1F3", borderRadius: 12,
-        background: "#fff", fontSize: 14, fontFamily: "inherit", color: "#111827",
-      }} />
+        width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+        background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+        transition: "border-color .15s",
+      }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+    </div>
+  );
+}
+
+function TextArea({ label, value, onChange, placeholder, rows = 3 }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>{label}</label>
+      <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{
+        width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+        background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none", resize: "vertical",
+        transition: "border-color .15s",
+      }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
     </div>
   );
 }
@@ -71,49 +103,62 @@ function Input({ label, value, onChange, placeholder, type = "text", ...rest }: 
 function Select({ label, value, onChange, children }: { label: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: "#111827" }}>{label}</label>
+      <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>{label}</label>
       <select value={value} onChange={e => onChange(e.target.value)} style={{
-        width: "100%", padding: "14px", border: "1.5px solid #F0F1F3", borderRadius: 12,
-        background: "#fff", fontSize: 14, fontFamily: "inherit", color: "#111827", appearance: "none",
+        width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+        background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, appearance: "none",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+        backgroundRepeat: "no-repeat", backgroundPosition: "left 14px center",
       }}>{children}</select>
     </div>
   );
 }
 
-function Btn({ children, onClick, variant = "primary", style = {} }: { children: React.ReactNode; onClick: () => void; variant?: "primary" | "outline" | "danger"; style?: React.CSSProperties }) {
-  const bg = variant === "primary" ? "#246BFD" : variant === "danger" ? "#DC2626" : "#fff";
-  const color = variant === "outline" ? "#246BFD" : "#fff";
-  const border = variant === "outline" ? "1.5px solid #246BFD" : "none";
+function Btn({ children, onClick, variant = "primary", style = {} }: { children: React.ReactNode; onClick: () => void; variant?: "primary" | "outline" | "danger" | "ghost"; style?: React.CSSProperties }) {
+  const colors = {
+    primary: { bg: C.primary, color: "#fff", border: "none" },
+    outline: { bg: "#fff", color: C.primary, border: `1.5px solid ${C.primary}` },
+    danger: { bg: C.red, color: "#fff", border: "none" },
+    ghost: { bg: "transparent", color: C.textSec, border: `1px solid ${C.border}` },
+  }[variant];
   return (
     <button onClick={onClick} style={{
-      width: "100%", border, background: bg, color,
+      width: "100%", border: colors.border, background: colors.bg, color: colors.color,
       display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       fontFamily: "inherit", fontSize: 14, fontWeight: 800,
-      padding: "14px", borderRadius: 12, cursor: "pointer", marginBottom: 10, ...style,
+      padding: "12px", borderRadius: 10, cursor: "pointer", ...style,
     }}>{children}</button>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, icon, color, bg }: { label: string; value: number; icon: string; color: string; bg: string }) {
   return (
     <div style={{
-      background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16,
-      padding: "16px 12px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
+      padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 12,
     }}>
-      <div style={{ fontSize: 26, fontWeight: 900, color: "#246BFD", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 12, color: "#6B7280", marginTop: 6, fontWeight: 500 }}>{label}</div>
+      <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+        <i className={`ph ph-${icon}`} />
+      </div>
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: C.text, lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 12, color: C.textSec, marginTop: 3, fontWeight: 600 }}>{label}</div>
+      </div>
     </div>
   );
 }
 
-function ListItem({ label, actions }: { label: string; actions: React.ReactNode }) {
+function ListItem({ label, sub, actions }: { label: string; sub?: string; actions: React.ReactNode }) {
   return (
     <div style={{
-      background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 12,
+      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12,
       padding: "14px", marginBottom: 8, display: "flex", alignItems: "center",
-      justifyContent: "space-between", gap: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      justifyContent: "space-between", gap: 10, boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
     }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: "#111827", flex: 1 }}>{label}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.text, display: "block" }}>{label}</span>
+        {sub && <span style={{ fontSize: 12, color: C.textSec, marginTop: 2, display: "block" }}>{sub}</span>}
+      </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>{actions}</div>
     </div>
   );
@@ -121,8 +166,8 @@ function ListItem({ label, actions }: { label: string; actions: React.ReactNode 
 
 function Empty({ icon, text }: { icon: string; text: string }) {
   return (
-    <div style={{ textAlign: "center", padding: "50px 20px", color: "#6B7280" }}>
-      <i className={`ph ph-${icon}`} style={{ fontSize: 44, marginBottom: 12, opacity: 0.3, display: "block" }} />
+    <div style={{ textAlign: "center", padding: "50px 20px", color: C.textSec }}>
+      <i className={`ph ph-${icon}`} style={{ fontSize: 44, marginBottom: 12, opacity: 0.25, display: "block" }} />
       <div style={{ fontSize: 13 }}>{text}</div>
     </div>
   );
@@ -132,54 +177,53 @@ function Toast({ msg }: { msg: string }) {
   if (!msg) return null;
   return (
     <div style={{
-      position: "fixed", top: 60, right: 14, left: 14,
-      background: "#111827", color: "#fff", padding: "12px 16px",
+      position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)",
+      background: C.text, color: "#fff", padding: "10px 18px",
       borderRadius: 12, fontSize: 13, fontWeight: 700,
-      textAlign: "center", zIndex: 200, transition: "opacity .3s",
+      textAlign: "center", zIndex: 200, whiteSpace: "nowrap",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
     }}>{msg}</div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────
+// ── Main component ──────────────────────────────────────────────────
 export default function Admin({ onBack }: Props) {
   const [view, setView] = useState<View>("menu");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0 });
+  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0, q: 0, faq: 0 });
 
-  // Data caches
   const [govs, setGovs] = useState<Record<string, { name: string }>>({});
   const [areas, setAreas] = useState<Record<string, { name: string; governorateId: string }>>({});
   const [centers, setCenters] = useState<Record<string, any>>({});
   const [users, setUsers] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<Record<string, any>>({});
   const [requests, setRequests] = useState<Record<string, any>>({});
+  const [faqItems, setFaqItems] = useState<Record<string, { question: string; answer: string }>>({});
+
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
   async function loadAll() {
     setLoading(true);
     try {
-      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap] = await Promise.all([
-        db.ref("governorates").once("value"),
-        db.ref("areas").once("value"),
-        db.ref("centers").once("value"),
-        db.ref("users").once("value"),
-        db.ref("questions").once("value"),
-        db.ref("centerRequests").once("value"),
+      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, faqSnap] = await Promise.all([
+        db.ref("governorates").once("value"), db.ref("areas").once("value"), db.ref("centers").once("value"),
+        db.ref("users").once("value"), db.ref("questions").once("value"), db.ref("centerRequests").once("value"),
+        db.ref("faq/items").once("value"),
       ]);
-      const g = govSnap.val() || {}; const a = areaSnap.val() || {};
-      const c = centerSnap.val() || {}; const u = userSnap.val() || {};
-      const q = qSnap.val() || {}; const r = reqSnap.val() || {};
-      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r);
-      setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length, user: Object.keys(u).length, req: Object.keys(r).length });
-    } catch(e) { showToast("خطأ في التحميل"); }
+      const g = govSnap.val() || {}, a = areaSnap.val() || {}, c = centerSnap.val() || {};
+      const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, f = faqSnap.val() || {};
+      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setFaqItems(f);
+      setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length,
+        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, faq: Object.keys(f).length });
+    } catch { showToast("خطأ في التحميل"); }
     setLoading(false);
   }
 
   useEffect(() => { loadAll(); }, []);
 
-  // ── USERS ───────────────────────────────
-type UsersView = "list" | "detail";
+  // ── USERS ────────────────────────────────────────────
+  type UsersView = "list" | "detail";
   const [usersView, setUsersView] = useState<UsersView>("list");
   const [selectedUser, setSelectedUser] = useState<{ id: string; data: any } | null>(null);
 
@@ -193,28 +237,26 @@ type UsersView = "list" | "detail";
       return (
         <div>
           <BackBtn onClick={() => setUsersView("list")} />
-          <Title>تفاصيل المستخدم</Title>
-          <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 13, background: "#246BFD", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900 }}>{initials}</div>
+          <SectionTitle>تفاصيل المستخدم</SectionTitle>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900 }}>{initials}</div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800 }}>{u.name || u.firstName || "مستخدم"} {u.lastName || ""}</div>
-                <div style={{ fontSize: 12, color: "#6B7280" }}>{u.phone || selectedUser.id}</div>
+                <div style={{ fontSize: 16, fontWeight: 900 }}>{u.name || u.firstName || "مستخدم"} {u.lastName || ""}</div>
+                <div style={{ fontSize: 12, color: C.textSec, marginTop: 2 }}>{u.phone || selectedUser.id}</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-              <div style={{ background: "#F9FAFB", border: "1.5px solid #F0F1F3", padding: "10px 11px", borderRadius: 10, fontSize: 11, color: "#6B7280" }}>
-                أفضل نتيجة<span style={{ display: "block", marginTop: 3, color: "#111827", fontWeight: 800, fontSize: 13 }}>{best}%</span>
-              </div>
-              <div style={{ background: "#F9FAFB", border: "1.5px solid #F0F1F3", padding: "10px 11px", borderRadius: 10, fontSize: 11, color: "#6B7280" }}>
-                اختبارات<span style={{ display: "block", marginTop: 3, color: "#111827", fontWeight: 800, fontSize: 13 }}>{tests}</span>
-              </div>
-              <div style={{ background: "#F9FAFB", border: "1.5px solid #F0F1F3", padding: "10px 11px", borderRadius: 10, fontSize: 11, color: "#6B7280" }}>
-                التسجيل<span style={{ display: "block", marginTop: 3, color: "#111827", fontWeight: 800, fontSize: 13 }}>{reg}</span>
-              </div>
-              <div style={{ background: "#F9FAFB", border: "1.5px solid #F0F1F3", padding: "10px 11px", borderRadius: 10, fontSize: 11, color: "#6B7280" }}>
-                المحافظة<span style={{ display: "block", marginTop: 3, color: "#111827", fontWeight: 800, fontSize: 13 }}>{u.governorate || "-"}</span>
-              </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+              {[
+                { label: "أفضل نتيجة", value: best + "%" },
+                { label: "اختبارات", value: tests },
+                { label: "التسجيل", value: reg },
+                { label: "المحافظة", value: u.governorate || "-" },
+              ].map(s => (
+                <div key={s.label} style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
+                  {s.label}<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 900, fontSize: 14 }}>{s.value}</span>
+                </div>
+              ))}
             </div>
             <Btn variant="danger" onClick={async () => {
               if (!confirm("حذف المستخدم؟")) return;
@@ -222,7 +264,7 @@ type UsersView = "list" | "detail";
               try { await db.ref("users/" + selectedUser.id).remove(); showToast("تم الحذف"); await loadAll(); setUsersView("list"); }
               catch { showToast("حدث خطأ"); }
               setLoading(false);
-            }}>حذف المستخدم</Btn>
+            }}><i className="ph ph-trash" /> حذف المستخدم</Btn>
           </div>
         </div>
       );
@@ -231,25 +273,23 @@ type UsersView = "list" | "detail";
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <Title>المستخدمين</Title>
-          <span style={{ background: "#ECFDF3", color: "#16A34A", padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>{entries.length}</span>
-        </div>
+        <SectionTitle count={entries.length}>المستخدمين</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {entries.map(([id, u]) => {
             const initials = (u.name || u.firstName || "U").charAt(0).toUpperCase();
             return (
               <div key={id} onClick={() => { setSelectedUser({ id, data: u }); setUsersView("detail"); }} style={{
-                background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 14,
-                display: "flex", alignItems: "center", gap: 12, cursor: "pointer",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#246BFD", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0 }}>{initials}</div>
+                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14,
+                display: "flex", alignItems: "center", gap: 12, cursor: "pointer", transition: "all .15s",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+              }} onMouseEnter={e => { e.currentTarget.style.borderColor = C.borderHover; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0 }}>{initials}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 800 }}>{u.name || u.firstName || "مستخدم"}</div>
-                  <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{u.phone || id}</div>
+                  <div style={{ fontSize: 12, color: C.textSec, marginTop: 2 }}>{u.phone || id}</div>
                 </div>
-                <i className="ph ph-caret-left" style={{ fontSize: 16, color: "#D1D5DB" }} />
+                <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight }} />
               </div>
             );
           })}
@@ -258,8 +298,8 @@ type UsersView = "list" | "detail";
     );
   }
 
-  // ── QUESTIONS ───────────────────────────────
-type QSubView = "menu" | "list" | "form";
+  // ── QUESTIONS ────────────────────────────────────────────
+  type QSubView = "menu" | "list" | "form";
   const [qSub, setQSub] = useState<QSubView>("menu");
   const [qCat, setQCat] = useState("");
   const [editingQ, setEditingQ] = useState<string | null>(null);
@@ -282,19 +322,16 @@ type QSubView = "menu" | "list" | "form";
     setLoading(true);
     try {
       const payload = {
-        category: qForm.category,
-        mediaType: qForm.type,
+        category: qForm.category, mediaType: qForm.type,
         mediaUrl: qForm.type !== "text" ? qForm.mediaUrl.trim() : null,
-        question: qForm.text.trim(),
-        options: cleanOpts,
+        question: qForm.text.trim(), options: cleanOpts,
         correctAnswer: qForm.correct,
         explanation: qForm.explanation.trim() || null,
       };
       if (editingQ) await db.ref("questions/" + editingQ).update(payload);
       else await db.ref("questions").push(payload);
       showToast(editingQ ? "تم التحديث" : "تم الإضافة");
-      await loadAll();
-      setQSub("list");
+      await loadAll(); setQSub("list");
     } catch { showToast("حدث خطأ"); }
     setLoading(false);
   }
@@ -304,61 +341,73 @@ type QSubView = "menu" | "list" | "form";
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
-          <Title>إدارة الأسئلة</Title>
-          <Btn variant="primary" onClick={() => { resetQForm(); setQSub("form"); }}><i className="ph ph-plus" /> إضافة سؤال</Btn>
-          <Btn variant="outline" onClick={() => setQSub("list")}><i className="ph ph-pencil-simple" /> تعديل أو حذف</Btn>
+          <SectionTitle count={stats.q}>إدارة الأسئلة</SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Btn variant="primary" onClick={() => { resetQForm(); setQSub("form"); }}><i className="ph ph-plus" /> إضافة سؤال جديد</Btn>
+            <Btn variant="outline" onClick={() => setQSub("list")}><i className="ph ph-list" /> عرض وتعديل الأسئلة</Btn>
+          </div>
         </div>
       );
     }
     if (qSub === "form") {
+      const isMedia = qForm.type !== "text";
       return (
         <div>
           <BackBtn onClick={() => { editingQ ? setQSub("list") : setQSub("menu"); }} />
-          <Title>{editingQ ? "تعديل سؤال" : "إضافة سؤال جديد"}</Title>
-          <Select label="القسم" value={qForm.category} onChange={v => setQForm(f => ({ ...f, category: v }))}>
-            {Q_CATS.map(c => <option key={c} value={c}>{c}</option>)}
-          </Select>
-          <Select label="نوع السؤال" value={qForm.type} onChange={v => setQForm(f => ({ ...f, type: v as any }))}>
-            <option value="text">نصي</option><option value="image">صورة</option><option value="video">فيديو / GIF</option>
-          </Select>
-          {qForm.type !== "text" && (
-            <Input label="رابط الوسائط" value={qForm.mediaUrl} onChange={v => setQForm(f => ({ ...f, mediaUrl: v }))} placeholder="https://..." />
-          )}
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700 }}>السؤال</label>
-            <textarea value={qForm.text} onChange={e => setQForm(f => ({ ...f, text: e.target.value }))} rows={3} placeholder="نص السؤال..." style={{
-              width: "100%", padding: "14px", border: "1.5px solid #F0F1F3", borderRadius: 12, background: "#fff", fontSize: 14, fontFamily: "inherit",
-            }} />
+          <SectionTitle>{editingQ ? "تعديل السؤال" : "سؤال جديد"}</SectionTitle>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
+            <Select label="القسم" value={qForm.category} onChange={v => setQForm(f => ({ ...f, category: v }))}>
+              {Q_CATS.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+            <Select label="نوع السؤال" value={qForm.type} onChange={v => setQForm(f => ({ ...f, type: v as any }))}>
+              <option value="text">نصي (بدون وسائط)</option>
+              <option value="image">صورة</option>
+              <option value="video">فيديو / GIF</option>
+            </Select>
+            {isMedia && (
+              <>
+                <Input label="رابط الوسائط" value={qForm.mediaUrl} onChange={v => setQForm(f => ({ ...f, mediaUrl: v }))} placeholder="https://..." />
+                {qForm.mediaUrl.trim() && (
+                  <div style={{ marginBottom: 14, borderRadius: 10, overflow: "hidden", border: `1px solid ${C.border}`, background: C.bg }}>
+                    {qForm.type === "image" ? (
+                      <img src={qForm.mediaUrl} alt="preview" style={{ width: "100%", height: 160, objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <video src={qForm.mediaUrl} controls style={{ width: "100%", height: 160, objectFit: "cover" }} onError={e => { (e.target as HTMLVideoElement).style.display = "none"; }} />
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+            <TextArea label="نص السؤال" value={qForm.text} onChange={v => setQForm(f => ({ ...f, text: v }))} placeholder="اكتب السؤال هنا..." rows={3} />
           </div>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700 }}>الخيارات</label>
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الخيارات</div>
             {qForm.options.map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                <input value={opt} onChange={e => {
-                  const opts = [...qForm.options]; opts[i] = e.target.value; setQForm(f => ({ ...f, options: opts }));
-                }} placeholder={`الخيار ${i + 1}`} style={{ flex: 1, padding: "14px", border: "1.5px solid #F0F1F3", borderRadius: 12, fontSize: 14, fontFamily: "inherit" }} />
-                <button onClick={() => {
-                  const opts = qForm.options.filter((_, idx) => idx !== i);
-                  setQForm(f => ({ ...f, options: opts, correct: Math.min(f.correct, opts.length - 1) }));
-                }} style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #F0F1F3", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#DC2626" }}><i className="ph ph-x" /></button>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: qForm.correct === i ? C.greenLight : C.bg, color: qForm.correct === i ? C.green : C.textLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, border: `1.5px solid ${qForm.correct === i ? C.green : C.border}` }}>{i + 1}</div>
+                <input value={opt} onChange={e => { const opts = [...qForm.options]; opts[i] = e.target.value; setQForm(f => ({ ...f, options: opts })); }} placeholder={`الخيار ${i + 1}`} style={{ flex: 1, padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: "inherit", outline: "none" }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+                <button onClick={() => { const opts = qForm.options.filter((_, idx) => idx !== i); setQForm(f => ({ ...f, options: opts, correct: Math.min(f.correct, opts.length - 1) })); }} style={{ width: 32, height: 32, borderRadius: 8, border: `1.5px solid ${C.border}`, background: C.surface, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: C.red, flexShrink: 0 }}><i className="ph ph-x" /></button>
               </div>
             ))}
             <button onClick={() => setQForm(f => ({ ...f, options: [...f.options, ""] }))} style={{
-              width: "auto", padding: "8px 14px", borderRadius: 10, border: "1.5px solid #246BFD",
-              background: "#fff", color: "#246BFD", fontSize: 12, fontWeight: 800, cursor: "pointer",
-              fontFamily: "inherit",
-            }}><i className="ph ph-plus" /> خيار</button>
+              padding: "8px 14px", borderRadius: 8, border: `1.5px dashed ${C.primary}`, background: C.surface, color: C.primary,
+              fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 4,
+            }}><i className="ph ph-plus" /> إضافة خيار</button>
+            <div style={{ marginTop: 12 }}>
+              <Select label="الإجابة الصحيحة" value={String(qForm.correct)} onChange={v => setQForm(f => ({ ...f, correct: parseInt(v) }))}>
+                {qForm.options.map((_, i) => <option key={i} value={i}>الخيار {i + 1}</option>)}
+              </Select>
+            </div>
           </div>
-          <Select label="الإجابة الصحيحة" value={String(qForm.correct)} onChange={v => setQForm(f => ({ ...f, correct: parseInt(v) }))}>
-            {qForm.options.map((_, i) => <option key={i} value={i}>الخيار {i + 1}</option>)}
-          </Select>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700 }}>شرح الإجابة (اختياري)</label>
-            <textarea value={qForm.explanation} onChange={e => setQForm(f => ({ ...f, explanation: e.target.value }))} rows={2} placeholder="شرح مختصر..." style={{
-              width: "100%", padding: "14px", border: "1.5px solid #F0F1F3", borderRadius: 12, background: "#fff", fontSize: 14, fontFamily: "inherit",
-            }} />
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>شرح الإجابة (اختياري)</div>
+            <TextArea label="" value={qForm.explanation} onChange={v => setQForm(f => ({ ...f, explanation: v }))} placeholder="اكتب شرحًا مفصلًا لماذا هذا الإجابة صحيحة..." rows={3} />
           </div>
-          <Btn variant="primary" onClick={saveQ}><i className="ph ph-floppy-disk" /> {editingQ ? "تحديث" : "حفظ"}</Btn>
+
+          <Btn variant="primary" onClick={saveQ}><i className="ph ph-floppy-disk" /> {editingQ ? "حفظ التعديلات" : "حفظ السؤال"}</Btn>
         </div>
       );
     }
@@ -367,40 +416,40 @@ type QSubView = "menu" | "list" | "form";
     return (
       <div>
         <BackBtn onClick={() => setQSub("menu")} />
-        <Title>الأسئلة</Title>
+        <SectionTitle count={qs.length}>الأسئلة</SectionTitle>
         <div style={{ marginBottom: 12 }}>
-          <select value={qCat} onChange={e => setQCat(e.target.value)} style={{
-            width: "100%", padding: "12px", border: "1.5px solid #F0F1F3", borderRadius: 12,
-            background: "#fff", fontSize: 14, fontFamily: "inherit",
-          }}>
+          <Select label="" value={qCat} onChange={v => setQCat(v)}>
             <option value="">كل الأقسام</option>
             {Q_CATS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          </Select>
         </div>
         {qs.length === 0 ? <Empty icon="question" text="لا توجد أسئلة" /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {qs.map(q => (
-              <div key={q.id} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 12, padding: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, lineHeight: 1.5 }}>{q.question.substring(0, 60)}{q.question.length > 60 ? "..." : ""}</div>
+              <div key={q.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "start", marginBottom: 8 }}>
+                  {q.mediaType !== "text" && q.mediaUrl && (
+                    <div style={{ width: 48, height: 48, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: C.bg }}>
+                      {q.mediaType === "image" ? (
+                        <img src={q.mediaUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.goldLight }}><i className="ph ph-video" style={{ color: C.gold, fontSize: 20 }} /></div>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.5 }}>{q.question.substring(0, 80)}{q.question.length > 80 ? "..." : ""}</div>
+                    <div style={{ fontSize: 11, color: C.textSec }}>{q.category} · {q.options?.length || 0} خيارات</div>
+                  </div>
+                </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={() => {
                     setEditingQ(q.id);
-                    setQForm({
-                      category: q.category || Q_CATS[0],
-                      type: q.mediaType || "text",
-                      mediaUrl: q.mediaUrl || "",
-                      text: q.question || "",
-                      explanation: q.explanation || "",
-                      correct: q.correctAnswer || 0,
-                      options: q.options || ["", ""],
-                    });
+                    setQForm({ category: q.category || Q_CATS[0], type: q.mediaType || "text", mediaUrl: q.mediaUrl || "", text: q.question || "", explanation: q.explanation || "", correct: q.correctAnswer || 0, options: q.options || ["", ""] });
                     setQSub("form");
-                  }} style={{ padding: "7px 12px", borderRadius: 10, border: "1.5px solid #246BFD", background: "#fff", color: "#246BFD", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-pencil-simple" /> تعديل</button>
-                  <button onClick={async () => {
-                    if (!confirm("حذف السؤال؟")) return;
-                    setLoading(true); try { await db.ref("questions/" + q.id).remove(); showToast("تم الحذف"); await loadAll(); }
-                    catch { showToast("حدث خطأ"); } setLoading(false);
-                  }} style={{ padding: "7px 12px", borderRadius: 10, border: "none", background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-trash" /> حذف</button>
+                  }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
+                  <button onClick={async () => { if (!confirm("حذف السؤال؟")) return; setLoading(true); try { await db.ref("questions/" + q.id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
                 </div>
               </div>
             ))}
@@ -410,16 +459,13 @@ type QSubView = "menu" | "list" | "form";
     );
   }
 
-  // ── REQUESTS ───────────────────────────────
+  // ── REQUESTS ────────────────────────────────────────────
   function RequestsSection() {
     const entries = Object.entries(requests).sort((a, b) => (b[1].submittedAt || "").localeCompare(a[1].submittedAt || ""));
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <Title>طلبات الانتساب</Title>
-          <span style={{ background: "#FEF3C7", color: "#92400E", padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>{entries.length}</span>
-        </div>
+        <SectionTitle count={entries.length}>طلبات الانتساب</SectionTitle>
         {entries.length === 0 ? <Empty icon="clipboard-text" text="لا توجد طلبات" /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {entries.map(([reqId, req]) => {
@@ -429,41 +475,25 @@ type QSubView = "menu" | "list" | "form";
                 : req.status === "approved" ? { bg: "#ECFDF3", color: "#059669", txt: "تم النشر" }
                 : { bg: "#FEF2F2", color: "#DC2626", txt: "مرفوض" };
               return (
-                <div key={reqId} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                <div key={reqId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, flex: 1 }}>{req.name}</div>
-                    <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, marginRight: 6, whiteSpace: "nowrap" }}>{status.txt}</span>
+                    <div style={{ fontSize: 15, fontWeight: 900, flex: 1 }}>{req.name}</div>
+                    <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" }}>{status.txt}</span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12, color: "#6B7280", marginBottom: 8 }}>
-                    <div><i className="ph ph-map-pin" style={{ color: "#246BFD" }} /> {req.governorateName || "-"}</div>
-                    <div><i className="ph ph-buildings" style={{ color: "#246BFD" }} /> {areasList || "-"}</div>
-                    <div><i className="ph ph-phone" style={{ color: "#246BFD" }} /> {req.phone || "-"}</div>
-                    <div><i className="ph ph-star" style={{ color: "#F59E0B" }} /> {req.rating || 0}/5</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12, color: C.textSec, marginBottom: 10 }}>
+                    <div><i className="ph ph-map-pin" style={{ color: C.primary }} /> {req.governorateName || "-"}</div>
+                    <div><i className="ph ph-buildings" style={{ color: C.primary }} /> {areasList || "-"}</div>
+                    <div><i className="ph ph-phone" style={{ color: C.primary }} /> {req.phone || "-"}</div>
+                    <div><i className="ph ph-star" style={{ color: C.gold }} /> {req.rating || 0}/5</div>
                   </div>
-                  {req.address && <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 6 }}><i className="ph ph-map-pin" /> {req.address}</div>}
-                  {daysList && <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 6 }}><i className="ph ph-calendar" /> {daysList}</div>}
-                  {req.workingHours && <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 10 }}><i className="ph ph-clock" /> {req.workingHours}</div>}
+                  {req.address && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 6 }}><i className="ph ph-map-pin" /> {req.address}</div>}
+                  {daysList && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 6 }}><i className="ph ph-calendar" /> {daysList}</div>}
+                  {req.workingHours && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 12 }}><i className="ph ph-clock" /> {req.workingHours}</div>}
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <button onClick={async () => {
-                      if (!confirm(`نشر "${req.name}"؟`)) return;
-                      setLoading(true);
-                      try {
-                        await db.ref("centers").push({
-                          name: req.name, address: req.address, mapLink: req.mapLink, phone: req.phone,
-                          rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "",
-                          areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "",
-                          publishedAt: new Date().toISOString(),
-                        });
-                        await db.ref("centerRequests/" + reqId).remove();
-                        showToast("تم النشر"); await loadAll();
-                      } catch { showToast("حدث خطأ"); }
-                      setLoading(false);
-                    }} style={{ padding: "7px 12px", borderRadius: 10, border: "none", background: "#16A34A", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-check-circle" /> نشر</button>
-                    <button onClick={async () => {
-                      if (!confirm(`رفض "${req.name}"؟`)) return;
-                      try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); }
-                      catch { showToast("حدث خطأ"); }
-                    }} style={{ padding: "7px 12px", borderRadius: 10, border: "none", background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-x-circle" /> رفض</button>
+                    <button onClick={async () => { if (!confirm(`نشر "${req.name}"؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address, mapLink: req.mapLink, phone: req.phone, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                      style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: C.green, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-check-circle" /> نشر</button>
+                    <button onClick={async () => { if (!confirm(`رفض "${req.name}"؟`)) return; try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); } catch { showToast("حدث خطأ"); } }}
+                      style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: C.red, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-x-circle" /> رفض</button>
                   </div>
                 </div>
               );
@@ -474,21 +504,16 @@ type QSubView = "menu" | "list" | "form";
     );
   }
 
-  // ── ADD FORMS ─────────────────────────────
-type AddView = "gov" | "area" | "center";
-  const [addV, setAddV] = useState<AddView>("gov");
+  // ── ADD FORMS ────────────────────────────────────────
   const [addGovName, setAddGovName] = useState("");
   const [addAreaGov, setAddAreaGov] = useState("");
   const [addAreaName, setAddAreaName] = useState("");
   const [addCenter, setAddCenter] = useState({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" });
 
   useEffect(() => {
-    if (view === "add-area") {
-      const ids = Object.keys(govs);
-      if (ids.length && !addAreaGov) setAddAreaGov(ids[0]);
-    }
+    if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
     if (view === "add-center") {
-      const gids = Object.keys(govs); const aids = Object.keys(areas);
+      const gids = Object.keys(govs), aids = Object.keys(areas);
       if (gids.length && !addCenter.gov) setAddCenter(s => ({ ...s, gov: gids[0] }));
       if (aids.length && !addCenter.area) setAddCenter(s => ({ ...s, area: aids[0] }));
     }
@@ -499,14 +524,11 @@ type AddView = "gov" | "area" | "center";
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
-          <Title>إضافة محافظة</Title>
-          <Input label="اسم المحافظة" value={addGovName} onChange={setAddGovName} placeholder="مثال: عمّان" />
+          <SectionTitle>إضافة محافظة</SectionTitle>
+          <Input label="اسم المحافظة" value={addGovName} onChange={setAddGovName} placeholder="مثال: عمان" />
           <Btn variant="primary" onClick={async () => {
             if (!addGovName.trim()) { showToast("أدخل اسم المحافظة"); return; }
-            setLoading(true);
-            try { await db.ref("governorates").push({ name: addGovName.trim() }); showToast("تم الإضافة"); setAddGovName(""); await loadAll(); setView("menu"); }
-            catch { showToast("حدث خطأ"); }
-            setLoading(false);
+            setLoading(true); try { await db.ref("governorates").push({ name: addGovName.trim() }); showToast("تم الإضافة"); setAddGovName(""); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
           }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
         </div>
       );
@@ -516,58 +538,51 @@ type AddView = "gov" | "area" | "center";
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
-          <Title>إضافة منطقة</Title>
+          <SectionTitle>إضافة منطقة</SectionTitle>
           <Select label="المحافظة" value={addAreaGov} onChange={setAddAreaGov}>{opts}</Select>
           <Input label="اسم المنطقة" value={addAreaName} onChange={setAddAreaName} placeholder="مثال: خلدا" />
           <Btn variant="primary" onClick={async () => {
             if (!addAreaName.trim()) { showToast("أدخل اسم المنطقة"); return; }
-            setLoading(true);
-            try { await db.ref("areas").push({ name: addAreaName.trim(), governorateId: addAreaGov }); showToast("تم الإضافة"); setAddAreaName(""); await loadAll(); setView("menu"); }
-            catch { showToast("حدث خطأ"); }
-            setLoading(false);
+            setLoading(true); try { await db.ref("areas").push({ name: addAreaName.trim(), governorateId: addAreaGov }); showToast("تم الإضافة"); setAddAreaName(""); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
           }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
         </div>
       );
     }
-    // add-center
     const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
     const aopts = Object.entries(areas).map(([id, a]) => <option key={id} value={id}>{a.name}</option>);
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
-        <Title>إضافة مركز تدريب</Title>
-        <Input label="الاسم" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز" />
-        <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v }))}>{gopts}</Select>
-        <Select label="المنطقة" value={addCenter.area} onChange={v => setAddCenter(s => ({ ...s, area: v }))}>{aopts}</Select>
-        <Input label="العنوان" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="العنوان التفصيلي" />
-        <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" />
-        <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps" />
-        <Input label="التقييم (0-5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
-        <Input label="ساعات الدوام" value={addCenter.hours} onChange={v => setAddCenter(s => ({ ...s, hours: v }))} placeholder="8:00 ص - 4:00 م" />
-        <Input label="أيام الدوام (مفصولة بفاصلة)" value={addCenter.days} onChange={v => setAddCenter(s => ({ ...s, days: v }))} placeholder="الأحد,الإثنين,الثلاثاء" />
+        <SectionTitle>إضافة مركز تدريب</SectionTitle>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
+          <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز" />
+          <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v }))}>{gopts}</Select>
+          <Select label="المنطقة" value={addCenter.area} onChange={v => setAddCenter(s => ({ ...s, area: v }))}>{aopts}</Select>
+        </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>تفاصيل التواصل</div>
+          <Input label="العنوان" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="العنوان التفصيلي" />
+          <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" />
+          <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps URL" />
+        </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الدوام</div>
+          <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+          <Input label="ساعات الدوام" value={addCenter.hours} onChange={v => setAddCenter(s => ({ ...s, hours: v }))} placeholder="8:00 ص – 4:00 م" />
+          <Input label="أيام الدوام (مفصولة بفاصلة)" value={addCenter.days} onChange={v => setAddCenter(s => ({ ...s, days: v }))} placeholder="الأحد,الإثنين,الثلاثاء" />
+        </div>
         <Btn variant="primary" onClick={async () => {
           if (!addCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
           const days = addCenter.days.split(",").map(s => s.trim()).filter(Boolean);
-          setLoading(true);
-          try {
-            await db.ref("centers").push({
-              name: addCenter.name.trim(), governorateId: addCenter.gov, areaId: addCenter.area,
-              address: addCenter.address.trim() || null, phone: addCenter.phone.trim() || null,
-              mapLink: addCenter.mapLink.trim() || null, rating: parseFloat(addCenter.rating) || 0,
-              workingHours: addCenter.hours.trim() || null, workingDays: days.length ? days : null,
-            });
-            showToast("تم الإضافة");
-            setAddCenter({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" });
-            await loadAll(); setView("menu");
-          } catch { showToast("حدث خطأ"); }
-          setLoading(false);
-        }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
+          setLoading(true); try { await db.ref("centers").push({ name: addCenter.name.trim(), governorateId: addCenter.gov, areaId: addCenter.area, address: addCenter.address.trim() || null, phone: addCenter.phone.trim() || null, mapLink: addCenter.mapLink.trim() || null, rating: parseFloat(addCenter.rating) || 0, workingHours: addCenter.hours.trim() || null, workingDays: days.length ? days : null }); showToast("تم الإضافة"); setAddCenter({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" }); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
+        }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
       </div>
     );
   }
 
-  // ── EDIT & DELETE LISTS ─────────────────────────
-type EditType = "governorates" | "areas" | "centers";
+  // ── EDIT ──────────────────────────────────────────────────
+  type EditType = "governorates" | "areas" | "centers";
   const [editType, setEditType] = useState<EditType | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [editGovName, setEditGovName] = useState("");
@@ -580,11 +595,23 @@ type EditType = "governorates" | "areas" | "centers";
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
-          <Title>تعديل البيانات</Title>
+          <SectionTitle>تعديل البيانات</SectionTitle>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div onClick={() => setEditType("governorates")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>المحافظات</div>
-            <div onClick={() => setEditType("areas")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>المناطق</div>
-            <div onClick={() => setEditType("centers")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>مراكز التدريب</div>
+            {[
+              { label: "المحافظات", icon: "map-trifold", color: C.cyan, bg: C.cyanLight, type: "governorates" as EditType },
+              { label: "المناطق", icon: "map-pin", color: C.primary, bg: C.primaryLight, type: "areas" as EditType },
+              { label: "مراكز التدريب", icon: "buildings", color: C.gold, bg: C.goldLight, type: "centers" as EditType },
+            ].map(item => (
+              <button key={item.type} onClick={() => setEditType(item.type)} style={{
+                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16,
+                display: "flex", alignItems: "center", gap: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "right",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)", transition: "all .15s", width: "100%",
+              }} onMouseEnter={e => { e.currentTarget.style.borderColor = item.color; }} onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: item.bg, color: item.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}><i className={`ph ph-${item.icon}`} /></div>
+                <div style={{ flex: 1, fontSize: 15, fontWeight: 800, color: C.text }}>{item.label}</div>
+                <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight }} />
+              </button>
+            ))}
           </div>
         </div>
       );
@@ -593,20 +620,14 @@ type EditType = "governorates" | "areas" | "centers";
     const entries = Object.entries(data);
     if (entries.length === 0) return <Empty icon="folder-open" text="لا توجد بيانات" />;
     if (editId) {
-      // Edit form
       const item = data[editId];
       if (editType === "governorates") {
         return (
           <div>
             <BackBtn onClick={() => setEditId(null)} />
-            <Title>تعديل محافظة</Title>
+            <SectionTitle>تعديل محافظة</SectionTitle>
             <Input label="الاسم" value={editGovName} onChange={setEditGovName} />
-            <Btn variant="primary" onClick={async () => {
-              setLoading(true);
-              try { await db.ref("governorates/" + editId).update({ name: editGovName.trim() }); showToast("تم التحديث"); await loadAll(); setEditId(null); }
-              catch { showToast("حدث خطأ"); }
-              setLoading(false);
-            }}><i className="ph ph-check" /> حفظ</Btn>
+            <Btn variant="primary" onClick={async () => { setLoading(true); try { await db.ref("governorates/" + editId).update({ name: editGovName.trim() }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
           </div>
         );
       }
@@ -615,25 +636,19 @@ type EditType = "governorates" | "areas" | "centers";
         return (
           <div>
             <BackBtn onClick={() => setEditId(null)} />
-            <Title>تعديل منطقة</Title>
+            <SectionTitle>تعديل منطقة</SectionTitle>
             <Select label="المحافظة" value={editAreaGov} onChange={setEditAreaGov}>{opts}</Select>
             <Input label="الاسم" value={editAreaName} onChange={setEditAreaName} />
-            <Btn variant="primary" onClick={async () => {
-              setLoading(true);
-              try { await db.ref("areas/" + editId).update({ name: editAreaName.trim(), governorateId: editAreaGov }); showToast("تم التحديث"); await loadAll(); setEditId(null); }
-              catch { showToast("حدث خطأ"); }
-              setLoading(false);
-            }}><i className="ph ph-check" /> حفظ</Btn>
+            <Btn variant="primary" onClick={async () => { setLoading(true); try { await db.ref("areas/" + editId).update({ name: editAreaName.trim(), governorateId: editAreaGov }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
           </div>
         );
       }
-      // centers
       const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
       const aopts = Object.entries(areas).map(([id, a]) => <option key={id} value={id}>{a.name}</option>);
       return (
         <div>
           <BackBtn onClick={() => setEditId(null)} />
-          <Title>تعديل مركز</Title>
+          <SectionTitle>تعديل مركز</SectionTitle>
           <Input label="الاسم" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
           <Select label="المحافظة" value={editCenter.gov} onChange={v => setEditCenter(s => ({ ...s, gov: v }))}>{gopts}</Select>
           <Select label="المنطقة" value={editCenter.area} onChange={v => setEditCenter(s => ({ ...s, area: v }))}>{aopts}</Select>
@@ -643,42 +658,23 @@ type EditType = "governorates" | "areas" | "centers";
           <Input label="التقييم" value={editCenter.rating} onChange={v => setEditCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
           <Input label="ساعات الدوام" value={editCenter.hours} onChange={v => setEditCenter(s => ({ ...s, hours: v }))} />
           <Input label="أيام الدوام (مفصولة)" value={editCenter.days} onChange={v => setEditCenter(s => ({ ...s, days: v }))} />
-          <Btn variant="primary" onClick={async () => {
-            const days = editCenter.days.split(",").map(s => s.trim()).filter(Boolean);
-            setLoading(true);
-            try {
-              await db.ref("centers/" + editId).update({
-                name: editCenter.name.trim(), governorateId: editCenter.gov, areaId: editCenter.area,
-                address: editCenter.address.trim() || null, phone: editCenter.phone.trim() || null,
-                mapLink: editCenter.mapLink.trim() || null, rating: parseFloat(editCenter.rating) || 0,
-                workingHours: editCenter.hours.trim() || null, workingDays: days.length ? days : null,
-              });
-              showToast("تم التحديث"); await loadAll(); setEditId(null);
-            } catch { showToast("حدث خطأ"); }
-            setLoading(false);
-          }}><i className="ph ph-check" /> حفظ</Btn>
+          <Btn variant="primary" onClick={async () => { const days = editCenter.days.split(",").map(s => s.trim()).filter(Boolean); setLoading(true); try { await db.ref("centers/" + editId).update({ name: editCenter.name.trim(), governorateId: editCenter.gov, areaId: editCenter.area, address: editCenter.address.trim() || null, phone: editCenter.phone.trim() || null, mapLink: editCenter.mapLink.trim() || null, rating: parseFloat(editCenter.rating) || 0, workingHours: editCenter.hours.trim() || null, workingDays: days.length ? days : null }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
         </div>
       );
     }
     return (
       <div>
         <BackBtn onClick={() => setEditType(null)} />
-        <Title>تعديل {editType === "governorates" ? "المحافظات" : editType === "areas" ? "المناطق" : "مراكز التدريب"}</Title>
+        <SectionTitle>تعديل {editType === "governorates" ? "المحافظات" : editType === "areas" ? "المناطق" : "مراكز التدريب"}</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {entries.map(([id, item]) => (
-            <ListItem key={id} label={item.name} actions={
+            <ListItem key={id} label={item.name} sub={editType === "areas" ? govs[item.governorateId]?.name : editType === "centers" ? `${areas[item.areaId]?.name || ""} · ${govs[item.governorateId]?.name || ""}` : undefined} actions={
               <button onClick={() => {
                 setEditId(id);
                 if (editType === "governorates") setEditGovName(item.name);
                 else if (editType === "areas") { setEditAreaName(item.name); setEditAreaGov(item.governorateId || ""); }
-                else {
-                  setEditCenter({
-                    name: item.name || "", gov: item.governorateId || "", area: item.areaId || "",
-                    address: item.address || "", phone: item.phone || "", mapLink: item.mapLink || "",
-                    rating: String(item.rating || 0), hours: item.workingHours || "", days: (item.workingDays || []).join(","),
-                  });
-                }
-              }} style={{ padding: "7px 12px", borderRadius: 10, border: "1.5px solid #246BFD", background: "#fff", color: "#246BFD", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-pencil-simple" /> تعديل</button>
+                else { setEditCenter({ name: item.name || "", gov: item.governorateId || "", area: item.areaId || "", address: item.address || "", phone: item.phone || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), hours: item.workingHours || "", days: (item.workingDays || []).join(",") }); }
+              }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
             } />
           ))}
         </div>
@@ -686,18 +682,28 @@ type EditType = "governorates" | "areas" | "centers";
     );
   }
 
-  // Delete section
+  // ── DELETE ──────────────────────────────────────────────────
   const [delType, setDelType] = useState<EditType | null>(null);
   function DeleteSection() {
     if (!delType) {
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
-          <Title>حذف البيانات</Title>
+          <SectionTitle>حذف البيانات</SectionTitle>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div onClick={() => setDelType("governorates")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>المحافظات</div>
-            <div onClick={() => setDelType("areas")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>المناطق</div>
-            <div onClick={() => setDelType("centers")} style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 18, textAlign: "center", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>مراكز التدريب</div>
+            {[
+              { label: "المحافظات", type: "governorates" as EditType },
+              { label: "المناطق", type: "areas" as EditType },
+              { label: "مراكز التدريب", type: "centers" as EditType },
+            ].map(d => (
+              <button key={d.type} onClick={() => setDelType(d.type)} style={{
+                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18,
+                textAlign: "center", fontWeight: 800, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)", width: "100%",
+              }} onMouseEnter={e => e.currentTarget.style.borderColor = C.red} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                {d.label}
+              </button>
+            ))}
           </div>
         </div>
       );
@@ -708,17 +714,12 @@ type EditType = "governorates" | "areas" | "centers";
     return (
       <div>
         <BackBtn onClick={() => setDelType(null)} />
-        <Title>حذف {delType === "governorates" ? "المحافظات" : delType === "areas" ? "المناطق" : "مراكز التدريب"}</Title>
+        <SectionTitle>حذف {delType === "governorates" ? "المحافظات" : delType === "areas" ? "المناطق" : "مراكز التدريب"}</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {entries.map(([id, item]) => (
             <ListItem key={id} label={item.name} actions={
-              <button onClick={async () => {
-                if (!confirm(`حذف "${item.name}"؟`)) return;
-                setLoading(true);
-                try { await db.ref(delType + "/" + id).remove(); showToast("تم الحذف"); await loadAll(); }
-                catch { showToast("حدث خطأ"); }
-                setLoading(false);
-              }} style={{ padding: "7px 12px", borderRadius: 10, border: "none", background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-trash" /> حذف</button>
+              <button onClick={async () => { if (!confirm(`حذف "${item.name}"؟`)) return; setLoading(true); try { await db.ref(delType + "/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
             } />
           ))}
         </div>
@@ -726,27 +727,79 @@ type EditType = "governorates" | "areas" | "centers";
     );
   }
 
-  // ── RENDER ──────────────────────────────────────────
-type RenderView = View;
+  // ── FAQ ADMIN ──────────────────────────────────────────────────
+  const [faqForm, setFaqForm] = useState({ question: "", answer: "" });
+  const [editingFaq, setEditingFaq] = useState<string | null>(null);
+  function FaqAdminSection() {
+    const entries = Object.entries(faqItems);
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle count={entries.length}>إدارة الأسئلة الشائعة</SectionTitle>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>{editingFaq ? "تعديل السؤال" : "سؤال جديد"}</div>
+          <TextArea label="السؤال" value={faqForm.question} onChange={v => setFaqForm(f => ({ ...f, question: v }))} placeholder="اكتب السؤال..." rows={2} />
+          <TextArea label="الإجابة" value={faqForm.answer} onChange={v => setFaqForm(f => ({ ...f, answer: v }))} placeholder="اكتب الإجابة المفصلة..." rows={4} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn variant="primary" style={{ flex: 1 }} onClick={async () => {
+              if (!faqForm.question.trim() || !faqForm.answer.trim()) { showToast("أدخل السؤال والإجابة"); return; }
+              setLoading(true);
+              try {
+                if (editingFaq) await db.ref("faq/items/" + editingFaq).update({ question: faqForm.question.trim(), answer: faqForm.answer.trim() });
+                else await db.ref("faq/items").push({ question: faqForm.question.trim(), answer: faqForm.answer.trim() });
+                showToast(editingFaq ? "تم التحديث" : "تم الإضافة");
+                setFaqForm({ question: "", answer: "" }); setEditingFaq(null);
+                await loadAll();
+              } catch { showToast("حدث خطأ"); }
+              setLoading(false);
+            }}><i className="ph ph-floppy-disk" /> {editingFaq ? "حفظ التعديل" : "إضافة السؤال"}</Btn>
+            {editingFaq && <Btn variant="ghost" style={{ flex: 1 }} onClick={() => { setFaqForm({ question: "", answer: "" }); setEditingFaq(null); }}><i className="ph ph-x" /> إلغاء</Btn>}
+          </div>
+        </div>
+        {entries.length === 0 ? <Empty icon="chat-circle-text" text="لا توجد أسئلة شائعة" /> : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {entries.map(([id, f]) => (
+              <div key={id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>{f.question}</div>
+                <div style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6, marginBottom: 10 }}>{f.answer.substring(0, 120)}{f.answer.length > 120 ? "..." : ""}</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => { setEditingFaq(id); setFaqForm({ question: f.question, answer: f.answer }); }} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
+                  <button onClick={async () => { if (!confirm("حذف السؤال؟")) return; setLoading(true); try { await db.ref("faq/items/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── RENDER ──────────────────────────────────────────────────
   const renderView = (): React.ReactNode => {
     switch (view) {
       case "menu": return (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-            <StatCard label="محافظة" value={stats.gov} />
-            <StatCard label="منطقة" value={stats.area} />
-            <StatCard label="مركز تدريب" value={stats.center} />
-            <StatCard label="مستخدم" value={stats.user} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+            <StatCard label="محافظة" value={stats.gov} icon="map-trifold" color={C.cyan} bg={C.cyanLight} />
+            <StatCard label="منطقة" value={stats.area} icon="map-pin" color={C.primary} bg={C.primaryLight} />
+            <StatCard label="مركز" value={stats.center} icon="buildings" color={C.gold} bg={C.goldLight} />
+            <StatCard label="مستخدم" value={stats.user} icon="users" color={C.green} bg={C.greenLight} />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Card icon="users" color="blue" title="إدارة المستخدمين" desc="عرض وحذف المستخدمين المسجلين" onClick={() => setView("users")} />
-            <Card icon="question" color="gold" title="إدارة الأسئلة" desc="إضافة، تعديل، حذف أسئلة الفحص" onClick={() => { setQSub("menu"); setView("questions"); }} />
-            <Card icon="clipboard-text" color="purple" title="طلبات الانتساب" desc="مراجعة ونشر أو رفض طلبات المراكز" onClick={() => setView("requests")} />
-            <Card icon="map-trifold" color="cyan" title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
-            <Card icon="map-pin" color="blue" title="إضافة منطقة" desc="ربط منطقة بمحافظة" onClick={() => setView("add-area")} />
-            <Card icon="buildings" color="gold" title="إضافة مركز" desc="إضافة مركز تدريب جديد" onClick={() => setView("add-center")} />
-            <Card icon="pencil-simple" color="blue" title="تعديل البيانات" desc="تعديل المحافظات والمناطق والمراكز" onClick={() => { setEditType(null); setView("edit-list"); }} />
-            <Card icon="trash" color="red" title="حذف البيانات" desc="إزالة المحافظات أو المناطق أو المراكز" onClick={() => { setDelType(null); setView("delete-list"); }} />
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginBottom: 10, padding: "0 4px" }}>الإدارة</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Card icon="users" color={C.primary} colorBg={C.primaryLight} title="المستخدمين" desc="عرض وحذف المستخدمين" onClick={() => setView("users")} count={stats.user} />
+            <Card icon="question" color={C.gold} colorBg={C.goldLight} title="الأسئلة" desc="إضافة، تعديل، حذف الأسئلة" onClick={() => { setQSub("menu"); setView("questions"); }} count={stats.q} />
+            <Card icon="chat-circle-text" color={C.purple} colorBg={C.purpleLight} title="الأسئلة الشائعة" desc="إدارة الأسئلة المتكررة" onClick={() => { setFaqForm({ question: "", answer: "" }); setEditingFaq(null); setView("faq-admin"); }} count={stats.faq} />
+            <Card icon="clipboard-text" color={C.purple} colorBg={C.purpleLight} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginTop: 16, marginBottom: 10, padding: "0 4px" }}>البيانات الجغرافية</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
+            <Card icon="map-pin" color={C.primary} colorBg={C.primaryLight} title="إضافة منطقة" desc="ربط منطقة بمحافظة" onClick={() => setView("add-area")} />
+            <Card icon="buildings" color={C.gold} colorBg={C.goldLight} title="إضافة مركز" desc="إضافة مركز تدريب جديد" onClick={() => setView("add-center")} />
+            <Card icon="pencil-simple" color={C.primary} colorBg={C.primaryLight} title="تعديل البيانات" desc="تعديل المحافظات والمناطق والمراكز" onClick={() => { setEditType(null); setView("edit-list"); }} />
+            <Card icon="trash" color={C.red} colorBg={C.redLight} title="حذف البيانات" desc="إزالة المحافظات أو المناطق أو المراكز" onClick={() => { setDelType(null); setView("delete-list"); }} />
           </div>
         </div>
       );
@@ -756,46 +809,50 @@ type RenderView = View;
       case "add-gov": case "add-area": case "add-center": return <AddSection />;
       case "edit-list": return <EditListSection />;
       case "delete-list": return <DeleteSection />;
+      case "faq-admin": return <FaqAdminSection />;
       default: return null;
     }
   };
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F9FAFB", direction: "rtl" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: C.bg, direction: "rtl" }}>
       {/* Header */}
       <div style={{
-        background: "#fff", borderBottom: "1.5px solid #F0F1F3", padding: "14px 16px",
-        display: "flex", flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 0,
+        background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "12px 16px",
+        display: "flex", flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 0, boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
       }}>
         <button onClick={onBack} style={{
-          width: 40, height: 40, borderRadius: 12, border: "1.5px solid #E5E7EB",
-          background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center",
+          width: 36, height: 36, borderRadius: 10, border: `1px solid ${C.border}`,
+          background: C.bg, display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", flexShrink: 0,
-        }}><i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} /></button>
+        }}><i className="ph ph-sign-out" style={{ fontSize: 18, color: C.red }} /></button>
         <div style={{ flex: 1, textAlign: "right" }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>لوحة التحكم</div>
-          <div style={{ fontSize: 12, color: "#9CA3AF" }}>JO Driver</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>لوحة التحكم</div>
+          <div style={{ fontSize: 11, color: C.textLight, marginTop: 1 }}>JO Driver — إدارة المنصة</div>
+        </div>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, flexShrink: 0 }}>
+          <i className="ph ph-shield-check" />
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "14px 14px" }}>
+      <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>
         {renderView()}
-        <div style={{ height: 16 }} />
+        <div style={{ height: 20 }} />
       </div>
 
       {/* Toast & Loading */}
       <Toast msg={toast} />
       {loading && (
         <div style={{
-          position: "fixed", inset: 0, background: "rgba(249,250,251,0.95)",
+          position: "fixed", inset: 0, background: "rgba(246,248,251,0.95)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 999,
         }}>
           <div style={{
-            width: 48, height: 48, border: "3.5px solid #F0F1F3", borderTopColor: "#246BFD",
-            borderRadius: "50%", animation: "spin .8s linear infinite", marginBottom: 14,
+            width: 44, height: 44, border: `3px solid ${C.border}`, borderTopColor: C.primary,
+            borderRadius: "50%", animation: "spin .8s linear infinite", marginBottom: 12,
           }} />
-          <div style={{ fontWeight: 800, color: "#6B7280", fontSize: 14 }}>جارٍ التحميل...</div>
+          <div style={{ fontWeight: 800, color: C.textSec, fontSize: 14 }}>جارٍ التحميل...</div>
         </div>
       )}
     </div>

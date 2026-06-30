@@ -128,6 +128,7 @@ export default function App() {
       setScreen("landing");
       setLoading(false);
     }
+    return;
   }, []);
 
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }

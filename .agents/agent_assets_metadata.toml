@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "dmtCMdI4mM99crSmiH2S8"
+uri = "file://screenshots/admin-dashboard-menu.jpg"
+type = "image"
+title = "لوحة التحكم المعاد تصميمها - الصفحة الرئيسية"
