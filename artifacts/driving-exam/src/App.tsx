@@ -22,9 +22,22 @@ const CATS = [
   "المخالفات واحتساب النقاط",
 ];
 
+const SESSION_KEY = "dex_user";
+
+function saveSession(name: string) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name })); } catch {}
+}
+function loadSession(): string | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw)?.name || null;
+  } catch { return null; }
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("landing");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadMsg, setLoadMsg] = useState("جارٍ التحميل...");
 
   const [userName, setUserName] = useState("");
@@ -39,30 +52,49 @@ export default function App() {
   const [resultOk, setResultOk] = useState(0);
   const [resultTotal, setResultTotal] = useState(0);
 
-  useEffect(() => { initTelegram(); }, []);
+  // ── On mount: restore session ─────────────────────────────
+  useEffect(() => {
+    initTelegram();
+
+    const saved = loadSession();
+    if (saved) {
+      setUserName(saved);
+      setScreen("home");
+      setLoading(false);
+      return;
+    }
+
+    // Check Telegram user in Firebase
+    const tgUser = getTelegramUser();
+    if (tgUser?.id) {
+      db.ref("users/" + tgUser.id).once("value")
+        .then(snap => {
+          if (snap.exists()) {
+            const name = snap.val().name || tgUser.first_name || "";
+            setUserName(name);
+            saveSession(name);
+            setScreen("home");
+          } else {
+            setScreen("landing");
+          }
+        })
+        .catch(() => setScreen("landing"))
+        .finally(() => setLoading(false));
+    } else {
+      setScreen("landing");
+      setLoading(false);
+    }
+  }, []);
 
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }
   function unload() { setLoading(false); }
   function go(s: Screen) { setScreen(s); }
 
-  async function handleStart() {
-    const u = getTelegramUser();
-    if (!u?.id) { go("register"); return; }
-    load("جارٍ التحميل...");
-    try {
-      const snap = await db.ref("users/" + u.id).once("value");
-      if (snap.exists()) {
-        setUserName(snap.val().name || u.first_name || "");
-        go("home");
-      } else {
-        go("register");
-      }
-    } catch { go("register"); }
-    unload();
-  }
+  function handleStart() { go("register"); }
 
-  async function handleRegistered(name: string) {
+  function handleRegistered(name: string) {
     setUserName(name);
+    saveSession(name);
     go("home");
   }
 
@@ -123,15 +155,11 @@ export default function App() {
 
   return (
     <div className="shell">
-      {screen === "landing" && <LandingScreen onStart={handleStart} />}
-      {screen === "register" && (
-        <RegisterScreen
-          onSuccess={handleRegistered}
-          onLoad={load}
-          onUnload={unload}
-        />
+      {screen === "landing"    && <LandingScreen onStart={handleStart} />}
+      {screen === "register"   && (
+        <RegisterScreen onSuccess={handleRegistered} onLoad={load} onUnload={unload} />
       )}
-      {screen === "home" && (
+      {screen === "home"       && (
         <HomeScreen
           name={userName}
           onExam={() => alert("سيتم تفعيل الامتحان التجريبي قريباً")}
@@ -139,40 +167,26 @@ export default function App() {
           onCenters={openCenters}
         />
       )}
-      {screen === "centers" && (
-        <CentersScreen
-          govs={govs} areas={areas} centers={centers}
-          onBack={() => go("home")}
-        />
+      {screen === "centers"    && (
+        <CentersScreen govs={govs} areas={areas} centers={centers} onBack={() => go("home")} />
       )}
       {screen === "categories" && (
         <CategoriesScreen
-          cats={CATS}
-          qCounts={qCounts}
+          cats={CATS} qCounts={qCounts}
           onBack={() => go("home")}
           onStudy={startStudy}
           onTest={startTest}
         />
       )}
-      {screen === "study" && (
-        <StudyScreen
-          qs={studyQs}
-          cat={studyCat}
-          onBack={() => go("categories")}
-        />
+      {screen === "study"      && (
+        <StudyScreen qs={studyQs} cat={studyCat} onBack={() => go("categories")} />
       )}
-      {screen === "test" && (
-        <TestScreen
-          qs={testQs}
-          cat={studyCat}
-          onBack={() => go("categories")}
-          onFinish={handleResult}
-        />
+      {screen === "test"       && (
+        <TestScreen qs={testQs} cat={studyCat} onBack={() => go("categories")} onFinish={handleResult} />
       )}
-      {screen === "result" && (
+      {screen === "result"     && (
         <ResultScreen
-          ok={resultOk}
-          total={resultTotal}
+          ok={resultOk} total={resultTotal}
           onBack={() => go("categories")}
           onRetry={() => startTest(studyCat)}
         />
