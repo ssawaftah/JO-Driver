@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import type { Governorate, Area, Center } from "../types";
+import AppFooter from "../components/Footer";
 
 interface Props {
   govs: Record<string, Governorate>;
@@ -681,6 +682,7 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
             />
           ))
         )}
+        <AppFooter initialData={null} />
       </div>
     </div>
   );

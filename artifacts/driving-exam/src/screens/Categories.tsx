@@ -1,3 +1,5 @@
+import AppFooter from "../components/Footer";
+
 interface Props {
   cats: string[];
   qCounts: Record<string, number>;
@@ -147,6 +149,7 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
         })}
 
         <div style={{ height: 20 }} />
+        <AppFooter initialData={null} />
       </div>
     </div>
   );

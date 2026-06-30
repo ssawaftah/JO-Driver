@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Question } from "../types";
+import AppFooter from "../components/Footer";
 
 interface Props {
   qs: Question[];
@@ -61,10 +62,10 @@ export default function Study({ qs, cat, onBack }: Props) {
 
         {/* Media */}
         {q.mediaUrl && q.mediaType !== "text" && (
-          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB" }}>
-            {(q.mediaType === "image" || q.mediaType === "gif")
-              ? <img src={q.mediaUrl} alt="" style={{ width: "100%", maxHeight: 200, objectFit: "cover" }} />
-              : <video controls src={q.mediaUrl} style={{ width: "100%", maxHeight: 200 }} />
+          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", background: "#000" }}>
+            {q.mediaType === "video"
+              ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", display: "block" }} />
+              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", display: "block", objectFit: "contain" }} />
             }
           </div>
         )}
@@ -166,6 +167,7 @@ export default function Study({ qs, cat, onBack }: Props) {
             </button>
           )}
       </div>
+      <AppFooter initialData={null} />
     </div>
   );
 }

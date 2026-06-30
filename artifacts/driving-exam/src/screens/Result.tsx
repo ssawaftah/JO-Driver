@@ -1,3 +1,5 @@
+import AppFooter from "../components/Footer";
+
 interface Props {
   ok: number;
   total: number;
@@ -104,6 +106,7 @@ export default function Result({ ok, total, onBack, onRetry }: Props) {
           العودة للأقسام
         </button>
       </div>
+      <AppFooter initialData={null} />
     </div>
   );
 }

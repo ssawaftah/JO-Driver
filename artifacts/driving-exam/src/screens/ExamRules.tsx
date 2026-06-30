@@ -1,3 +1,5 @@
+import AppFooter from "../components/Footer";
+
 interface Props {
   onStart: () => void;
   onBack: () => void;
@@ -112,8 +114,8 @@ export default function ExamRules({ onStart, onBack }: Props) {
           <i className="ph ph-play-circle" style={{ fontSize: 24 }} />
           بدء الاختبار
         </button>
-
       </div>
+      <AppFooter initialData={null} />
     </div>
   );
 }
