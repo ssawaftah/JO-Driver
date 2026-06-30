@@ -1,148 +1,77 @@
-import { motion } from "framer-motion";
+interface Props { onStart: () => void; }
 
-interface LandingProps {
-  onStart: () => void;
-}
-
-const features = [
-  { icon: "shield-check", color: "#16A34A", bg: "#ECFDF3", label: "موثوق من دائرة الترخيص" },
-  { icon: "target", color: "#246BFD", bg: "#EEF4FF", label: "محاكاة فعلية" },
-  { icon: "list-checks", color: "#EA580C", bg: "#FFF7ED", label: "مطابق لأسئلة الاختبار" },
-  { icon: "exam", color: "#DB2777", bg: "#FDF2F8", label: "تجربة امتحان كاملة" },
-];
-
-export default function Landing({ onStart }: LandingProps) {
+export default function Landing({ onStart }: Props) {
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "white" }}>
-      {/* Gradient hero background */}
-      <div
-        className="absolute top-0 left-0 right-0 h-72 pointer-events-none"
-        style={{
-          background: "linear-gradient(160deg, #EEF4FF 0%, #F0F7FF 40%, white 100%)",
-        }}
-      />
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+      {/* Blue hero */}
+      <div style={{
+        background: "linear-gradient(150deg, #1a57d4 0%, #246BFD 60%, #4f86ff 100%)",
+        padding: "48px 24px 40px",
+        textAlign: "center",
+        color: "#fff",
+      }}>
+        <div style={{
+          width: 80, height: 80,
+          background: "rgba(255,255,255,0.18)",
+          borderRadius: 24, margin: "0 auto 20px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 40,
+        }}>
+          <i className="ph ph-steering-wheel" />
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 10 }}>
+          اختبار الفحص النظري
+        </h1>
+        <p style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.88 }}>
+          استعد لاختبار القيادة النظري بأسئلة موثوقة<br />
+          ومراكز تدريب معتمدة قريبة منك
+        </p>
+      </div>
 
-      <div className="relative z-10 flex flex-col flex-1 px-5 pt-10 pb-10">
-        {/* Hero */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <motion.div
-            className="mx-auto mb-6 flex items-center justify-center"
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: 32,
-              background: "linear-gradient(135deg, #246BFD, #5B8FFF)",
-              boxShadow: "0 20px 50px rgba(36,107,253,0.25)",
-            }}
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 200 }}
-          >
-            <i className="ph ph-clipboard-text" style={{ fontSize: 46, color: "white" }} />
-          </motion.div>
-
-          <motion.h1
-            className="font-black mb-3"
-            style={{ fontSize: 30, color: "#1F2937", lineHeight: 1.3 }}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            اختبار الفحص النظري
-          </motion.h1>
-
-          <motion.p
-            style={{ color: "#6B7280", lineHeight: 1.9, fontSize: 14 }}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية، وترشيح مراكز تدريب قريبة منك.
-          </motion.p>
-        </motion.div>
-
-        {/* Features grid */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          {features.map((f, i) => (
-            <motion.div
-              key={f.label}
-              className="flex flex-col items-center text-center p-4 rounded-3xl"
-              style={{
-                background: "white",
-                border: "1px solid #E9EEF5",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 + i * 0.07 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div
-                className="flex items-center justify-center mb-3"
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 18,
-                  background: f.bg,
-                  color: f.color,
-                  fontSize: 22,
-                }}
-              >
+      {/* Features */}
+      <div style={{ padding: "24px 16px", flex: 1, background: "#fff" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+          {[
+            { icon: "shield-check", color: "#16A34A", bg: "#DCFCE7", label: "موثوق من دائرة الترخيص" },
+            { icon: "target",       color: "#2563EB", bg: "#DBEAFE", label: "محاكاة واقعية للاختبار" },
+            { icon: "list-checks",  color: "#D97706", bg: "#FEF3C7", label: "مطابق لأسئلة الاختبار" },
+            { icon: "exam",         color: "#9333EA", bg: "#F3E8FF", label: "تجربة امتحان كاملة" },
+          ].map(f => (
+            <div key={f.label} style={{
+              background: "#fff", border: "1.5px solid #E5E7EB",
+              borderRadius: 16, padding: "16px 12px",
+              textAlign: "center",
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: f.bg, color: f.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, margin: "0 auto 10px",
+              }}>
                 <i className={`ph ph-${f.icon}`} />
               </div>
-              <span className="font-bold" style={{ fontSize: 13, color: "#1F2937", lineHeight: 1.5 }}>
-                {f.label}
-              </span>
-            </motion.div>
+              <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.5, color: "#111827" }}>{f.label}</p>
+            </div>
           ))}
         </div>
 
-        {/* Stats bar */}
-        <motion.div
-          className="flex items-center justify-around rounded-2xl p-4 mb-8"
-          style={{ background: "#F7F8FC", border: "1px solid #E9EEF5" }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
-        >
-          {[
-            { value: "+500", label: "سؤال" },
-            { value: "6", label: "أقسام" },
-            { value: "100%", label: "مجاني" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="font-black text-xl" style={{ color: "#246BFD" }}>{stat.value}</div>
-              <div style={{ fontSize: 12, color: "#6B7280", fontWeight: 600 }}>{stat.label}</div>
+        {/* Stats */}
+        <div style={{
+          display: "flex", justifyContent: "space-around",
+          background: "#F3F6FF", borderRadius: 16, padding: "16px 8px", marginBottom: 24,
+        }}>
+          {[["500+", "سؤال"], ["6", "أقسام"], ["مجاني", "100%"]].map(([v, l]) => (
+            <div key={l} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#246BFD" }}>{v}</div>
+              <div style={{ fontSize: 12, color: "#6B7280", fontWeight: 600 }}>{l}</div>
             </div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Start button */}
-        <motion.button
-          onClick={onStart}
-          className="w-full flex items-center justify-center gap-2 font-bold text-white rounded-2xl"
-          style={{
-            height: 58,
-            background: "linear-gradient(135deg, #246BFD, #1F5CE0)",
-            boxShadow: "0 12px 28px rgba(36,107,253,0.30)",
-            fontSize: 17,
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.75 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <i className="ph ph-rocket-launch" style={{ fontSize: 22 }} />
+        <button className="btn-primary" onClick={onStart} style={{ fontSize: 17 }}>
+          <i className="ph ph-arrow-left" style={{ fontSize: 20 }} />
           ابدأ الآن
-        </motion.button>
+        </button>
       </div>
     </div>
   );

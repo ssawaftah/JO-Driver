@@ -1,15 +1,10 @@
 export type Screen =
-  | "landing"
-  | "register"
-  | "home"
-  | "trainingCenters"
-  | "studyCategories"
-  | "studySession"
-  | "testSession"
-  | "result";
+  | "landing" | "register" | "home"
+  | "centers" | "categories"
+  | "study" | "test" | "result";
 
 export interface Question {
-  id: string;
+  id?: string;
   question: string;
   options: string[];
   correctAnswer: number;
@@ -19,19 +14,10 @@ export interface Question {
   mediaType?: "image" | "video" | "gif" | "text";
 }
 
-export interface Governorate {
-  id: string;
-  name: string;
-}
-
-export interface Area {
-  id: string;
-  name: string;
-  governorateId: string;
-}
-
+export interface Governorate { id?: string; name: string; }
+export interface Area { id?: string; name: string; governorateId: string; }
 export interface Center {
-  id: string;
+  id?: string;
   name: string;
   address?: string;
   phone?: string;
@@ -42,12 +28,4 @@ export interface Center {
   governorateId?: string;
   areaId?: string;
   areas?: { id: string; name: string }[];
-}
-
-export interface AppUser {
-  name: string;
-  phone: string;
-  username: string;
-  userId: number;
-  registeredAt: string;
 }

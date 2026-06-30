@@ -4,13 +4,9 @@ declare global {
       WebApp: {
         ready: () => void;
         expand: () => void;
-        showAlert: (message: string, callback?: () => void) => void;
+        showAlert: (msg: string, cb?: () => void) => void;
         initDataUnsafe?: {
-          user?: {
-            id?: number;
-            first_name?: string;
-            username?: string;
-          };
+          user?: { id?: number; first_name?: string; username?: string };
         };
       };
     };
@@ -19,24 +15,11 @@ declare global {
 
 export const tg = window.Telegram?.WebApp;
 
+export function initTelegram() {
+  tg?.ready();
+  tg?.expand();
+}
+
 export function getTelegramUser() {
   return tg?.initDataUnsafe?.user;
-}
-
-export function showAlert(msg: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (tg) {
-      tg.showAlert(msg, resolve);
-    } else {
-      alert(msg);
-      resolve();
-    }
-  });
-}
-
-export function initTelegram() {
-  if (tg) {
-    tg.ready();
-    tg.expand();
-  }
 }

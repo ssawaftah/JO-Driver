@@ -1,154 +1,123 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { db } from "../lib/firebase";
-import { showAlert, getTelegramUser } from "../lib/telegram";
+import { getTelegramUser } from "../lib/telegram";
 
-interface RegisterProps {
-  defaultName?: string;
+interface Props {
   onSuccess: (name: string) => void;
-  onShowLoading: (text: string) => void;
-  onHideLoading: () => void;
+  onLoad: (msg: string) => void;
+  onUnload: () => void;
 }
 
-export default function Register({ defaultName = "", onSuccess, onShowLoading, onHideLoading }: RegisterProps) {
-  const [name, setName] = useState(defaultName);
+export default function Register({ onSuccess, onLoad, onUnload }: Props) {
+  const tgUser = getTelegramUser();
+  const [name, setName] = useState(tgUser?.first_name || "");
   const [phone, setPhone] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const trimName = name.trim();
-    const trimPhone = phone.trim();
-    if (!trimName) { await showAlert("الرجاء إدخال اسمك الكامل"); return; }
-    if (!trimPhone || trimPhone.length < 10) { await showAlert("الرجاء إدخال رقم هاتف صحيح"); return; }
+    setErr("");
+    const n = name.trim(), p = phone.trim();
+    if (!n) { setErr("الرجاء إدخال الاسم الكامل"); return; }
+    if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صحيح (10 أرقام)"); return; }
+    if (!tgUser?.id) { setErr("تعذر التحقق من حساب تيليغرام"); return; }
 
-    const user = getTelegramUser();
-    if (!user?.id) { await showAlert("تعذر التحقق من حسابك"); return; }
-
-    setSubmitting(true);
-    onShowLoading("جارٍ التسجيل...");
+    onLoad("جارٍ التسجيل...");
     try {
-      await db.ref("users/" + user.id).set({
-        name: trimName,
-        phone: trimPhone,
-        username: user.username || "",
-        userId: user.id,
+      await db.ref("users/" + tgUser.id).set({
+        name: n, phone: p,
+        username: tgUser.username || "",
+        userId: tgUser.id,
         registeredAt: new Date().toISOString(),
       });
-      await new Promise((r) => setTimeout(r, 800));
-      onHideLoading();
-      onSuccess(trimName);
+      onUnload();
+      onSuccess(n);
     } catch {
-      onHideLoading();
-      setSubmitting(false);
-      await showAlert("حدث خطأ في التسجيل. حاول مرة أخرى.");
+      onUnload();
+      setErr("حدث خطأ، حاول مرة أخرى");
     }
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "white" }}>
-      <div
-        className="absolute top-0 left-0 right-0 h-64 pointer-events-none"
-        style={{ background: "linear-gradient(160deg, #EEF4FF 0%, #F0F7FF 40%, white 100%)" }}
-      />
-      <div className="relative z-10 flex flex-col flex-1 px-5 pt-10 pb-10">
-        <motion.div
-          className="text-center mb-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <motion.div
-            className="mx-auto mb-5 flex items-center justify-center"
-            style={{
-              width: 80, height: 80, borderRadius: 28,
-              background: "linear-gradient(135deg, #246BFD, #5B8FFF)",
-              boxShadow: "0 16px 40px rgba(36,107,253,0.22)",
-            }}
-            initial={{ scale: 0.7 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 220 }}
-          >
-            <i className="ph ph-user-circle" style={{ fontSize: 40, color: "white" }} />
-          </motion.div>
-          <h1 className="font-black mb-2" style={{ fontSize: 26, color: "#1F2937" }}>أهلاً بك!</h1>
-          <p style={{ color: "#6B7280", fontSize: 14 }}>أدخل بياناتك للمتابعة</p>
-        </motion.div>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+      {/* Header */}
+      <div style={{
+        background: "linear-gradient(150deg, #1a57d4 0%, #246BFD 100%)",
+        padding: "40px 24px 32px", textAlign: "center", color: "#fff",
+      }}>
+        <div style={{
+          width: 72, height: 72, background: "rgba(255,255,255,0.18)",
+          borderRadius: 22, margin: "0 auto 16px",
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36,
+        }}>
+          <i className="ph ph-user-circle" />
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>أهلاً بك!</h1>
+        <p style={{ fontSize: 14, opacity: 0.85 }}>أدخل بياناتك للمتابعة</p>
+      </div>
 
-        <motion.form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
+      {/* Form */}
+      <div style={{ padding: "28px 20px", flex: 1, background: "#fff" }}>
+        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Name */}
           <div>
-            <label className="block mb-2 font-bold" style={{ fontSize: 13, color: "#1F2937" }}>الاسم الكامل</label>
-            <div className="relative">
-              <i className="ph ph-user absolute" style={{ right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 20, color: "#6B7280" }} />
+            <label style={{ display: "block", fontWeight: 700, fontSize: 14, marginBottom: 8, color: "#374151" }}>
+              الاسم الكامل
+            </label>
+            <div style={{ position: "relative" }}>
+              <i className="ph ph-user" style={{
+                position: "absolute", right: 14, top: "50%",
+                transform: "translateY(-50%)", fontSize: 20, color: "#9CA3AF",
+              }} />
               <input
+                className="inp"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
                 placeholder="أدخل اسمك الكامل"
-                disabled={submitting}
-                style={{
-                  width: "100%", height: 56, paddingRight: 46, paddingLeft: 16,
-                  borderRadius: 16, border: "1.5px solid #E9EEF5",
-                  background: "white", fontFamily: "inherit", fontSize: 15,
-                  color: "#1F2937", outline: "none", transition: "border-color 0.2s",
-                  direction: "rtl",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#246BFD")}
-                onBlur={(e) => (e.target.style.borderColor = "#E9EEF5")}
+                value={name}
+                onChange={e => setName(e.target.value)}
               />
             </div>
           </div>
 
+          {/* Phone */}
           <div>
-            <label className="block mb-2 font-bold" style={{ fontSize: 13, color: "#1F2937" }}>رقم الهاتف</label>
-            <div className="relative">
-              <i className="ph ph-phone absolute" style={{ right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 20, color: "#6B7280" }} />
+            <label style={{ display: "block", fontWeight: 700, fontSize: 14, marginBottom: 8, color: "#374151" }}>
+              رقم الهاتف
+            </label>
+            <div style={{ position: "relative" }}>
+              <i className="ph ph-phone" style={{
+                position: "absolute", right: 14, top: "50%",
+                transform: "translateY(-50%)", fontSize: 20, color: "#9CA3AF",
+              }} />
               <input
+                className="inp"
                 type="tel"
+                placeholder="07xxxxxxxx"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0791234567"
-                disabled={submitting}
-                style={{
-                  width: "100%", height: 56, paddingRight: 46, paddingLeft: 16,
-                  borderRadius: 16, border: "1.5px solid #E9EEF5",
-                  background: "white", fontFamily: "inherit", fontSize: 15,
-                  color: "#1F2937", outline: "none", transition: "border-color 0.2s",
-                  direction: "ltr", textAlign: "right",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#246BFD")}
-                onBlur={(e) => (e.target.style.borderColor = "#E9EEF5")}
+                onChange={e => setPhone(e.target.value)}
+                style={{ direction: "ltr", textAlign: "right" }}
               />
             </div>
           </div>
 
-          <motion.button
-            type="submit"
-            disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 font-bold text-white rounded-2xl mt-2"
-            style={{
-              height: 56, background: submitting ? "#93AAFF" : "linear-gradient(135deg, #246BFD, #1F5CE0)",
-              boxShadow: submitting ? "none" : "0 10px 24px rgba(36,107,253,0.28)",
-              fontSize: 16, border: "none", cursor: submitting ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-            }}
-            whileTap={submitting ? {} : { scale: 0.98 }}
-          >
-            {submitting ? (
-              <span>جارٍ التسجيل...</span>
-            ) : (
-              <>
-                <i className="ph ph-check-circle" style={{ fontSize: 20 }} />
-                موافق
-              </>
-            )}
-          </motion.button>
-        </motion.form>
+          {/* Error */}
+          {err && (
+            <div style={{
+              background: "#FEF2F2", border: "1px solid #FECACA",
+              borderRadius: 10, padding: "10px 14px",
+              color: "#DC2626", fontSize: 13, fontWeight: 600,
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <i className="ph ph-warning-circle" style={{ fontSize: 18, flexShrink: 0 }} />
+              {err}
+            </div>
+          )}
+
+          <button type="submit" className="btn-primary" style={{ marginTop: 4 }}>
+            <i className="ph ph-check" style={{ fontSize: 20 }} />
+            تسجيل ومتابعة
+          </button>
+        </form>
       </div>
     </div>
   );
