@@ -1,3 +1,5 @@
+import AppFooter from "../components/Footer";
+
 interface Props {
   name: string;
   onExam: () => void;
@@ -97,6 +99,7 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide }: Prop
           ))}
         </div>
       </div>
+      <AppFooter />
     </div>
   );
 }

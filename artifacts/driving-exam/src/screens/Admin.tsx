@@ -3,7 +3,7 @@ import { db } from "../lib/firebase";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin";
+type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin" | "footer-admin";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -1520,6 +1520,151 @@ export default function Admin({ onBack }: Props) {
     );
   }
 
+  // ── FOOTER ADMIN ────────────────────────────────────────────
+  const [footerSponsors, setFooterSponsors] = useState<Record<string, any>>({});
+  const [footerSocial, setFooterSocial] = useState<Record<string, string>>({});
+  const [sponsorImgUrl, setSponsorImgUrl] = useState("");
+  const [sponsorLink, setSponsorLink] = useState("");
+  const [socialKey, setSocialKey] = useState("facebook");
+  const [socialUrl, setSocialUrl] = useState("");
+
+  const SOCIAL_OPTIONS = [
+    { key: "facebook",  label: "فيسبوك",     icon: "facebook-logo" },
+    { key: "whatsapp",  label: "واتساب",      icon: "whatsapp-logo" },
+    { key: "instagram", label: "انستغرام",    icon: "instagram-logo" },
+    { key: "x",         label: "تويتر / X",   icon: "x-logo" },
+  ];
+
+  async function loadFooter() {
+    const [spSnap, soSnap] = await Promise.all([
+      db.ref("footer/sponsors").once("value"),
+      db.ref("footer/social").once("value"),
+    ]);
+    setFooterSponsors(spSnap.val() || {});
+    setFooterSocial(soSnap.val() || {});
+  }
+
+  function FooterAdminSection() {
+    useEffect(() => { loadFooter(); }, []);
+
+    async function addSponsor() {
+      if (!sponsorImgUrl.trim()) { showToast("أدخل رابط الصورة"); return; }
+      setLoading(true);
+      try {
+        await db.ref("footer/sponsors").push({ imageUrl: sponsorImgUrl.trim(), link: sponsorLink.trim() || null });
+        setSponsorImgUrl(""); setSponsorLink("");
+        showToast("تمت الإضافة"); await loadFooter();
+      } catch { showToast("حدث خطأ"); }
+      setLoading(false);
+    }
+
+    async function removeSponsor(id: string) {
+      if (!confirm("حذف هذه الصورة؟")) return;
+      setLoading(true);
+      try { await db.ref("footer/sponsors/" + id).remove(); showToast("تم الحذف"); await loadFooter(); }
+      catch { showToast("حدث خطأ"); }
+      setLoading(false);
+    }
+
+    async function saveSocial() {
+      if (!socialUrl.trim()) { showToast("أدخل الرابط"); return; }
+      setLoading(true);
+      try {
+        await db.ref("footer/social/" + socialKey).set(socialUrl.trim());
+        setSocialUrl(""); showToast("تم الحفظ"); await loadFooter();
+      } catch { showToast("حدث خطأ"); }
+      setLoading(false);
+    }
+
+    async function removeSocial(key: string) {
+      if (!confirm("حذف هذا الحساب؟")) return;
+      setLoading(true);
+      try { await db.ref("footer/social/" + key).remove(); showToast("تم الحذف"); await loadFooter(); }
+      catch { showToast("حدث خطأ"); }
+      setLoading(false);
+    }
+
+    const sponsorArr = Object.entries(footerSponsors);
+
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle>إدارة الفوتر</SectionTitle>
+
+        {/* ── Sponsors ── */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-image" style={{ color: C.gold }} /> صور الراعي الرسمي
+            <span style={{ fontSize: 11, background: C.goldLight, color: C.gold, padding: "1px 8px", borderRadius: 20 }}>{sponsorArr.length}</span>
+          </div>
+
+          <Input label="رابط الصورة (URL)" value={sponsorImgUrl} onChange={setSponsorImgUrl} placeholder="https://example.com/logo.jpg" />
+          <Input label="رابط الضغط (اختياري)" value={sponsorLink} onChange={setSponsorLink} placeholder="https://example.com" />
+          {sponsorImgUrl.trim() && (
+            <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden", border: `1px solid ${C.border}`, background: "#F9FAFB" }}>
+              <img src={sponsorImgUrl} alt="preview" style={{ width: "100%", height: 80, objectFit: "contain", display: "block" }}
+                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            </div>
+          )}
+          <Btn variant="primary" onClick={addSponsor}><i className="ph ph-plus" /> إضافة صورة</Btn>
+
+          {sponsorArr.length > 0 && (
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              {sponsorArr.map(([id, sp]) => (
+                <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, background: C.bg, borderRadius: 10, padding: "10px 12px", border: `1px solid ${C.border}` }}>
+                  <img src={sp.imageUrl} alt="" style={{ width: 56, height: 40, objectFit: "contain", borderRadius: 6, background: "#fff", border: `1px solid ${C.border}`, flexShrink: 0 }}
+                    onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3"; }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, color: C.textSec, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {sp.link ? <a href={sp.link} target="_blank" rel="noreferrer" style={{ color: C.primary }}>{sp.link}</a> : <span style={{ color: C.textLight }}>بدون رابط</span>}
+                    </div>
+                  </div>
+                  <button onClick={() => removeSponsor(id)} style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: C.redLight, color: C.red, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>
+                    <i className="ph ph-trash" style={{ fontSize: 13 }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Social Media ── */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-share-network" style={{ color: C.primary }} /> مواقع التواصل الاجتماعي
+          </div>
+
+          <Select label="المنصة" value={socialKey} onChange={setSocialKey}>
+            {SOCIAL_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </Select>
+          <Input label="الرابط" value={socialUrl} onChange={setSocialUrl} placeholder="https://facebook.com/mypage" />
+          <Btn variant="primary" onClick={saveSocial}><i className="ph ph-floppy-disk" /> حفظ</Btn>
+
+          {Object.keys(footerSocial).length > 0 && (
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              {SOCIAL_OPTIONS.filter(o => footerSocial[o.key]).map(o => (
+                <div key={o.key} style={{ display: "flex", alignItems: "center", gap: 10, background: C.bg, borderRadius: 10, padding: "10px 12px", border: `1px solid ${C.border}` }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: C.primaryLight, color: C.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+                    <i className={`ph ph-${o.icon}`} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{o.label}</div>
+                    <div style={{ fontSize: 11, color: C.textSec, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {footerSocial[o.key]}
+                    </div>
+                  </div>
+                  <button onClick={() => removeSocial(o.key)} style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: C.redLight, color: C.red, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>
+                    <i className="ph ph-trash" style={{ fontSize: 13 }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── RENDER ──────────────────────────────────────────────────
   const renderView = (): React.ReactNode => {
     switch (view) {
@@ -1538,6 +1683,7 @@ export default function Admin({ onBack }: Props) {
             <Card icon="book-open-text" color={C.purple} colorBg={C.purpleLight} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
             <Card icon="clipboard-text" color={C.purple} colorBg={C.purpleLight} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
           </div>
+          <Card icon="layout" color="#0891B2" colorBg={C.cyanLight} title="إدارة الفوتر" desc="الراعي الرسمي، سوشيال ميديا" onClick={() => { loadFooter(); setView("footer-admin"); }} />
           <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginTop: 16, marginBottom: 10, padding: "0 4px" }}>البيانات الجغرافية</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
@@ -1555,6 +1701,7 @@ export default function Admin({ onBack }: Props) {
       case "edit-list": return <EditListSection />;
       case "delete-list": return <DeleteSection />;
       case "guide-admin": return <GuideAdminSection />;
+      case "footer-admin": return <FooterAdminSection />;
       default: return null;
     }
   };
