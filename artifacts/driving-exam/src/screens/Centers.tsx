@@ -192,23 +192,36 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
                   : <span style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{c.name}</span>
                 }
                 {c.areas && c.areas.length > 0 && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
-                    {c.areas.map(a => (
-                      <span key={a.id} style={{
-                        fontSize: 11, fontWeight: 700, padding: "2px 8px",
-                        borderRadius: 6, background: "#EEF4FF", color: "#246BFD",
-                      }}>{a.name}</span>
-                    ))}
+                  <div style={{ marginTop: 6 }}>
+                    {/* Governorate label */}
+                    {c.governorateId && govs[c.governorateId] && (
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        fontSize: 12, fontWeight: 700, color: "#6B7280", marginBottom: 5,
+                      }}>
+                        <i className="ph ph-map-trifold" style={{ fontSize: 13 }} />
+                        {govs[c.governorateId].name}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {c.areas.map(a => (
+                        <span key={a.id} style={{
+                          fontSize: 11, fontWeight: 700, padding: "2px 8px",
+                          borderRadius: 6, background: "#EEF4FF", color: "#246BFD",
+                        }}>{a.name}</span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
               {c.rating != null && (
                 <div style={{
                   background: "#FEF3C7", borderRadius: 10,
-                  padding: "6px 10px", textAlign: "center", flexShrink: 0,
+                  padding: "6px 12px", display: "flex", alignItems: "center",
+                  gap: 5, flexShrink: 0,
                 }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: "#92400E" }}>{c.rating}</div>
-                  <div style={{ fontSize: 10, color: "#B45309" }}>Google</div>
+                  <i className="ph ph-star-fill" style={{ fontSize: 16, color: "#F59E0B" }} />
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#92400E" }}>{c.rating}</span>
                 </div>
               )}
             </div>
@@ -259,6 +272,7 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
             {/* Hours */}
             {c.workingHours && (
               <div style={{ padding: "0 16px 14px" }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>أوقات الدوام:</p>
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   background: "#F3F6FF", borderRadius: 10,
