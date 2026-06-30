@@ -33,8 +33,8 @@ export default function Home({ name, onExam, onStudy, onCenters }: Props) {
           <i className="ph ph-car" />
         </div>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>اختبار الفحص النظري</div>
-          <div style={{ fontSize: 12, color: "#6B7280" }}>منصة الاستعداد لاختبار القيادة</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>JO Driver</div>
+          <div style={{ fontSize: 12, color: "#6B7280" }}>منصتك للتحضير لاختبار القيادة الأردني</div>
         </div>
       </div>
 
