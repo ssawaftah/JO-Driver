@@ -61,10 +61,10 @@ export default function Study({ qs, cat, onBack }: Props) {
 
         {/* Media */}
         {q.mediaUrl && q.mediaType !== "text" && (
-          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", maxHeight: 260, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", height: 180 }}>
             {q.mediaType === "video"
-              ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", maxHeight: 260, display: "block" }} />
-              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain" }} />
+              ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }} />
+              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }} />
             }
           </div>
         )}

@@ -194,10 +194,10 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
 
         {/* Media */}
         {q.mediaUrl && q.mediaType !== "text" && (
-          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 12, border: "1px solid #E5E7EB", maxHeight: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 12, border: "1px solid #E5E7EB", height: 170 }}>
             {q.mediaType === "video"
-              ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", maxHeight: 240, display: "block" }} />
-              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", maxHeight: 240, display: "block", objectFit: "contain" }} />
+              ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }} />
+              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }} />
             }
           </div>
         )}
