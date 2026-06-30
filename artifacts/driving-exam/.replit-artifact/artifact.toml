@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "اختبار الفحص النظري"
+title = "JO Driver"
 version = "1.0.0"
 id = "artifacts/driving-exam"
 router = "path"

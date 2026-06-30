@@ -1,3 +1,15 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <rect width="180" height="180" rx="36" fill="url(#bg)"/>
+  <circle cx="90" cy="90" r="56" stroke="white" stroke-width="10" opacity="0.95"/>
+  <circle cx="90" cy="90" r="20" stroke="white" stroke-width="10" opacity="0.95"/>
+  <line x1="90" y1="34" x2="90" y2="70" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  <line x1="90" y1="110" x2="90" y2="146" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  <line x1="34" y1="90" x2="70" y2="90" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  <line x1="110" y1="90" x2="146" y2="90" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a4fd4"/>
+      <stop offset="1" stop-color="#246BFD"/>
+    </linearGradient>
+  </defs>
 </svg>
