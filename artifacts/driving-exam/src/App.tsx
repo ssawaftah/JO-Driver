@@ -12,6 +12,9 @@ import StudyScreen from "./screens/Study";
 import TestScreen from "./screens/Test";
 import ResultScreen from "./screens/Result";
 import Loading from "./components/Loading";
+import ExamRulesScreen from "./screens/ExamRules";
+import ExamScreen from "./screens/Exam";
+import ExamResultScreen from "./screens/ExamResult";
 
 const CATS = [
   "قواعد السير والمرور",
@@ -68,6 +71,13 @@ export default function App() {
   const [testQs, setTestQs] = useState<Question[]>([]);
   const [resultOk, setResultOk] = useState(0);
   const [resultTotal, setResultTotal] = useState(0);
+
+  // Exam state
+  const [examQs, setExamQs] = useState<Question[]>([]);
+  const [examOk, setExamOk] = useState(0);
+  const [examWrong, setExamWrong] = useState(0);
+  const [examTotal, setExamTotal] = useState(0);
+  const [examSkipped, setExamSkipped] = useState(0);
 
   // ── On mount: restore session ─────────────────────────────
   useEffect(() => {
@@ -165,6 +175,36 @@ export default function App() {
     go("result");
   }
 
+  async function openExam() {
+    let allQs: Question[] = Object.values(questions);
+    if (allQs.length === 0) {
+      load("جارٍ تحميل أسئلة الامتحان...");
+      const snap = await db.ref("questions").once("value");
+      const data = snap.val() || {};
+      setQuestions(data);
+      allQs = Object.values(data) as Question[];
+      unload();
+    }
+    setExamQs(allQs);
+    go("exam-rules");
+  }
+
+  function startExam() {
+    go("exam");
+  }
+
+  function handleExamFinish(ok: number, wrong: number, total: number, skipped: number) {
+    setExamOk(ok);
+    setExamWrong(wrong);
+    setExamTotal(total);
+    setExamSkipped(skipped);
+    go("exam-result");
+  }
+
+  function retryExam() {
+    go("exam-rules");
+  }
+
   const qCounts: Record<string, number> = {};
   for (const q of Object.values(questions)) {
     if (q.category) {
@@ -182,7 +222,7 @@ export default function App() {
       {screen === "home"       && (
         <HomeScreen
           name={userName}
-          onExam={() => alert("سيتم تفعيل الامتحان التجريبي قريباً")}
+          onExam={openExam}
           onStudy={openCategories}
           onCenters={openCenters}
         />
@@ -209,6 +249,18 @@ export default function App() {
           ok={resultOk} total={resultTotal}
           onBack={() => go("categories")}
           onRetry={() => startTest(studyCat)}
+        />
+      )}
+      {screen === "exam-rules" && (
+        <ExamRulesScreen onStart={startExam} onBack={() => go("home")} />
+      )}
+      {screen === "exam" && examQs.length > 0 && (
+        <ExamScreen allQuestions={examQs} onFinish={handleExamFinish} onBack={() => go("exam-rules")} />
+      )}
+      {screen === "exam-result" && (
+        <ExamResultScreen
+          ok={examOk} wrong={examWrong} total={examTotal} skipped={examSkipped}
+          onRetry={retryExam} onHome={() => go("home")}
         />
       )}
       {loading && <Loading msg={loadMsg} />}
