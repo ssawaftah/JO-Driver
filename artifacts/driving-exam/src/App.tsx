@@ -16,6 +16,7 @@ import ExamRulesScreen from "./screens/ExamRules";
 import ExamScreen from "./screens/Exam";
 import ExamResultScreen from "./screens/ExamResult";
 import FaqScreen from "./screens/Faq";
+import AdminScreen from "./screens/Admin";
 
 const CATS = [
   "قواعد السير والمرور",
@@ -227,6 +228,7 @@ export default function App() {
           onStudy={openCategories}
           onCenters={openCenters}
           onFaq={() => go("faq")}
+          onAdmin={() => go("admin")}
         />
       )}
       {screen === "centers"    && (
@@ -266,6 +268,7 @@ export default function App() {
         />
       )}
       {screen === "faq" && <FaqScreen onBack={() => go("home")} />}
+      {screen === "admin" && <AdminScreen onBack={() => go("home")} />}
       {loading && <Loading msg={loadMsg} />}
     </div>
   );

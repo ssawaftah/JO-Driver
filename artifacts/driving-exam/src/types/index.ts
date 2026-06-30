@@ -3,7 +3,8 @@ export type Screen =
   | "centers" | "categories"
   | "study" | "test" | "result"
   | "exam-rules" | "exam" | "exam-result"
-  | "faq";
+  | "faq"
+  | "admin";
 
 export interface Question {
   id?: string;
