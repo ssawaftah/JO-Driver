@@ -40,132 +40,109 @@ function PhoneBtn({ phone }: { phone: string }) {
 /* ── Center Card ───────────────────────────────────────── */
 function CenterCard({ c, govName }: { c: Center & { id: string }; govName: string }) {
   const [expanded, setExpanded] = useState(false);
-
   const activeDays = c.workingDays || [];
-  const hasDetails = c.address || c.workingHours || activeDays.length > 0;
 
   return (
     <div style={{
       background: "#fff",
-      borderRadius: 18,
+      borderRadius: 16,
       border: "1.5px solid #F0F1F3",
-      overflow: "hidden",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      padding: "14px 16px",
     }}>
-
-      {/* ── Main row ── */}
-      <div style={{ padding: "14px 16px" }}>
-
-        {/* Name + Rating */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: 15, fontWeight: 900, color: "#111827",
-              lineHeight: 1.4, marginBottom: 6,
-            }}>
-              {c.name}
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                padding: "3px 9px", borderRadius: 20,
-                background: "#F3F4F6", color: "#6B7280",
-                display: "inline-flex", alignItems: "center", gap: 4,
-              }}>
-                <i className="ph ph-map-trifold" style={{ fontSize: 12 }} />
-                {govName}
-              </span>
-              {c.areas?.map(a => (
-                <span key={a.id} style={{
-                  fontSize: 11, fontWeight: 700,
-                  padding: "3px 9px", borderRadius: 20,
-                  background: "#EEF4FF", color: "#246BFD",
-                }}>
-                  {a.name}
-                </span>
-              ))}
-            </div>
+      {/* Row 1: Name + Rating */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 900, color: "#111827", lineHeight: 1.4 }}>
+          {c.name}
+        </div>
+        {c.rating != null && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 4,
+            background: "#FFFBEB", border: "1.5px solid #FDE68A",
+            borderRadius: 10, padding: "4px 8px", flexShrink: 0,
+          }}>
+            <i className="ph ph-star-fill" style={{ fontSize: 13, color: "#F59E0B" }} />
+            <span style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>{c.rating}</span>
           </div>
+        )}
+      </div>
 
-          {c.rating != null && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 4,
-              background: "#FFFBEB", border: "1.5px solid #FDE68A",
-              borderRadius: 10, padding: "5px 9px", flexShrink: 0,
-            }}>
-              <i className="ph ph-star-fill" style={{ fontSize: 14, color: "#F59E0B" }} />
-              <span style={{ fontSize: 14, fontWeight: 900, color: "#92400E" }}>{c.rating}</span>
-            </div>
-          )}
-        </div>
+      {/* Row 2: Location tags */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+        <span style={{
+          fontSize: 11, fontWeight: 700,
+          padding: "3px 9px", borderRadius: 20,
+          background: "#F3F4F6", color: "#6B7280",
+          display: "inline-flex", alignItems: "center", gap: 4,
+        }}>
+          <i className="ph ph-map-trifold" style={{ fontSize: 12 }} />
+          {govName}
+        </span>
+        {c.areas?.slice(0, 4).map(a => (
+          <span key={a.id} style={{
+            fontSize: 11, fontWeight: 700,
+            padding: "3px 9px", borderRadius: 20,
+            background: "#EEF4FF", color: "#246BFD",
+          }}>
+            {a.name}
+          </span>
+        ))}
+        {(c.areas?.length || 0) > 4 && (
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "#F3F4F6", color: "#9CA3AF" }}>
+            +{(c.areas!.length - 4)}
+          </span>
+        )}
+      </div>
 
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8 }}>
-          {c.phone && <PhoneBtn phone={c.phone} />}
-          {c.mapLink && (
-            <a
-              href={c.mapLink}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                flex: 1, height: 40, borderRadius: 12,
-                background: "#246BFD", color: "#fff",
-                fontSize: 13, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                textDecoration: "none",
-              }}
-            >
-              <i className="ph ph-map-pin-line" style={{ fontSize: 16 }} />
-              الموقع
-            </a>
-          )}
-          {hasDetails && (
-            <button
-              onClick={() => setExpanded(e => !e)}
-              style={{
-                width: 40, height: 40, borderRadius: 12,
-                border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", flexShrink: 0,
-              }}
-            >
-              <i
-                className={`ph ph-caret-${expanded ? "up" : "down"}`}
-                style={{ fontSize: 16, color: "#6B7280" }}
-              />
-            </button>
-          )}
-        </div>
+      {/* Row 3: Actions */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        {c.phone && <PhoneBtn phone={c.phone} />}
+        {c.mapLink && (
+          <a href={c.mapLink} target="_blank" rel="noreferrer"
+            style={{
+              flex: 1, height: 38, borderRadius: 10,
+              background: "#246BFD", color: "#fff",
+              fontSize: 13, fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+              textDecoration: "none",
+            }}
+          >
+            <i className="ph ph-map-pin-line" style={{ fontSize: 15 }} />
+            الموقع
+          </a>
+        )}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            width: 38, height: 38, borderRadius: 10,
+            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", flexShrink: 0,
+          }}
+        >
+          <i className={`ph ph-caret-${expanded ? "up" : "down"}`} style={{ fontSize: 16, color: "#6B7280" }} />
+        </button>
       </div>
 
       {/* ── Expanded details ── */}
       {expanded && (
         <div style={{
           borderTop: "1px solid #F3F4F6",
-          padding: "12px 16px",
+          marginTop: 10,
+          paddingTop: 10,
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 10,
         }}>
-
-          {/* Address */}
           {c.address && (
-            <div style={{
-              display: "flex", alignItems: "flex-start", gap: 8,
-              fontSize: 13, color: "#6B7280",
-            }}>
-              <i className="ph ph-map-pin" style={{
-                fontSize: 16, color: "#9CA3AF",
-                flexShrink: 0, marginTop: 2,
-              }} />
-              <span style={{ lineHeight: 1.6 }}>{c.address}</span>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "#6B7280" }}>
+              <i className="ph ph-map-pin" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0, marginTop: 2 }} />
+              <span style={{ lineHeight: 1.5 }}>{c.address}</span>
             </div>
           )}
-
-          {/* Working hours */}
           {c.workingHours && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <i className="ph ph-clock" style={{ fontSize: 16, color: "#9CA3AF", flexShrink: 0 }} />
+              <i className="ph ph-clock" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0 }} />
               <span style={{
                 fontSize: 13, fontWeight: 700, color: "#374151",
                 background: "#F3F6FF", borderRadius: 8, padding: "4px 10px",
@@ -174,27 +151,19 @@ function CenterCard({ c, govName }: { c: Center & { id: string }; govName: strin
               </span>
             </div>
           )}
-
-          {/* Working days */}
           {activeDays.length > 0 && (
             <div>
-              <p style={{
-                fontSize: 11, fontWeight: 800, color: "#9CA3AF",
-                marginBottom: 7, letterSpacing: "0.3px",
-              }}>
-                أيام الدوام
-              </p>
+              <p style={{ fontSize: 11, fontWeight: 800, color: "#9CA3AF", marginBottom: 6 }}>أيام الدوام</p>
               <div style={{ display: "flex", gap: 5 }}>
                 {ALL_DAYS_FULL.map((day, i) => {
                   const on = activeDays.includes(day);
                   return (
                     <div key={day} style={{
-                      width: 32, height: 32, borderRadius: 9,
+                      width: 30, height: 30, borderRadius: 8,
                       background: on ? "#246BFD" : "#F3F4F6",
                       color: on ? "#fff" : "#C4C9D4",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 12, fontWeight: 800,
-                      transition: "all 0.2s",
                     }}>
                       {ALL_DAYS_SHORT[i]}
                     </div>

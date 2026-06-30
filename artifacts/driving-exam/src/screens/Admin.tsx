@@ -626,30 +626,95 @@ export default function Admin({ onBack }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {entries.map(([reqId, req]) => {
               const areasList = (req.areas || []).map((a: any) => a.name).join("، ");
-              const daysList = (req.workingDays || []).join("، ");
+              const activeDays = req.workingDays || [];
               const status = req.status === "pending" ? { bg: "#FEF3C7", color: "#92400E", txt: "قيد المراجعة" }
                 : req.status === "approved" ? { bg: "#ECFDF3", color: "#059669", txt: "تم النشر" }
                 : { bg: "#FEF2F2", color: "#DC2626", txt: "مرفوض" };
               return (
-                <div key={reqId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10 }}>
-                    <div style={{ fontSize: 15, fontWeight: 900, flex: 1 }}>{req.name}</div>
-                    <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" }}>{status.txt}</span>
+                <div key={reqId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)", direction: "rtl" }}>
+                  {/* Header: name + status */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8 }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: C.text, flex: 1, lineHeight: 1.4 }}>{req.name}</div>
+                    <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>{status.txt}</span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12, color: C.textSec, marginBottom: 10 }}>
-                    <div><i className="ph ph-map-pin" style={{ color: C.primary }} /> {req.governorateName || "-"}</div>
-                    <div><i className="ph ph-buildings" style={{ color: C.primary }} /> {areasList || "-"}</div>
-                    <div><i className="ph ph-phone" style={{ color: C.primary }} /> {req.phone || "-"}</div>
-                    <div><i className="ph ph-star" style={{ color: C.gold }} /> {req.rating || 0}/5</div>
+
+                  {/* Info rows */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.textSec }}>
+                      <i className="ph ph-phone" style={{ color: C.primary, fontSize: 14, flexShrink: 0 }} />
+                      <span style={{ fontWeight: 700, color: C.text }}>{req.phone || "-"}</span>
+                    </div>
+                    {areasList && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: C.textSec }}>
+                        <i className="ph ph-map-pin" style={{ color: C.primary, fontSize: 14, flexShrink: 0 }} />
+                        <span>{govs[req.governorateId]?.name || "-"} — {areasList}</span>
+                      </div>
+                    )}
+                    {req.address && (
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: C.textSec }}>
+                        <i className="ph ph-map-trifold" style={{ color: C.primary, fontSize: 14, flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ lineHeight: 1.5 }}>{req.address}</span>
+                      </div>
+                    )}
                   </div>
-                  {req.address && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 6 }}><i className="ph ph-map-pin" /> {req.address}</div>}
-                  {daysList && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 6 }}><i className="ph ph-calendar" /> {daysList}</div>}
-                  {req.workingHours && <div style={{ fontSize: 12, color: C.textSec, marginBottom: 12 }}><i className="ph ph-clock" /> {req.workingHours}</div>}
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <button onClick={async () => { if (!confirm(`نشر "${req.name}"؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address, mapLink: req.mapLink, phone: req.phone, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
-                      style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: C.green, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-check-circle" /> نشر</button>
-                    <button onClick={async () => { if (!confirm(`رفض "${req.name}"؟`)) return; try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); } catch { showToast("حدث خطأ"); } }}
-                      style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: C.red, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-x-circle" /> رفض</button>
+
+                  {/* Working days + hours */}
+                  {(activeDays.length > 0 || req.workingHours) && (
+                    <div style={{
+                      background: "#F9FAFB", borderRadius: 10, padding: 10,
+                      marginBottom: 10, border: "1px solid #F0F1F3",
+                    }}>
+                      {req.workingHours && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.textSec, marginBottom: 6 }}>
+                          <i className="ph ph-clock" style={{ color: C.primary, fontSize: 13 }} />
+                          <span style={{ fontWeight: 700, color: C.text }}>{req.workingHours}</span>
+                        </div>
+                      )}
+                      {activeDays.length > 0 && (
+                        <div style={{ display: "flex", gap: 5 }}>
+                          {ALL_DAYS_SHORT.map((d, i) => {
+                            const on = activeDays.includes(ALL_DAYS_FULL[i]);
+                            return (
+                              <div key={d} style={{
+                                width: 26, height: 26, borderRadius: 7,
+                                background: on ? "#246BFD" : "#E5E7EB",
+                                color: on ? "#fff" : "#9CA3AF",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 11, fontWeight: 800,
+                              }}>{d}</div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Rating */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                    <i className="ph ph-star-fill" style={{ fontSize: 14, color: "#F59E0B" }} />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#92400E" }}>{req.rating || 0} / 5</span>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address, mapLink: req.mapLink, phone: req.phone, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                      style={{
+                        flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
+                        background: C.green, color: "#fff", fontSize: 13, fontWeight: 800,
+                        cursor: "pointer", fontFamily: "inherit",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      }}>
+                      <i className="ph ph-check-circle" /> نشر المركز
+                    </button>
+                    <button onClick={async () => { if (!confirm(`رفض "${req.name}" ؟`)) return; try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); } catch { showToast("حدث خطأ"); } }}
+                      style={{
+                        padding: "10px 14px", borderRadius: 10, border: "none",
+                        background: C.red, color: "#fff", fontSize: 13, fontWeight: 800,
+                        cursor: "pointer", fontFamily: "inherit",
+                        display: "flex", alignItems: "center", gap: 6,
+                      }}>
+                      <i className="ph ph-x-circle" /> رفض
+                    </button>
                   </div>
                 </div>
               );
