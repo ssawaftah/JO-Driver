@@ -697,7 +697,7 @@ export default function Admin({ onBack }: Props) {
 
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address, mapLink: req.mapLink, phone: req.phone, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address || null, mapLink: req.mapLink || null, phone: req.phone || null, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
                       style={{
                         flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
                         background: C.green, color: "#fff", fontSize: 13, fontWeight: 800,
