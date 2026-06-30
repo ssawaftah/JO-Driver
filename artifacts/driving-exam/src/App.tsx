@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "./lib/firebase";
+import { db, auth } from "./lib/firebase";
 import { initTelegram, getTelegramUser } from "./lib/telegram";
 import type { Screen, Question, Governorate, Area, Center } from "./types";
 
@@ -84,14 +84,21 @@ export default function App() {
 
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
-  // ── On mount: restore session + check #admin hash ──────────
+  // ── On mount: restore session + check #admin hash + Firebase auth state ──
   useEffect(() => {
     initTelegram();
 
     if (window.location.hash === "#admin") {
-      setScreen("admin-login");
-      setLoading(false);
-      return;
+      const unsub = auth.onAuthStateChanged(user => {
+        if (user) {
+          setAdminLoggedIn(true);
+          setScreen("admin");
+        } else {
+          setScreen("admin-login");
+        }
+        setLoading(false);
+      });
+      return () => unsub();
     }
 
     const saved = loadSession();
@@ -102,7 +109,6 @@ export default function App() {
       return;
     }
 
-    // Check Telegram user in Firebase
     const tgUser = getTelegramUser();
     if (tgUser?.id) {
       db.ref("users/" + tgUser.id).once("value")
@@ -281,7 +287,7 @@ export default function App() {
       )}
       {screen === "admin" && (
         adminLoggedIn
-          ? <AdminScreen onBack={() => { setAdminLoggedIn(false); go("home"); }} />
+          ? <AdminScreen onBack={() => { auth.signOut(); setAdminLoggedIn(false); go("home"); }} />
           : <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
       )}
       {loading && <Loading msg={loadMsg} />}
