@@ -18,15 +18,17 @@ const DEF = { icon: "book-open", color: "#2563EB", bg: "#DBEAFE" };
 
 export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: Props) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F3F6FF" }}>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{
         flexShrink: 0,
         padding: "14px 16px",
-        borderBottom: "1.5px solid #F3F4F6",
-        display: "flex", alignItems: "center", gap: 12,
         background: "#fff",
+        borderBottom: "1.5px solid #F3F4F6",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
       }}>
         <button onClick={onBack} style={{
           width: 40, height: 40, borderRadius: 12,
@@ -42,15 +44,12 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
         </div>
       </div>
 
-      {/* ── Scrollable list ── */}
+      {/* Scrollable body — plain block, no flex */}
       <div style={{
-        flex: 1,
+        flex: "1 1 0",
+        minHeight: 0,
         overflowY: "auto",
-        WebkitOverflowScrolling: "touch",
-        padding: "12px 14px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
+        padding: "14px",
       }}>
         {cats.map((cat, i) => {
           const m = META[cat] || DEF;
@@ -60,17 +59,19 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
             <div
               key={cat}
               style={{
+                marginBottom: 12,
                 background: "#fff",
-                border: "1.5px solid #E5E7EB",
                 borderRadius: 18,
-                overflow: "hidden",
+                border: "1.5px solid #E5E7EB",
               }}
             >
-              {/* ── Category header ── */}
+              {/* Category info */}
               <div style={{
                 padding: "14px 16px 12px",
-                display: "flex", alignItems: "center", gap: 14,
-                borderBottom: "1px solid #F3F4F6",
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                borderBottom: "1.5px solid #F3F4F6",
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 14, flexShrink: 0,
@@ -80,7 +81,7 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
                 }}>
                   <i className={`ph ph-${m.icon}`} />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
                     {i + 1}. {cat}
                   </div>
@@ -90,42 +91,61 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
                 </div>
               </div>
 
-              {/* ── Action buttons (always visible) ── */}
+              {/* Buttons — CSS Grid guarantees equal columns */}
               <div style={{
-                display: "flex", gap: 0,
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
               }}>
                 <button
                   onClick={() => onStudy(cat)}
                   style={{
-                    flex: 1, height: 46,
-                    background: "#F8FAFF", color: "#246BFD",
-                    border: "none", borderLeft: "1px solid #F3F4F6",
-                    fontSize: 14, fontWeight: 700,
-                    cursor: "pointer", fontFamily: "inherit",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    padding: "13px 8px",
+                    background: "#EEF4FF",
+                    color: "#246BFD",
+                    border: "none",
+                    borderRight: "1.5px solid #E5E7EB",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    borderRadius: "0 0 0 16px",
                   }}
                 >
-                  <i className="ph ph-book-open" style={{ fontSize: 18 }} />
-                  مراجعة
+                  <i className="ph ph-book-open" style={{ fontSize: 18, flexShrink: 0 }} />
+                  <span>مراجعة</span>
                 </button>
+
                 <button
                   onClick={() => onTest(cat)}
                   style={{
-                    flex: 1, height: 46,
-                    background: "#246BFD", color: "#fff",
+                    padding: "13px 8px",
+                    background: "#246BFD",
+                    color: "#fff",
                     border: "none",
-                    fontSize: 14, fontWeight: 700,
-                    cursor: "pointer", fontFamily: "inherit",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    borderRadius: "0 0 16px 0",
                   }}
                 >
-                  <i className="ph ph-pencil-line" style={{ fontSize: 18 }} />
-                  اختبار
+                  <i className="ph ph-pencil-line" style={{ fontSize: 18, flexShrink: 0 }} />
+                  <span>اختبار</span>
                 </button>
               </div>
             </div>
           );
         })}
+
+        <div style={{ height: 20 }} />
       </div>
     </div>
   );
