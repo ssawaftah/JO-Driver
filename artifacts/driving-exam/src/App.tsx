@@ -24,6 +24,22 @@ const CATS = [
 
 const SESSION_KEY = "dex_user";
 
+/** Normalize Arabic text: unify alef variants, strip tashkeel */
+function normAr(s: string): string {
+  return s
+    .replace(/[إأآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .trim();
+}
+
+/** Find the display category that best matches a Firebase category string */
+function matchCat(fbCat: string): string {
+  const norm = normAr(fbCat);
+  return CATS.find(c => normAr(c) === norm) ?? fbCat;
+}
+
 function saveSession(name: string) {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name })); } catch {}
 }
@@ -125,7 +141,7 @@ export default function App() {
   }
 
   function startStudy(cat: string) {
-    const qs = Object.values(questions).filter(q => q.category === cat);
+    const qs = Object.values(questions).filter(q => matchCat(q.category) === cat);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setStudyCat(cat);
     setStudyQs(qs);
@@ -134,7 +150,7 @@ export default function App() {
 
   function startTest(cat: string) {
     const qs = Object.values(questions)
-      .filter(q => q.category === cat)
+      .filter(q => matchCat(q.category) === cat)
       .sort(() => Math.random() - 0.5);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setStudyCat(cat);
@@ -150,7 +166,10 @@ export default function App() {
 
   const qCounts: Record<string, number> = {};
   for (const q of Object.values(questions)) {
-    if (q.category) qCounts[q.category] = (qCounts[q.category] || 0) + 1;
+    if (q.category) {
+      const display = matchCat(q.category);
+      qCounts[display] = (qCounts[display] || 0) + 1;
+    }
   }
 
   return (
