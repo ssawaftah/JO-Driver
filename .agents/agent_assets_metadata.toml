@@ -6,3 +6,9 @@ id = "dmtCMdI4mM99crSmiH2S8"
 uri = "file://screenshots/admin-dashboard-menu.jpg"
 type = "image"
 title = "لوحة التحكم المعاد تصميمها - الصفحة الرئيسية"
+
+[[outputs]]
+id = "zPBVPJfo8QNMeUE5tbGzO"
+uri = "file://screenshots/admin-menu-v2.jpg"
+type = "image"
+title = "لوحة التحكم الرئيسية - التصميم المحسن"

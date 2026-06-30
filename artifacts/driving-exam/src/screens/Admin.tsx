@@ -226,57 +226,140 @@ export default function Admin({ onBack }: Props) {
   type UsersView = "list" | "detail";
   const [usersView, setUsersView] = useState<UsersView>("list");
   const [selectedUser, setSelectedUser] = useState<{ id: string; data: any } | null>(null);
+  const [userSearch, setUserSearch] = useState("");
+  const [userSort, setUserSort] = useState<"newest" | "tests" | "score">("newest");
 
   function UsersSection() {
-    const entries = Object.entries(users);
+    let entries = Object.entries(users);
+    // search
+    if (userSearch.trim()) {
+      const q = userSearch.trim().toLowerCase();
+      entries = entries.filter(([_, u]) => ((u.name || "") + (u.phone || "") + (u.firstName || "") + (u.lastName || "")).toLowerCase().includes(q));
+    }
+    // sort
+    entries = [...entries].sort((a, b) => {
+      if (userSort === "newest") return (b[1].registeredAt || "").localeCompare(a[1].registeredAt || "");
+      if (userSort === "tests") return (b[1].testsTaken || 0) - (a[1].testsTaken || 0);
+      return (b[1].bestScore || 0) - (a[1].bestScore || 0);
+    });
+
     if (usersView === "detail" && selectedUser) {
       const u = selectedUser.data;
       const initials = (u.name || u.firstName || "U").charAt(0).toUpperCase();
       const best = u.bestScore || 0; const tests = u.testsTaken || 0;
       const reg = u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("ar-JO") : "-";
+      const lastActive = u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString("ar-JO") : "-";
+      const catScores = u.categoryScores || {};
+      const catEntries = Object.entries(catScores);
       return (
         <div>
           <BackBtn onClick={() => setUsersView("list")} />
           <SectionTitle>تفاصيل المستخدم</SectionTitle>
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900 }}>{initials}</div>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 900 }}>{u.name || u.firstName || "مستخدم"} {u.lastName || ""}</div>
-                <div style={{ fontSize: 12, color: C.textSec, marginTop: 2 }}>{u.phone || selectedUser.id}</div>
+            {/* Profile header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${C.primary}, #5B8DEF)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 900, flexShrink: 0 }}>{initials}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 17, fontWeight: 900, color: C.text }}>{u.name || u.firstName || "مستخدم"} {u.lastName || ""}</div>
+                <div style={{ fontSize: 12, color: C.textSec, marginTop: 3, display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="ph ph-phone" /> {u.phone || selectedUser.id}
+                </div>
+                {u.governorate && <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}><i className="ph ph-map-pin" /> {u.governorate}</div>}
               </div>
+              <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 20, background: tests > 0 ? C.greenLight : C.bg, color: tests > 0 ? C.green : C.textSec, whiteSpace: "nowrap" }}>{tests > 0 ? "نشط" : "جديد"}</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+            {/* Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
               {[
-                { label: "أفضل نتيجة", value: best + "%" },
-                { label: "اختبارات", value: tests },
-                { label: "التسجيل", value: reg },
-                { label: "المحافظة", value: u.governorate || "-" },
+                { label: "أفضل نتيجة", value: best + "%", icon: "trophy", color: C.gold, bg: C.goldLight },
+                { label: "اختبارات", value: tests, icon: "exam", color: C.primary, bg: C.primaryLight },
+                { label: "متوسط", value: (u.averageScore || 0) + "%", icon: "chart-bar", color: C.cyan, bg: C.cyanLight },
               ].map(s => (
-                <div key={s.label} style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
-                  {s.label}<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 900, fontSize: 14 }}>{s.value}</span>
+                <div key={s.label} style={{ background: s.bg, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, textAlign: "center" }}>
+                  <i className={`ph ph-${s.icon}`} style={{ color: s.color, fontSize: 18, marginBottom: 4, display: "block" }} />
+                  <span style={{ display: "block", color: C.text, fontWeight: 900, fontSize: 15 }}>{s.value}</span>
+                  <span style={{ fontSize: 10, color: C.textSec, marginTop: 2, display: "block" }}>{s.label}</span>
                 </div>
               ))}
             </div>
-            <Btn variant="danger" onClick={async () => {
-              if (!confirm("حذف المستخدم؟")) return;
-              setLoading(true);
-              try { await db.ref("users/" + selectedUser.id).remove(); showToast("تم الحذف"); await loadAll(); setUsersView("list"); }
-              catch { showToast("حدث خطأ"); }
-              setLoading(false);
-            }}><i className="ph ph-trash" /> حذف المستخدم</Btn>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
+                <i className="ph ph-calendar-blank" style={{ marginLeft: 4 }} />التسجيل<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 800, fontSize: 13 }}>{reg}</span>
+              </div>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
+                <i className="ph ph-clock" style={{ marginLeft: 4 }} />آخر نشاط<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 800, fontSize: 13 }}>{lastActive}</span>
+              </div>
+            </div>
+            {/* Category scores */}
+            {catEntries.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginBottom: 8 }}>نتائج الأقسام</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {catEntries.map(([cat, score]: [string, any]) => (
+                    <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: C.text, flex: 1 }}>{cat}</div>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: (score || 0) >= 70 ? C.green : (score || 0) >= 50 ? C.gold : C.red }}>{score || 0}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <Btn variant="danger" style={{ flex: 1 }} onClick={async () => {
+                if (!confirm("حذف المستخدم؟")) return;
+                setLoading(true); try { await db.ref("users/" + selectedUser.id).remove(); showToast("تم الحذف"); await loadAll(); setUsersView("list"); }
+                catch { showToast("حدث خطأ"); } setLoading(false);
+              }}><i className="ph ph-trash" /> حذف</Btn>
+            </div>
           </div>
         </div>
       );
     }
-    if (entries.length === 0) return <Empty icon="users" text="لا يوجد مستخدمون" />;
+    if (entries.length === 0) return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle>المستخدمين</SectionTitle>
+        <div style={{ marginBottom: 12 }}>
+          <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="البحث بالاسم أو الهاتف..." style={{
+            width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+          }} />
+        </div>
+        <Empty icon="users" text={userSearch.trim() ? "لا توجد نتائج للبحث" : "لا يوجد مستخدمون"} />
+      </div>
+    );
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
         <SectionTitle count={entries.length}>المستخدمين</SectionTitle>
+        {/* Search + Sort */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ position: "relative", marginBottom: 8 }}>
+            <i className="ph ph-magnifying-glass" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textLight, fontSize: 16 }} />
+            <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="البحث بالاسم أو الهاتف..." style={{
+              width: "100%", padding: "10px 14px 10px 40px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+              background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+              transition: "border-color .15s",
+            }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {(["newest", "tests", "score"] as const).map(s => (
+              <button key={s} onClick={() => setUserSort(s)} style={{
+                padding: "5px 12px", borderRadius: 20, border: "none", fontSize: 11, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+                background: userSort === s ? C.primary : C.bg, color: userSort === s ? "#fff" : C.textSec,
+                transition: "all .15s",
+              }}>
+                {s === "newest" ? "الأحدث" : s === "tests" ? "الأكثر اختباراً" : "الأعلى نتيجة"}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* User list */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {entries.map(([id, u]) => {
             const initials = (u.name || u.firstName || "U").charAt(0).toUpperCase();
+            const tests = u.testsTaken || 0;
+            const best = u.bestScore || 0;
+            const isNew = tests === 0;
             return (
               <div key={id} onClick={() => { setSelectedUser({ id, data: u }); setUsersView("detail"); }} style={{
                 background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14,
@@ -284,12 +367,19 @@ export default function Admin({ onBack }: Props) {
                 boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
               }} onMouseEnter={e => { e.currentTarget.style.borderColor = C.borderHover; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0 }}>{initials}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800 }}>{u.name || u.firstName || "مستخدم"}</div>
-                  <div style={{ fontSize: 12, color: C.textSec, marginTop: 2 }}>{u.phone || id}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: isNew ? C.bg : `linear-gradient(135deg, ${C.primary}, #5B8DEF)`, color: isNew ? C.textLight : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, flexShrink: 0 }}>{initials}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{u.name || u.firstName || "مستخدم"}</span>
+                    {isNew && <span style={{ fontSize: 9, fontWeight: 900, padding: "1px 6px", borderRadius: 10, background: C.goldLight, color: C.gold }}>جديد</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.textSec, marginTop: 3, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <span>{u.phone || id}</span>
+                    {tests > 0 && <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ph ph-exam" style={{ fontSize: 11 }} />{tests} اختبار</span>}
+                    {best > 0 && <span style={{ display: "flex", alignItems: "center", gap: 3, color: best >= 70 ? C.green : best >= 50 ? C.gold : C.red }}><i className="ph ph-trophy" style={{ fontSize: 11 }} />{best}%</span>}
+                  </div>
                 </div>
-                <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight }} />
+                <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight, flexShrink: 0 }} />
               </div>
             );
           })}
@@ -338,10 +428,32 @@ export default function Admin({ onBack }: Props) {
 
   function QuestionsSection() {
     if (qSub === "menu") {
+      // category stats
+      const catStats = Q_CATS.map(cat => {
+        const count = Object.values(questions).filter((q: any) => q.category === cat).length;
+        return { cat, count };
+      });
       return (
         <div>
           <BackBtn onClick={() => setView("menu")} />
           <SectionTitle count={stats.q}>إدارة الأسئلة</SectionTitle>
+          {/* Category distribution */}
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginBottom: 10 }}>توزيع الأسئلة بالأقسام</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {catStats.map(({ cat, count }) => (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.text, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cat}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <div style={{ width: 80, height: 6, borderRadius: 3, background: C.bg, overflow: "hidden" }}>
+                      <div style={{ width: stats.q ? `${(count / stats.q) * 80}px` : 0, height: "100%", background: C.primary, borderRadius: 3 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: C.primary, minWidth: 20, textAlign: "left" }}>{count}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Btn variant="primary" onClick={() => { resetQForm(); setQSub("form"); }}><i className="ph ph-plus" /> إضافة سؤال جديد</Btn>
             <Btn variant="outline" onClick={() => setQSub("list")}><i className="ph ph-list" /> عرض وتعديل الأسئلة</Btn>
@@ -386,7 +498,7 @@ export default function Admin({ onBack }: Props) {
             <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الخيارات</div>
             {qForm.options.map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: qForm.correct === i ? C.greenLight : C.bg, color: qForm.correct === i ? C.green : C.textLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, border: `1.5px solid ${qForm.correct === i ? C.green : C.border}` }}>{i + 1}</div>
+                <div onClick={() => setQForm(f => ({ ...f, correct: i }))} style={{ width: 28, height: 28, borderRadius: 8, background: qForm.correct === i ? C.greenLight : C.bg, color: qForm.correct === i ? C.green : C.textLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, border: `1.5px solid ${qForm.correct === i ? C.green : C.border}`, cursor: "pointer" }}>{i + 1}</div>
                 <input value={opt} onChange={e => { const opts = [...qForm.options]; opts[i] = e.target.value; setQForm(f => ({ ...f, options: opts })); }} placeholder={`الخيار ${i + 1}`} style={{ flex: 1, padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: "inherit", outline: "none" }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
                 <button onClick={() => { const opts = qForm.options.filter((_, idx) => idx !== i); setQForm(f => ({ ...f, options: opts, correct: Math.min(f.correct, opts.length - 1) })); }} style={{ width: 32, height: 32, borderRadius: 8, border: `1.5px solid ${C.border}`, background: C.surface, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: C.red, flexShrink: 0 }}><i className="ph ph-x" /></button>
               </div>
@@ -412,47 +524,90 @@ export default function Admin({ onBack }: Props) {
       );
     }
     // list
-    const qs = Object.entries(questions).filter(([_, q]) => !qCat || q.category === qCat).map(([id, q]) => ({ id, ...q }));
+    const [qSearch, setQSearch] = useState("");
+    let qs = Object.entries(questions).map(([id, q]) => ({ id, ...q }));
+    // filter by category
+    if (qCat) qs = qs.filter(q => q.category === qCat);
+    // search by text
+    if (qSearch.trim()) {
+      const s = qSearch.trim().toLowerCase();
+      qs = qs.filter(q => (q.question || "").toLowerCase().includes(s));
+    }
     return (
       <div>
         <BackBtn onClick={() => setQSub("menu")} />
         <SectionTitle count={qs.length}>الأسئلة</SectionTitle>
-        <div style={{ marginBottom: 12 }}>
-          <Select label="" value={qCat} onChange={v => setQCat(v)}>
-            <option value="">كل الأقسام</option>
-            {Q_CATS.map(c => <option key={c} value={c}>{c}</option>)}
-          </Select>
+        {/* Search + Filter */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ position: "relative", marginBottom: 8 }}>
+            <i className="ph ph-magnifying-glass" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textLight, fontSize: 16 }} />
+            <input value={qSearch} onChange={e => setQSearch(e.target.value)} placeholder="البحث بنص السؤال..." style={{
+              width: "100%", padding: "10px 14px 10px 40px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+              background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+              transition: "border-color .15s",
+            }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button onClick={() => setQCat("")} style={{
+              padding: "5px 12px", borderRadius: 20, border: "none", fontSize: 11, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+              background: qCat === "" ? C.primary : C.bg, color: qCat === "" ? "#fff" : C.textSec, transition: "all .15s",
+            }}>كل الأقسام</button>
+            {Q_CATS.map(c => {
+              const count = Object.values(questions).filter((q: any) => q.category === c).length;
+              return (
+                <button key={c} onClick={() => setQCat(c)} style={{
+                  padding: "5px 10px", borderRadius: 20, border: "none", fontSize: 11, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+                  background: qCat === c ? C.primary : C.bg, color: qCat === c ? "#fff" : C.textSec, transition: "all .15s", whiteSpace: "nowrap",
+                }}>{c} ({count})</button>
+              );
+            })}
+          </div>
         </div>
-        {qs.length === 0 ? <Empty icon="question" text="لا توجد أسئلة" /> : (
+        {qs.length === 0 ? <Empty icon="question" text={qSearch.trim() || qCat ? "لا توجد نتائج للبحث" : "لا توجد أسئلة"} /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {qs.map(q => (
-              <div key={q.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "start", marginBottom: 8 }}>
-                  {q.mediaType !== "text" && q.mediaUrl && (
-                    <div style={{ width: 48, height: 48, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: C.bg }}>
-                      {q.mediaType === "image" ? (
-                        <img src={q.mediaUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      ) : (
-                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.goldLight }}><i className="ph ph-video" style={{ color: C.gold, fontSize: 20 }} /></div>
-                      )}
+            {qs.map((q, idx) => {
+              const correctOpt = q.options?.[q.correctAnswer ?? 0] ?? "";
+              const typeBadge = q.mediaType === "image" ? { icon: "image", bg: C.primaryLight, color: C.primary, label: "صورة" }
+                : q.mediaType === "video" ? { icon: "video", bg: C.goldLight, color: C.gold, label: "فيديو" }
+                : null;
+              return (
+                <div key={q.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "start", marginBottom: 8 }}>
+                    {q.mediaType !== "text" && q.mediaUrl && (
+                      <div style={{ width: 56, height: 56, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: C.bg }}>
+                        {q.mediaType === "image" ? (
+                          <img src={q.mediaUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.goldLight }}><i className="ph ph-video" style={{ color: C.gold, fontSize: 22 }} /></div>
+                        )}
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                        <span style={{ fontSize: 10, fontWeight: 900, color: C.textLight, minWidth: 24 }}>#{idx + 1}</span>
+                        {typeBadge && <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 6px", borderRadius: 6, background: typeBadge.bg, color: typeBadge.color, display: "flex", alignItems: "center", gap: 3 }}><i className={`ph ph-${typeBadge.icon}`} />{typeBadge.label}</span>}
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.5 }}>{q.question.substring(0, 90)}{q.question.length > 90 ? "..." : ""}</div>
+                      <div style={{ fontSize: 11, color: C.textSec, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <span>{q.category}</span>
+                        <span>·</span>
+                        <span>{q.options?.length || 0} خيارات</span>
+                        {correctOpt && <span style={{ color: C.green, display: "flex", alignItems: "center", gap: 3 }}><i className="ph ph-check-circle" style={{ fontSize: 10 }} />الصحيح: {correctOpt.substring(0, 25)}{correctOpt.length > 25 ? "..." : ""}</span>}
+                      </div>
                     </div>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.5 }}>{q.question.substring(0, 80)}{q.question.length > 80 ? "..." : ""}</div>
-                    <div style={{ fontSize: 11, color: C.textSec }}>{q.category} · {q.options?.length || 0} خيارات</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => {
+                      setEditingQ(q.id);
+                      setQForm({ category: q.category || Q_CATS[0], type: q.mediaType || "text", mediaUrl: q.mediaUrl || "", text: q.question || "", explanation: q.explanation || "", correct: q.correctAnswer || 0, options: q.options || ["", ""] });
+                      setQSub("form");
+                    }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
+                    <button onClick={async () => { if (!confirm("حذف السؤال؟")) return; setLoading(true); try { await db.ref("questions/" + q.id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                      style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => {
-                    setEditingQ(q.id);
-                    setQForm({ category: q.category || Q_CATS[0], type: q.mediaType || "text", mediaUrl: q.mediaUrl || "", text: q.question || "", explanation: q.explanation || "", correct: q.correctAnswer || 0, options: q.options || ["", ""] });
-                    setQSub("form");
-                  }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
-                  <button onClick={async () => { if (!confirm("حذف السؤال؟")) return; setLoading(true); try { await db.ref("questions/" + q.id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
-                    style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
