@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Question } from "../types";
-import AppFooter from "../components/Footer";
 
 interface Props {
   qs: Question[];
@@ -62,7 +61,7 @@ export default function Study({ qs, cat, onBack }: Props) {
 
         {/* Media */}
         {q.mediaUrl && q.mediaType !== "text" && (
-          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", background: "#000", maxHeight: 260, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", maxHeight: 260, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {q.mediaType === "video"
               ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", maxHeight: 260, display: "block" }} />
               : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain" }} />
@@ -166,7 +165,6 @@ export default function Study({ qs, cat, onBack }: Props) {
               إنهاء المراجعة
             </button>
           )}
-        <AppFooter initialData={null} />
       </div>
     </div>
   );
