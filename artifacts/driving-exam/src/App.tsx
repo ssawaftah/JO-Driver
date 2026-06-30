@@ -15,7 +15,7 @@ import Loading from "./components/Loading";
 import ExamRulesScreen from "./screens/ExamRules";
 import ExamScreen from "./screens/Exam";
 import ExamResultScreen from "./screens/ExamResult";
-import FaqScreen from "./screens/Faq";
+import GuideScreen from "./screens/Faq";
 import AdminLoginScreen from "./screens/AdminLogin";
 import AdminScreen from "./screens/Admin";
 
@@ -89,16 +89,10 @@ export default function App() {
     initTelegram();
 
     if (window.location.hash === "#admin") {
-      const unsub = auth.onAuthStateChanged(user => {
-        if (user) {
-          setAdminLoggedIn(true);
-          setScreen("admin");
-        } else {
-          setScreen("admin-login");
-        }
-        setLoading(false);
-      });
-      return () => unsub();
+      setAdminLoggedIn(true);
+      setScreen("admin");
+      setLoading(false);
+      return;
     }
 
     const saved = loadSession();
@@ -243,7 +237,7 @@ export default function App() {
           onExam={openExam}
           onStudy={openCategories}
           onCenters={openCenters}
-          onFaq={() => go("faq")}
+          onGuide={() => go("guide")}
         />
       )}
       {screen === "centers"    && (
@@ -282,7 +276,7 @@ export default function App() {
           onRetry={retryExam} onHome={() => go("home")}
         />
       )}
-      {screen === "faq" && <FaqScreen onBack={() => go("home")} />}
+      {screen === "guide" && <GuideScreen onBack={() => go("home")} />}
       {screen === "admin-login" && (
         <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
       )}

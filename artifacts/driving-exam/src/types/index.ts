@@ -3,9 +3,32 @@ export type Screen =
   | "centers" | "categories"
   | "study" | "test" | "result"
   | "exam-rules" | "exam" | "exam-result"
-  | "faq"
+  | "guide"
   | "admin"
   | "admin-login";
+
+/* ── Guide section types ─────────────────────────────────── */
+export type GuideSectionType = "steps" | "documents" | "fees" | "conditions" | "faq";
+
+export interface GuideSectionItem {
+  text: string;
+  sub?: string;
+  note?: string;
+  amount?: string;
+  answer?: string;
+  icon?: string;
+}
+
+export interface GuideSection {
+  id?: string;
+  title: string;
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  type: GuideSectionType;
+  order: number;
+  items: GuideSectionItem[];
+}
 
 export interface Question {
   id?: string;

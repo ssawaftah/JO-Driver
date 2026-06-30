@@ -3,7 +3,7 @@ import { db } from "../lib/firebase";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "faq-admin";
+type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -191,7 +191,7 @@ export default function Admin({ onBack }: Props) {
   const [view, setView] = useState<View>("menu");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0, q: 0, faq: 0 });
+  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0, q: 0, guide: 0 });
 
   const [govs, setGovs] = useState<Record<string, { name: string }>>({});
   const [areas, setAreas] = useState<Record<string, { name: string; governorateId: string }>>({});
@@ -199,23 +199,23 @@ export default function Admin({ onBack }: Props) {
   const [users, setUsers] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<Record<string, any>>({});
   const [requests, setRequests] = useState<Record<string, any>>({});
-  const [faqItems, setFaqItems] = useState<Record<string, { question: string; answer: string }>>({});
+  const [guideSections, setGuideSections] = useState<Record<string, any>>({});
 
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
   async function loadAll() {
     setLoading(true);
     try {
-      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, faqSnap] = await Promise.all([
+      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, guideSnap] = await Promise.all([
         db.ref("governorates").once("value"), db.ref("areas").once("value"), db.ref("centers").once("value"),
         db.ref("users").once("value"), db.ref("questions").once("value"), db.ref("centerRequests").once("value"),
-        db.ref("faq/items").once("value"),
+        db.ref("guide/sections").once("value"),
       ]);
       const g = govSnap.val() || {}, a = areaSnap.val() || {}, c = centerSnap.val() || {};
-      const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, f = faqSnap.val() || {};
-      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setFaqItems(f);
+      const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, gs = guideSnap.val() || {};
+      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setGuideSections(gs);
       setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length,
-        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, faq: Object.keys(f).length });
+        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, guide: Object.keys(gs).length });
     } catch { showToast("خطأ في التحميل"); }
     setLoading(false);
   }
@@ -882,45 +882,286 @@ export default function Admin({ onBack }: Props) {
     );
   }
 
-  // ── FAQ ADMIN ──────────────────────────────────────────────────
-  const [faqForm, setFaqForm] = useState({ question: "", answer: "" });
-  const [editingFaq, setEditingFaq] = useState<string | null>(null);
-  function FaqAdminSection() {
-    const entries = Object.entries(faqItems);
+  // ── GUIDE ADMIN ───────────────────────────────────────────
+  const GUIDE_ICONS = [
+    "list-numbers", "folder-open", "currency-circle-dollar", "user-check",
+    "chat-circle-question", "device-mobile-speaker", "globe", "map-pin",
+    "buildings", "car", "traffic-signal", "book-open-text",
+    "identification-card", "book-open", "image-square", "heart-pulse",
+    "receipt", "calendar-blank", "eye", "shield-check",
+    "graduation-cap", "warning", "check-circle", "x-circle",
+    "question", "info", "arrow-right", "arrow-left",
+    "clock", "money", "file-text", "certificate",
+  ];
+  const GUIDE_COLORS: { color: string; bg: string; label: string }[] = [
+    { color: "#7C3AED", bg: "#EDE9FE", label: "بنفسجي" },
+    { color: "#D97706", bg: "#FEF3C7", label: "برتقالي" },
+    { color: "#16A34A", bg: "#DCFCE7", label: "أخضر" },
+    { color: "#0891B2", bg: "#CFFAFE", label: "سماوي" },
+    { color: "#DC2626", bg: "#FEE2E2", label: "أحمر" },
+    { color: "#2563EB", bg: "#DBEAFE", label: "أزرق" },
+    { color: "#1A1D1F", bg: "#F3F4F6", label: "أسود" },
+  ];
+  type GuideType = "steps" | "documents" | "fees" | "conditions" | "faq";
+  const GUIDE_TYPE_LABELS: Record<GuideType, string> = {
+    steps: "خطوات", documents: "وثائق", fees: "رسوم", conditions: "شروط", faq: "أسئلة شائعة",
+  };
+
+  const [guideEditorOpen, setGuideEditorOpen] = useState(false);
+  const [editingGuideId, setEditingGuideId] = useState<string | null>(null);
+  const [guideForm, setGuideForm] = useState({
+    title: "", icon: "list-numbers", iconColor: "#7C3AED", iconBg: "#EDE9FE",
+    type: "steps" as GuideType, order: 0, items: [] as { text: string; sub?: string; note?: string; amount?: string; answer?: string; icon?: string }[],
+  });
+
+  function resetGuideForm() {
+    setGuideForm({ title: "", icon: "list-numbers", iconColor: "#7C3AED", iconBg: "#EDE9FE", type: "steps", order: 0, items: [] });
+  }
+
+  function openGuideEditor(id?: string) {
+    if (id) {
+      const s = guideSections[id];
+      if (!s) return;
+      setGuideForm({
+        title: s.title || "", icon: s.icon || "list-numbers",
+        iconColor: s.iconColor || "#7C3AED", iconBg: s.iconBg || "#EDE9FE",
+        type: s.type || "steps", order: s.order || 0,
+        items: s.items ? [...s.items] : [],
+      });
+      setEditingGuideId(id);
+    } else {
+      const maxOrder = Object.values(guideSections).reduce((max: number, s: any) => Math.max(max, s.order || 0), 0);
+      resetGuideForm();
+      setGuideForm(f => ({ ...f, order: maxOrder + 1 }));
+      setEditingGuideId(null);
+    }
+    setGuideEditorOpen(true);
+  }
+
+  function addGuideItem() {
+    const blank = guideForm.type === "faq"
+      ? { text: "", answer: "" }
+      : guideForm.type === "documents" || guideForm.type === "conditions"
+        ? { text: "", sub: "", icon: "check-circle" }
+        : guideForm.type === "fees"
+          ? { text: "", amount: "", note: "" }
+          : { text: "", sub: "" };
+    setGuideForm(f => ({ ...f, items: [...f.items, blank] }));
+  }
+
+  function updateGuideItem(idx: number, field: string, value: string) {
+    setGuideForm(f => {
+      const items = [...f.items];
+      items[idx] = { ...items[idx], [field]: value };
+      return { ...f, items };
+    });
+  }
+
+  function removeGuideItem(idx: number) {
+    setGuideForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
+  }
+
+  function moveGuideItem(idx: number, dir: -1 | 1) {
+    setGuideForm(f => {
+      const items = [...f.items];
+      const swap = idx + dir;
+      if (swap < 0 || swap >= items.length) return f;
+      [items[idx], items[swap]] = [items[swap], items[idx]];
+      return { ...f, items };
+    });
+  }
+
+  async function saveGuideSection() {
+    if (!guideForm.title.trim()) { showToast("أدخل عنوان القسم"); return; }
+    if (guideForm.items.length === 0) { showToast("أضف عنصر واحد على الأقل"); return; }
+    setLoading(true);
+    try {
+      const payload = {
+        title: guideForm.title.trim(),
+        icon: guideForm.icon,
+        iconColor: guideForm.iconColor,
+        iconBg: guideForm.iconBg,
+        type: guideForm.type,
+        order: guideForm.order,
+        items: guideForm.items.map(it => {
+          const base: any = { text: it.text.trim() };
+          if (it.sub?.trim()) base.sub = it.sub.trim();
+          if (it.note?.trim()) base.note = it.note.trim();
+          if (it.amount?.trim()) base.amount = it.amount.trim();
+          if (it.answer?.trim()) base.answer = it.answer.trim();
+          if (it.icon?.trim()) base.icon = it.icon.trim();
+          return base;
+        }),
+      };
+      if (editingGuideId) await db.ref("guide/sections/" + editingGuideId).update(payload);
+      else await db.ref("guide/sections").push(payload);
+      showToast(editingGuideId ? "تم التحديث" : "تم الإضافة");
+      setGuideEditorOpen(false); resetGuideForm(); setEditingGuideId(null);
+      await loadAll();
+    } catch { showToast("حدث خطأ"); }
+    setLoading(false);
+  }
+
+  async function reorderSection(id: string, dir: -1 | 1) {
+    const arr = Object.entries(guideSections).map(([id, s]) => ({ id, ...s as any })).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const idx = arr.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const swap = idx + dir;
+    if (swap < 0 || swap >= arr.length) return;
+    const aOrder = arr[idx].order || 0;
+    const bOrder = arr[swap].order || 0;
+    setLoading(true);
+    try {
+      await db.ref("guide/sections/" + arr[idx].id).update({ order: bOrder });
+      await db.ref("guide/sections/" + arr[swap].id).update({ order: aOrder });
+      await loadAll();
+      showToast("تم إعادة الترتيب");
+    } catch { showToast("حدث خطأ"); }
+    setLoading(false);
+  }
+
+  function GuideAdminSection() {
+    const arr = Object.entries(guideSections).map(([id, s]) => ({ id, ...s as any })).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (guideEditorOpen) {
+      return (
+        <div>
+          <BackBtn onClick={() => { setGuideEditorOpen(false); resetGuideForm(); setEditingGuideId(null); }} />
+          <SectionTitle>{editingGuideId ? "تعديل القسم" : "قسم جديد"}</SectionTitle>
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 12, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>إعدادات القسم</div>
+            <Input label="العنوان" value={guideForm.title} onChange={v => setGuideForm(f => ({ ...f, title: v }))} placeholder="مثال: خطوات الحصول على رخصة القيادة" />
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>نوع القسم</label>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {(Object.keys(GUIDE_TYPE_LABELS) as GuideType[]).map(t => (
+                  <button key={t} onClick={() => setGuideForm(f => ({ ...f, type: t, items: [] }))} style={{
+                    padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+                    border: `1.5px solid ${guideForm.type === t ? C.primary : C.border}`,
+                    background: guideForm.type === t ? C.primaryLight : C.surface,
+                    color: guideForm.type === t ? C.primary : C.textSec,
+                  }}>{GUIDE_TYPE_LABELS[t]}</button>
+                ))}
+              </div>
+            </div>
+            {/* Icon picker */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>الأيقونة</label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 6 }}>
+                {GUIDE_ICONS.map(ic => (
+                  <button key={ic} onClick={() => setGuideForm(f => ({ ...f, icon: ic }))} style={{
+                    width: 36, height: 36, borderRadius: 8, border: `1.5px solid ${guideForm.icon === ic ? C.primary : C.border}`,
+                    background: guideForm.icon === ic ? C.primaryLight : C.surface,
+                    color: guideForm.icon === ic ? C.primary : C.textSec,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 18, cursor: "pointer", fontFamily: "inherit",
+                  }} title={ic}><i className={`ph ph-${ic}`} /></button>
+                ))}
+              </div>
+            </div>
+            {/* Color picker */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>اللون</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {GUIDE_COLORS.map(c => (
+                  <button key={c.label} onClick={() => setGuideForm(f => ({ ...f, iconColor: c.color, iconBg: c.bg }))} style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    border: `2.5px solid ${guideForm.iconColor === c.color ? C.primary : "transparent"}`,
+                    background: c.bg, cursor: "pointer",
+                  }} title={c.label} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Items editor */}
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 12, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>
+              محتويات القسم ({guideForm.items.length})
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {guideForm.items.map((it, i) => (
+                <div key={i} style={{ background: C.bg, borderRadius: 10, padding: 12, border: `1px solid ${C.border}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: C.primary, background: C.primaryLight, borderRadius: 6, padding: "2px 8px" }}>#{i + 1}</span>
+                    <div style={{ flex: 1 }} />
+                    <button onClick={() => moveGuideItem(i, -1)} disabled={i === 0} style={{ width: 26, height: 26, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, cursor: i === 0 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: i === 0 ? 0.4 : 1, fontFamily: "inherit" }}><i className="ph ph-arrow-up" style={{ fontSize: 12, color: C.textSec }} /></button>
+                    <button onClick={() => moveGuideItem(i, 1)} disabled={i === guideForm.items.length - 1} style={{ width: 26, height: 26, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, cursor: i === guideForm.items.length - 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: i === guideForm.items.length - 1 ? 0.4 : 1, fontFamily: "inherit" }}><i className="ph ph-arrow-down" style={{ fontSize: 12, color: C.textSec }} /></button>
+                    <button onClick={() => removeGuideItem(i)} style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: C.redLight, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}><i className="ph ph-trash" style={{ fontSize: 12, color: C.red }} /></button>
+                  </div>
+                  {guideForm.type === "faq" ? (
+                    <>
+                      <Input label="السؤال" value={it.text} onChange={v => updateGuideItem(i, "text", v)} placeholder="اكتب السؤال..." />
+                      <TextArea label="الإجابة" value={it.answer || ""} onChange={v => updateGuideItem(i, "answer", v)} placeholder="اكتب الإجابة..." rows={2} />
+                    </>
+                  ) : guideForm.type === "fees" ? (
+                    <>
+                      <Input label="البند" value={it.text} onChange={v => updateGuideItem(i, "text", v)} placeholder="مثال: رسوم تسجيل طلب" />
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <Input label="المبلغ" value={it.amount || ""} onChange={v => updateGuideItem(i, "amount", v)} placeholder="3 د.أ" />
+                        <Input label="ملاحظة" value={it.note || ""} onChange={v => updateGuideItem(i, "note", v)} placeholder="تفاصيل إضافية..." />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {(guideForm.type === "documents" || guideForm.type === "conditions") && (
+                        <div style={{ marginBottom: 10 }}>
+                          <label style={{ display: "block", marginBottom: 4, fontSize: 12, fontWeight: 700, color: C.text }}>الأيقونة الداخلية</label>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 4 }}>
+                            {["check-circle", "identification-card", "book-open", "image-square", "heart-pulse", "receipt", "calendar-blank", "eye", "shield-check", "graduation-cap", "warning", "file-text", "car", "map-pin", "book-open-text", "ph-book"].map(ic => (
+                              <button key={ic} onClick={() => updateGuideItem(i, "icon", ic)} style={{
+                                width: 28, height: 28, borderRadius: 6, border: `1.5px solid ${it.icon === ic ? C.primary : C.border}`,
+                                background: it.icon === ic ? C.primaryLight : C.surface, color: it.icon === ic ? C.primary : C.textSec,
+                                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+                              }}><i className={`ph ph-${ic}`} /></button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <Input label="النص" value={it.text} onChange={v => updateGuideItem(i, "text", v)} placeholder={guideForm.type === "steps" ? "عنوان الخطوة" : "النص الرئيسي"} />
+                      <Input label="تفاصيل / وصف (اختياري)" value={it.sub || ""} onChange={v => updateGuideItem(i, "sub", v)} placeholder="اوصاف إضافي..." />
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Btn variant="outline" style={{ marginTop: 10, width: "100%" }} onClick={addGuideItem}><i className="ph ph-plus" /> إضافة عنصر</Btn>
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn variant="primary" style={{ flex: 1 }} onClick={saveGuideSection}><i className="ph ph-floppy-disk" /> {editingGuideId ? "حفظ التعديل" : "إضافة القسم"}</Btn>
+            <Btn variant="ghost" style={{ flex: 1 }} onClick={() => { setGuideEditorOpen(false); resetGuideForm(); setEditingGuideId(null); }}><i className="ph ph-x" /> إلغاء</Btn>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
-        <SectionTitle count={entries.length}>إدارة الأسئلة الشائعة</SectionTitle>
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>{editingFaq ? "تعديل السؤال" : "سؤال جديد"}</div>
-          <TextArea label="السؤال" value={faqForm.question} onChange={v => setFaqForm(f => ({ ...f, question: v }))} placeholder="اكتب السؤال..." rows={2} />
-          <TextArea label="الإجابة" value={faqForm.answer} onChange={v => setFaqForm(f => ({ ...f, answer: v }))} placeholder="اكتب الإجابة المفصلة..." rows={4} />
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn variant="primary" style={{ flex: 1 }} onClick={async () => {
-              if (!faqForm.question.trim() || !faqForm.answer.trim()) { showToast("أدخل السؤال والإجابة"); return; }
-              setLoading(true);
-              try {
-                if (editingFaq) await db.ref("faq/items/" + editingFaq).update({ question: faqForm.question.trim(), answer: faqForm.answer.trim() });
-                else await db.ref("faq/items").push({ question: faqForm.question.trim(), answer: faqForm.answer.trim() });
-                showToast(editingFaq ? "تم التحديث" : "تم الإضافة");
-                setFaqForm({ question: "", answer: "" }); setEditingFaq(null);
-                await loadAll();
-              } catch { showToast("حدث خطأ"); }
-              setLoading(false);
-            }}><i className="ph ph-floppy-disk" /> {editingFaq ? "حفظ التعديل" : "إضافة السؤال"}</Btn>
-            {editingFaq && <Btn variant="ghost" style={{ flex: 1 }} onClick={() => { setFaqForm({ question: "", answer: "" }); setEditingFaq(null); }}><i className="ph ph-x" /> إلغاء</Btn>}
-          </div>
-        </div>
-        {entries.length === 0 ? <Empty icon="chat-circle-text" text="لا توجد أسئلة شائعة" /> : (
+        <SectionTitle count={arr.length}>إدارة دليل المستخدم</SectionTitle>
+        <Btn variant="primary" style={{ marginBottom: 14, width: "100%" }} onClick={() => openGuideEditor()}><i className="ph ph-plus" /> إضافة قسم جديد</Btn>
+        {arr.length === 0 ? <Empty icon="book-open-text" text="لا توجد أقسام" /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {entries.map(([id, f]) => (
-              <div key={id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>{f.question}</div>
-                <div style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6, marginBottom: 10 }}>{f.answer.substring(0, 120)}{f.answer.length > 120 ? "..." : ""}</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => { setEditingFaq(id); setFaqForm({ question: f.question, answer: f.answer }); }} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
-                  <button onClick={async () => { if (!confirm("حذف السؤال؟")) return; setLoading(true); try { await db.ref("faq/items/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
-                    style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
+            {arr.map((s, idx) => (
+              <div key={s.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                  <button onClick={() => reorderSection(s.id, -1)} disabled={idx === 0} style={{ width: 22, height: 22, borderRadius: 5, border: `1px solid ${C.border}`, background: C.bg, cursor: idx === 0 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: idx === 0 ? 0.4 : 1, fontFamily: "inherit" }}><i className="ph ph-arrow-up" style={{ fontSize: 11, color: C.textSec }} /></button>
+                  <button onClick={() => reorderSection(s.id, 1)} disabled={idx === arr.length - 1} style={{ width: 22, height: 22, borderRadius: 5, border: `1px solid ${C.border}`, background: C.bg, cursor: idx === arr.length - 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: idx === arr.length - 1 ? 0.4 : 1, fontFamily: "inherit" }}><i className="ph ph-arrow-down" style={{ fontSize: 11, color: C.textSec }} /></button>
+                </div>
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: s.iconBg || "#EDE9FE", color: s.iconColor || "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}><i className={`ph ph-${s.icon || "list-numbers"}`} /></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{s.title}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 20, background: C.primaryLight, color: C.primary }}>{GUIDE_TYPE_LABELS[s.type as GuideType] || s.type}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 20, background: C.greenLight, color: C.green }}>{(s.items || []).length} عناصر</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  <button onClick={() => openGuideEditor(s.id)} style={{ width: 30, height: 30, borderRadius: 7, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-pencil-simple" style={{ fontSize: 13 }} /></button>
+                  <button onClick={async () => { if (!confirm(`حذف قسم "${s.title}"؟`)) return; setLoading(true); try { await db.ref("guide/sections/" + s.id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    style={{ width: 30, height: 30, borderRadius: 7, border: "none", background: C.redLight, color: C.red, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-trash" style={{ fontSize: 13 }} /></button>
                 </div>
               </div>
             ))}
@@ -945,7 +1186,7 @@ export default function Admin({ onBack }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <Card icon="users" color={C.primary} colorBg={C.primaryLight} title="المستخدمين" desc="عرض وحذف المستخدمين" onClick={() => setView("users")} count={stats.user} />
             <Card icon="question" color={C.gold} colorBg={C.goldLight} title="الأسئلة" desc="إضافة، تعديل، حذف الأسئلة" onClick={() => { setQSub("menu"); setView("questions"); }} count={stats.q} />
-            <Card icon="chat-circle-text" color={C.purple} colorBg={C.purpleLight} title="الأسئلة الشائعة" desc="إدارة الأسئلة المتكررة" onClick={() => { setFaqForm({ question: "", answer: "" }); setEditingFaq(null); setView("faq-admin"); }} count={stats.faq} />
+            <Card icon="book-open-text" color={C.purple} colorBg={C.purpleLight} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
             <Card icon="clipboard-text" color={C.purple} colorBg={C.purpleLight} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
           </div>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginTop: 16, marginBottom: 10, padding: "0 4px" }}>البيانات الجغرافية</div>
@@ -964,7 +1205,7 @@ export default function Admin({ onBack }: Props) {
       case "add-gov": case "add-area": case "add-center": return <AddSection />;
       case "edit-list": return <EditListSection />;
       case "delete-list": return <DeleteSection />;
-      case "faq-admin": return <FaqAdminSection />;
+      case "guide-admin": return <GuideAdminSection />;
       default: return null;
     }
   };
