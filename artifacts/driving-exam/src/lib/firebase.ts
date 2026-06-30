@@ -1,5 +1,6 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
+import "firebase/compat/auth";
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -10,4 +11,5 @@ if (!firebase.apps.length) {
 }
 
 export const db = firebase.database();
+export const auth = firebase.auth();
 export default firebase;

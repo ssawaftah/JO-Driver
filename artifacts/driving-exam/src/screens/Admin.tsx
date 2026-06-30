@@ -3,7 +3,7 @@ import { db } from "../lib/firebase";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "admins";
+type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -154,26 +154,23 @@ export default function Admin({ onBack }: Props) {
   const [users, setUsers] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<Record<string, any>>({});
   const [requests, setRequests] = useState<Record<string, any>>({});
-  const [admins, setAdmins] = useState<Record<string, { email: string; password: string }>>({});
-
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
   async function loadAll() {
     setLoading(true);
     try {
-      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, adminSnap] = await Promise.all([
+      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap] = await Promise.all([
         db.ref("governorates").once("value"),
         db.ref("areas").once("value"),
         db.ref("centers").once("value"),
         db.ref("users").once("value"),
         db.ref("questions").once("value"),
         db.ref("centerRequests").once("value"),
-        db.ref("admin/admins").once("value"),
       ]);
       const g = govSnap.val() || {}; const a = areaSnap.val() || {};
       const c = centerSnap.val() || {}; const u = userSnap.val() || {};
-      const q = qSnap.val() || {}; const r = reqSnap.val() || {}; const adm = adminSnap.val() || {};
-      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setAdmins(adm);
+      const q = qSnap.val() || {}; const r = reqSnap.val() || {};
+      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r);
       setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length, user: Object.keys(u).length, req: Object.keys(r).length });
     } catch(e) { showToast("خطأ في التحميل"); }
     setLoading(false);
@@ -691,49 +688,6 @@ type EditType = "governorates" | "areas" | "centers";
 
   // Delete section
   const [delType, setDelType] = useState<EditType | null>(null);
-
-  // ── ADMINS ────────────────────────────
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-  function AdminsSection() {
-    const entries = Object.entries(admins);
-    return (
-      <div>
-        <BackBtn onClick={() => setView("menu")} />
-        <Title>إدارة المشرفين</Title>
-        <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, marginBottom: 14 }}>
-          <Input label="البريد الإلكتروني" value={adminEmail} onChange={v => setAdminEmail(v)} placeholder="admin@example.com" />
-          <Input label="كلمة المرور" value={adminPassword} onChange={v => setAdminPassword(v)} type="password" placeholder="********" />
-          <Btn variant="primary" onClick={async () => {
-            if (!adminEmail.trim() || !adminPassword.trim()) { showToast("أدخل البريد وكلمة المرور"); return; }
-            setLoading(true);
-            try {
-              await db.ref("admin/admins").push({ email: adminEmail.trim(), password: adminPassword.trim() });
-              showToast("تم إضافة المشرف");
-              setAdminEmail(""); setAdminPassword("");
-              await loadAll();
-            } catch { showToast("حدث خطأ"); }
-            setLoading(false);
-          }}><i className="ph ph-plus" /> إضافة مشرف</Btn>
-        </div>
-        {entries.length === 0 ? <Empty icon="user-plus" text="لا يوجد مشرفون" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {entries.map(([id, a]) => (
-              <ListItem key={id} label={a.email} actions={
-                <button onClick={async () => {
-                  if (!confirm(`حذف المشرف ${a.email}؟`)) return;
-                  setLoading(true);
-                  try { await db.ref("admin/admins/" + id).remove(); showToast("تم الحذف"); await loadAll(); }
-                  catch { showToast("حدث خطأ"); }
-                  setLoading(false);
-                }} style={{ padding: "7px 12px", borderRadius: 10, border: "none", background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}><i className="ph ph-trash" /> حذف</button>
-              } />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
   function DeleteSection() {
     if (!delType) {
       return (
@@ -793,7 +747,6 @@ type RenderView = View;
             <Card icon="buildings" color="gold" title="إضافة مركز" desc="إضافة مركز تدريب جديد" onClick={() => setView("add-center")} />
             <Card icon="pencil-simple" color="blue" title="تعديل البيانات" desc="تعديل المحافظات والمناطق والمراكز" onClick={() => { setEditType(null); setView("edit-list"); }} />
             <Card icon="trash" color="red" title="حذف البيانات" desc="إزالة المحافظات أو المناطق أو المراكز" onClick={() => { setDelType(null); setView("delete-list"); }} />
-            <Card icon="user-plus" color="purple" title="إدارة المشرفين" desc="إضافة أو حذف مشرفين" onClick={() => { setAdminEmail(""); setAdminPassword(""); setView("admins"); }} />
           </div>
         </div>
       );
@@ -803,7 +756,6 @@ type RenderView = View;
       case "add-gov": case "add-area": case "add-center": return <AddSection />;
       case "edit-list": return <EditListSection />;
       case "delete-list": return <DeleteSection />;
-      case "admins": return <AdminsSection />;
       default: return null;
     }
   };

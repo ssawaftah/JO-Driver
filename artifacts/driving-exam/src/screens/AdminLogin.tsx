@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { db } from "../lib/firebase";
+import { auth } from "../lib/firebase";
 
 interface Props {
   onLogin: () => void;
@@ -12,22 +12,22 @@ export default function AdminLogin({ onLogin }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email.trim() || !password.trim()) { setError("أدخل البريد وكلمة المرور"); return; }
-    setLoading(true); setError("");
+    if (!email.trim() || !password.trim()) {
+      setError("أدخل البريد وكلمة المرور");
+      return;
+    }
+    setLoading(true);
+    setError("");
     try {
-      const snap = await db.ref("admin/admins").once("value");
-      const admins = snap.val() || {};
-      const found = Object.values(admins).find((a: any) =>
-        a.email?.toLowerCase().trim() === email.toLowerCase().trim() &&
-        a.password === password.trim()
-      );
-      if (found) {
-        onLogin();
-      } else {
-        setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-      }
-    } catch {
-      setError("خطأ في الاتصال بالخادم");
+      await auth.signInWithEmailAndPassword(email.trim(), password.trim());
+      onLogin();
+    } catch (err: any) {
+      const msg = err.code === "auth/user-not-found" || err.code === "auth/wrong-password"
+        ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+        : err.code === "auth/invalid-email"
+        ? "بريد إلكتروني غير صالح"
+        : "خطأ في تسجيل الدخول";
+      setError(msg);
     }
     setLoading(false);
   };
@@ -51,6 +51,7 @@ export default function AdminLogin({ onLogin }: Props) {
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="البريد الإلكتروني"
+          autoComplete="email"
           style={{
             width: "100%", padding: "14px 16px", border: "1.5px solid #E5E7EB",
             borderRadius: 12, fontSize: 15, fontFamily: "inherit", marginBottom: 12,
@@ -62,6 +63,7 @@ export default function AdminLogin({ onLogin }: Props) {
           value={password}
           onChange={e => setPassword(e.target.value)}
           placeholder="كلمة المرور"
+          autoComplete="current-password"
           style={{
             width: "100%", padding: "14px 16px", border: "1.5px solid #E5E7EB",
             borderRadius: 12, fontSize: 15, fontFamily: "inherit", marginBottom: 12,
