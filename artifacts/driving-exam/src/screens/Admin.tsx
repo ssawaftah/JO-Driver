@@ -664,16 +664,18 @@ export default function Admin({ onBack }: Props) {
   const [addGovName, setAddGovName] = useState("");
   const [addAreaGov, setAddAreaGov] = useState("");
   const [addAreaName, setAddAreaName] = useState("");
-  const [addCenter, setAddCenter] = useState({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" });
+  const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
+  const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+
+  const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[] });
 
   useEffect(() => {
     if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
     if (view === "add-center") {
-      const gids = Object.keys(govs), aids = Object.keys(areas);
-      if (gids.length && !addCenter.gov) setAddCenter(s => ({ ...s, gov: gids[0] }));
-      if (aids.length && !addCenter.area) setAddCenter(s => ({ ...s, area: aids[0] }));
+      const gids = Object.keys(govs);
+      if (gids.length && !addCenter.gov) setAddCenter(s => ({ ...s, gov: gids[0], areaIds: [] }));
     }
-  }, [view, govs, areas]);
+  }, [view, govs]);
 
   function AddSection() {
     if (view === "add-gov") {
@@ -705,33 +707,131 @@ export default function Admin({ onBack }: Props) {
       );
     }
     const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
-    const aopts = Object.entries(areas).map(([id, a]) => <option key={id} value={id}>{a.name}</option>);
+    const govAreas = addCenter.gov
+      ? Object.entries(areas).filter(([, a]) => a.governorateId === addCenter.gov)
+      : [];
+
+    function toggleArea(id: string) {
+      setAddCenter(s => ({
+        ...s,
+        areaIds: s.areaIds.includes(id) ? s.areaIds.filter(x => x !== id) : [...s.areaIds, id]
+      }));
+    }
+    function toggleDay(day: string) {
+      setAddCenter(s => ({
+        ...s,
+        selectedDays: s.selectedDays.includes(day) ? s.selectedDays.filter(x => x !== day) : [...s.selectedDays, day]
+      }));
+    }
+    function resetAddCenter() {
+      setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] });
+    }
+
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
         <SectionTitle>إضافة مركز تدريب</SectionTitle>
+
+        {/* Basic info */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
-          <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز" />
-          <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v }))}>{gopts}</Select>
-          <Select label="المنطقة" value={addCenter.area} onChange={v => setAddCenter(s => ({ ...s, area: v }))}>{aopts}</Select>
-        </div>
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>تفاصيل التواصل</div>
+          <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز التدريبي" />
           <Input label="العنوان" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="العنوان التفصيلي" />
-          <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" />
-          <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps URL" />
+          <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" type="tel" />
+          <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps URL (اختياري)" />
         </div>
+
+        {/* Location */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الدوام</div>
-          <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
-          <Input label="ساعات الدوام" value={addCenter.hours} onChange={v => setAddCenter(s => ({ ...s, hours: v }))} placeholder="8:00 ص – 4:00 م" />
-          <Input label="أيام الدوام (مفصولة بفاصلة)" value={addCenter.days} onChange={v => setAddCenter(s => ({ ...s, days: v }))} placeholder="الأحد,الإثنين,الثلاثاء" />
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
+          <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
+          {govAreas.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {govAreas.map(([id, a]) => (
+                  <button key={id} onClick={() => toggleArea(id)}
+                    style={{
+                      padding: "6px 12px", borderRadius: 10,
+                      border: `1.5px solid ${addCenter.areaIds.includes(id) ? C.primary : C.border}`,
+                      background: addCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
+                      color: addCenter.areaIds.includes(id) ? C.primary : C.textSec,
+                      fontSize: 12, fontWeight: 700,
+                      cursor: "pointer", fontFamily: "inherit",
+                      transition: "all 0.15s",
+                    }}>
+                    <i className={`ph ph-${addCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Working hours */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
+
+          <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+
+          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>من</label>
+              <input type="time" value={addCenter.startHour}
+                onChange={e => setAddCenter(s => ({ ...s, startHour: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>إلى</label>
+              <input type="time" value={addCenter.endHour}
+                onChange={e => setAddCenter(s => ({ ...s, endHour: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 8 }}>أيام الدوام</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {ALL_DAYS_FULL.map((day, i) => (
+                <button key={day} onClick={() => toggleDay(day)}
+                  style={{
+                    width: 42, height: 42, borderRadius: 10,
+                    border: `1.5px solid ${addCenter.selectedDays.includes(day) ? C.primary : C.border}`,
+                    background: addCenter.selectedDays.includes(day) ? C.primary : C.bg,
+                    color: addCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
+                    fontSize: 14, fontWeight: 800,
+                    cursor: "pointer", fontFamily: "inherit",
+                    transition: "all 0.15s",
+                  }}>
+                  {ALL_DAYS_SHORT[i]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Save */}
         <Btn variant="primary" onClick={async () => {
           if (!addCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
-          const days = addCenter.days.split(",").map(s => s.trim()).filter(Boolean);
-          setLoading(true); try { await db.ref("centers").push({ name: addCenter.name.trim(), governorateId: addCenter.gov, areaId: addCenter.area, address: addCenter.address.trim() || null, phone: addCenter.phone.trim() || null, mapLink: addCenter.mapLink.trim() || null, rating: parseFloat(addCenter.rating) || 0, workingHours: addCenter.hours.trim() || null, workingDays: days.length ? days : null }); showToast("تم الإضافة"); setAddCenter({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" }); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
+          if (addCenter.phone.trim() && !/^07\d{8}$/.test(addCenter.phone.trim())) { showToast("رقم الهاتف غير صالح"); return; }
+          if (addCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
+          if (addCenter.selectedDays.length === 0) { showToast("اختر يوم دوام واحد على الأقل"); return; }
+          const areaObjs = addCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+          setLoading(true); try { await db.ref("centers").push({
+            name: addCenter.name.trim(),
+            governorateId: addCenter.gov,
+            areaId: addCenter.areaIds[0],
+            areas: areaObjs,
+            address: addCenter.address.trim() || null,
+            phone: addCenter.phone.trim() || null,
+            mapLink: addCenter.mapLink.trim() || null,
+            rating: parseFloat(addCenter.rating) || 0,
+            workingHours: `${addCenter.startHour.trim()} – ${addCenter.endHour.trim()}`,
+            workingDays: addCenter.selectedDays,
+          }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
         }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
       </div>
     );
@@ -744,7 +844,7 @@ export default function Admin({ onBack }: Props) {
   const [editGovName, setEditGovName] = useState("");
   const [editAreaGov, setEditAreaGov] = useState("");
   const [editAreaName, setEditAreaName] = useState("");
-  const [editCenter, setEditCenter] = useState({ name: "", gov: "", area: "", address: "", phone: "", mapLink: "", rating: "0", hours: "", days: "" });
+  const [editCenter, setEditCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[] });
 
   function EditListSection() {
     if (!editType) {
@@ -800,21 +900,125 @@ export default function Admin({ onBack }: Props) {
         );
       }
       const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
-      const aopts = Object.entries(areas).map(([id, a]) => <option key={id} value={id}>{a.name}</option>);
+      const editGovAreas = editCenter.gov
+        ? Object.entries(areas).filter(([, a]) => a.governorateId === editCenter.gov)
+        : [];
+      function editToggleArea(id: string) {
+        setEditCenter(s => ({
+          ...s,
+          areaIds: s.areaIds.includes(id) ? s.areaIds.filter(x => x !== id) : [...s.areaIds, id]
+        }));
+      }
+      function editToggleDay(day: string) {
+        setEditCenter(s => ({
+          ...s,
+          selectedDays: s.selectedDays.includes(day) ? s.selectedDays.filter(x => x !== day) : [...s.selectedDays, day]
+        }));
+      }
       return (
         <div>
           <BackBtn onClick={() => setEditId(null)} />
           <SectionTitle>تعديل مركز</SectionTitle>
-          <Input label="الاسم" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
-          <Select label="المحافظة" value={editCenter.gov} onChange={v => setEditCenter(s => ({ ...s, gov: v }))}>{gopts}</Select>
-          <Select label="المنطقة" value={editCenter.area} onChange={v => setEditCenter(s => ({ ...s, area: v }))}>{aopts}</Select>
-          <Input label="العنوان" value={editCenter.address} onChange={v => setEditCenter(s => ({ ...s, address: v }))} />
-          <Input label="الهاتف" value={editCenter.phone} onChange={v => setEditCenter(s => ({ ...s, phone: v }))} />
-          <Input label="رابط الخريطة" value={editCenter.mapLink} onChange={v => setEditCenter(s => ({ ...s, mapLink: v }))} />
-          <Input label="التقييم" value={editCenter.rating} onChange={v => setEditCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
-          <Input label="ساعات الدوام" value={editCenter.hours} onChange={v => setEditCenter(s => ({ ...s, hours: v }))} />
-          <Input label="أيام الدوام (مفصولة)" value={editCenter.days} onChange={v => setEditCenter(s => ({ ...s, days: v }))} />
-          <Btn variant="primary" onClick={async () => { const days = editCenter.days.split(",").map(s => s.trim()).filter(Boolean); setLoading(true); try { await db.ref("centers/" + editId).update({ name: editCenter.name.trim(), governorateId: editCenter.gov, areaId: editCenter.area, address: editCenter.address.trim() || null, phone: editCenter.phone.trim() || null, mapLink: editCenter.mapLink.trim() || null, rating: parseFloat(editCenter.rating) || 0, workingHours: editCenter.hours.trim() || null, workingDays: days.length ? days : null }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
+            <Input label="اسم المركز" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
+            <Input label="العنوان" value={editCenter.address} onChange={v => setEditCenter(s => ({ ...s, address: v }))} />
+            <Input label="رقم الهاتف" value={editCenter.phone} onChange={v => setEditCenter(s => ({ ...s, phone: v }))} type="tel" />
+            <Input label="رابط الخريطة" value={editCenter.mapLink} onChange={v => setEditCenter(s => ({ ...s, mapLink: v }))} />
+          </div>
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
+            <Select label="المحافظة" value={editCenter.gov} onChange={v => setEditCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
+            {editGovAreas.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {editGovAreas.map(([id, a]) => (
+                    <button key={id} onClick={() => editToggleArea(id)}
+                      style={{
+                        padding: "6px 12px", borderRadius: 10,
+                        border: `1.5px solid ${editCenter.areaIds.includes(id) ? C.primary : C.border}`,
+                        background: editCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
+                        color: editCenter.areaIds.includes(id) ? C.primary : C.textSec,
+                        fontSize: 12, fontWeight: 700,
+                        cursor: "pointer", fontFamily: "inherit",
+                        transition: "all 0.15s",
+                      }}>
+                      <i className={`ph ph-${editCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
+                      {a.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
+            <Input label="التقييم (0–5)" value={editCenter.rating} onChange={v => setEditCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>من</label>
+                <input type="time" value={editCenter.startHour}
+                  onChange={e => setEditCenter(s => ({ ...s, startHour: e.target.value }))}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>إلى</label>
+                <input type="time" value={editCenter.endHour}
+                  onChange={e => setEditCenter(s => ({ ...s, endHour: e.target.value }))}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+                />
+              </div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 8 }}>أيام الدوام</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {ALL_DAYS_FULL.map((day, i) => (
+                  <button key={day} onClick={() => editToggleDay(day)}
+                    style={{
+                      width: 42, height: 42, borderRadius: 10,
+                      border: `1.5px solid ${editCenter.selectedDays.includes(day) ? C.primary : C.border}`,
+                      background: editCenter.selectedDays.includes(day) ? C.primary : C.bg,
+                      color: editCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
+                      fontSize: 14, fontWeight: 800,
+                      cursor: "pointer", fontFamily: "inherit",
+                      transition: "all 0.15s",
+                    }}>
+                    {ALL_DAYS_SHORT[i]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Btn variant="primary" onClick={async () => {
+            if (!editCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
+            if (editCenter.phone.trim() && !/^07\d{8}$/.test(editCenter.phone.trim())) { showToast("رقم الهاتف غير صالح"); return; }
+            if (editCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
+            if (editCenter.selectedDays.length === 0) { showToast("اختر يوم دوام واحد على الأقل"); return; }
+            const areaObjs = editCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+            setLoading(true); try {
+              await db.ref("centers/" + editId).update({
+                name: editCenter.name.trim(),
+                governorateId: editCenter.gov,
+                areaId: editCenter.areaIds[0],
+                areas: areaObjs,
+                address: editCenter.address.trim() || null,
+                phone: editCenter.phone.trim() || null,
+                mapLink: editCenter.mapLink.trim() || null,
+                rating: parseFloat(editCenter.rating) || 0,
+                workingHours: `${editCenter.startHour.trim()} – ${editCenter.endHour.trim()}`,
+                workingDays: editCenter.selectedDays,
+              });
+              showToast("تم التحديث");
+              await loadAll(); setEditId(null);
+            } catch { showToast("حدث خطأ"); }
+            setLoading(false);
+          }}><i className="ph ph-check" /> حفظ التغييرات</Btn>
         </div>
       );
     }
@@ -829,7 +1033,16 @@ export default function Admin({ onBack }: Props) {
                 setEditId(id);
                 if (editType === "governorates") setEditGovName(item.name);
                 else if (editType === "areas") { setEditAreaName(item.name); setEditAreaGov(item.governorateId || ""); }
-                else { setEditCenter({ name: item.name || "", gov: item.governorateId || "", area: item.areaId || "", address: item.address || "", phone: item.phone || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), hours: item.workingHours || "", days: (item.workingDays || []).join(",") }); }
+                else {
+                  const existingAreas = item.areas || (item.areaId ? [{ id: item.areaId, name: areas[item.areaId]?.name || "" }] : []);
+                  const areaIds = existingAreas.map((a: any) => a.id);
+                  let startHour = "08:00", endHour = "16:00";
+                  if (item.workingHours && item.workingHours.includes("–")) {
+                    const parts = item.workingHours.split("–").map((s: string) => s.trim());
+                    if (parts.length === 2) { startHour = parts[0]; endHour = parts[1]; }
+                  }
+                  setEditCenter({ name: item.name || "", gov: item.governorateId || "", areaIds, address: item.address || "", phone: item.phone || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), startHour, endHour, selectedDays: item.workingDays || [] });
+                }
               }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
             } />
           ))}
