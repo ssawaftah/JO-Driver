@@ -1545,7 +1545,6 @@ export default function Admin({ onBack }: Props) {
   }
 
   function FooterAdminSection() {
-    useEffect(() => { loadFooter(); }, []);
 
     async function addSponsor() {
       if (!sponsorImgUrl.trim()) { showToast("أدخل رابط الصورة"); return; }
