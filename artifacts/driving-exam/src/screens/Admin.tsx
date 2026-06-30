@@ -214,8 +214,9 @@ export default function Admin({ onBack }: Props) {
       const g = govSnap.val() || {}, a = areaSnap.val() || {}, c = centerSnap.val() || {};
       const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, gs = guideSnap.val() || {};
       setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setGuideSections(gs);
+      const guideCount = Object.keys(gs).length || Object.keys(DEFAULT_GUIDE_SECTIONS).length;
       setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length,
-        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, guide: Object.keys(gs).length });
+        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, guide: guideCount });
     } catch { showToast("خطأ في التحميل"); }
     setLoading(false);
   }
@@ -907,6 +908,64 @@ export default function Admin({ onBack }: Props) {
     steps: "خطوات", documents: "وثائق", fees: "رسوم", conditions: "شروط", faq: "أسئلة شائعة",
   };
 
+  /* ── Default guide sections (shown as fallback when Firebase empty) ── */
+  const DEFAULT_GUIDE_SECTIONS: Record<string, any> = {
+    "default-steps": {
+      title: "خطوات الحصول على رخصة القيادة",
+      icon: "list-numbers", iconColor: "#7C3AED", iconBg: "#EDE9FE", type: "steps", order: 1,
+      items: [
+        { text: "التسجيل في مدرسة سواقة معتمدة", sub: "اختر مدرسة معتمدة لدى دائرة الترخيص وسجّل باسمك برقم هويتك الوطنية." },
+        { text: "إتمام الدروس النظرية والعملية", sub: "أكمل الساعات المطلوبة من الدروس النظرية والعملية مع المدرسة." },
+        { text: "انتظار رسالة SMS من دائرة الترخيص", sub: "بعد إدخال المدرسة بياناتك في النظام، ستصلك رسالة تأكيد خلال أيام." },
+        { text: "التوجه لدائرة الترخيص", sub: "احضر مع وثائقك المطلوبة، ادفع الرسوم، وتقدم لحجز موعد الفحص النظري." },
+        { text: "اجتياز الفحص النظري", sub: "60 سؤال خلال 60 دقيقة. تحتاج الإجابة على 51 سؤالاً على الأقل للنجاح." },
+        { text: "اجتياز الفحص العملي واستلام الرخصة", sub: "بعد النجاح في النظري تحدد موعداً للفحص العملي، وعند النجاح تستلم رخصتك." },
+      ],
+    },
+    "default-docs": {
+      title: "الأوراق والوثائق المطلوبة",
+      icon: "folder-open", iconColor: "#D97706", iconBg: "#FEF3C7", type: "documents", order: 2,
+      items: [
+        { text: "بطاقة هوية وطنية سارية المفعول", sub: "للأردنيين — جواز سفر ساري للمقيمين", icon: "identification-card" },
+        { text: "دفتر خدمة العلم أو وثيقة الإعفاء", sub: "للذكور دون سن الأربعين", icon: "book-open" },
+        { text: "صورتان شخصيتان", sub: "خلفية بيضاء، حديثتان", icon: "image-square" },
+        { text: "شهادة اللياقة الطبية", sub: "تُستخرج من أي مركز صحي معتمد", icon: "heart-pulse" },
+        { text: "إيصال دفع رسوم التقديم", sub: "يُدفع في الدائرة أو عبر منظومة موحد", icon: "receipt" },
+      ],
+    },
+    "default-fees": {
+      title: "الرسوم التقريبية",
+      icon: "currency-circle-dollar", iconColor: "#16A34A", iconBg: "#DCFCE7", type: "fees", order: 3,
+      items: [
+        { text: "رسوم تسجيل طلب التقديم", amount: "3 د.أ", note: "تُدفع لدى دائرة الترخيص" },
+        { text: "رسوم الفحص النظري", amount: "10 د.أ", note: "في حال الرسوب تُعاد الرسوم" },
+        { text: "رسوم الفحص العملي", amount: "20 د.أ", note: "لكل محاولة" },
+        { text: "رسوم استخراج الرخصة", amount: "30 د.أ", note: "عند النجاح في الفحصين" },
+      ],
+    },
+    "default-conditions": {
+      title: "شروط التقديم",
+      icon: "user-check", iconColor: "#0891B2", iconBg: "#CFFAFE", type: "conditions", order: 4,
+      items: [
+        { text: "الحد الأدنى للعمر: 18 سنة", icon: "calendar-blank" },
+        { text: "اجتياز فحص النظر في المركز الصحي", icon: "eye" },
+        { text: "لا يوجد سجل جنائي يمنع استخراج الرخصة", icon: "shield-check" },
+        { text: "إكمال الدروس المقررة في المدرسة المسجّل بها", icon: "graduation-cap" },
+      ],
+    },
+    "default-faq": {
+      title: "أسئلة شائعة",
+      icon: "chat-circle-question", iconColor: "#246BFD", iconBg: "#EEF4FF", type: "faq", order: 5,
+      items: [
+        { text: "ماذا لو رسبت في الامتحان النظري؟", answer: "يمكنك إعادة التقديم بعد 24 ساعة، وتُسدَّد رسوم جديدة لكل محاولة." },
+        { text: "هل يمكن تقديم الامتحان بدون رسالة SMS؟", answer: "لا. الرسالة شرط إلزامي، وهي تؤكد أن المدرسة سجّلت إتمام دروسك في نظام دائرة الترخيص." },
+        { text: "كم عدد المحاولات المسموحة في الفحص النظري؟", answer: "لا يوجد حد أقصى للمحاولات، غير أن كل محاولة تحتاج رسوماً جديدة." },
+        { text: "هل يختلف الامتحان بين المحافظات؟", answer: "الاختبار موحَّد ورقمي في جميع فروع دائرة الترخيص في المملكة." },
+        { text: "هل تُقبل الهوية منتهية الصلاحية؟", answer: "لا. يجب أن تكون الهوية الوطنية سارية المفعول يوم التقديم." },
+      ],
+    },
+  };
+
   const [guideEditorOpen, setGuideEditorOpen] = useState(false);
   const [editingGuideId, setEditingGuideId] = useState<string | null>(null);
   const [guideForm, setGuideForm] = useState({
@@ -920,7 +979,8 @@ export default function Admin({ onBack }: Props) {
 
   function openGuideEditor(id?: string) {
     if (id) {
-      const s = guideSections[id];
+      const merged = mergeGuideSections();
+      const s = merged[id];
       if (!s) return;
       setGuideForm({
         title: s.title || "", icon: s.icon || "list-numbers",
@@ -993,8 +1053,10 @@ export default function Admin({ onBack }: Props) {
           return base;
         }),
       };
-      if (editingGuideId) await db.ref("guide/sections/" + editingGuideId).update(payload);
-      else await db.ref("guide/sections").push(payload);
+      if (editingGuideId) {
+        if (guideSections[editingGuideId]) await db.ref("guide/sections/" + editingGuideId).update(payload);
+        else await db.ref("guide/sections/" + editingGuideId).set(payload);
+      } else await db.ref("guide/sections").push(payload);
       showToast(editingGuideId ? "تم التحديث" : "تم الإضافة");
       setGuideEditorOpen(false); resetGuideForm(); setEditingGuideId(null);
       await loadAll();
@@ -1020,8 +1082,17 @@ export default function Admin({ onBack }: Props) {
     setLoading(false);
   }
 
+  function mergeGuideSections() {
+    const merged: Record<string, any> = { ...DEFAULT_GUIDE_SECTIONS };
+    for (const [id, s] of Object.entries(guideSections)) {
+      merged[id] = s;
+    }
+    return merged;
+  }
+
   function GuideAdminSection() {
-    const arr = Object.entries(guideSections).map(([id, s]) => ({ id, ...s as any })).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const rawSections = mergeGuideSections();
+    const arr = Object.entries(rawSections).map(([id, s]) => ({ id, ...s as any })).sort((a, b) => (a.order || 0) - (b.order || 0));
 
     if (guideEditorOpen) {
       return (
