@@ -394,6 +394,7 @@ export default function Admin({ onBack }: Props) {
   type QSubView = "menu" | "list" | "form";
   const [qSub, setQSub] = useState<QSubView>("menu");
   const [qCat, setQCat] = useState("");
+  const [qSearch, setQSearch] = useState("");
   const [editingQ, setEditingQ] = useState<string | null>(null);
   const [qForm, setQForm] = useState({
     category: Q_CATS[0], type: "text" as "text" | "image" | "video",
@@ -527,7 +528,6 @@ export default function Admin({ onBack }: Props) {
       );
     }
     // list
-    const [qSearch, setQSearch] = useState("");
     let qs = Object.entries(questions).map(([id, q]) => ({ id, ...q }));
     // filter by category
     if (qCat) qs = qs.filter(q => q.category === qCat);
@@ -1715,7 +1715,7 @@ export default function Admin({ onBack }: Props) {
         </div>
       );
       case "users": return <UsersSection />;
-      case "questions": return <QuestionsSection />;
+      case "questions": return QuestionsSection();
       case "requests": return <RequestsSection />;
       case "add-gov": case "add-area": case "add-center": return <AddSection />;
       case "edit-list": return <EditListSection />;
