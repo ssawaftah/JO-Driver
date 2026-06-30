@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة تحكم — JO Driver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #246BFD;
+            --primary-dark: #1a4fd1;
+            --primary-light: #EEF4FF;
+            --text: #111827;
+            --text-light: #6B7280;
+            --bg: #F9FAFB;
+            --card: #ffffff;
+            --border: #F0F1F3;
+            --danger: #DC2626;
+            --danger-light: #FEF2F2;
+            --success: #16A34A;
+            --success-light: #ECFDF3;
+            --gold: #F59E0B;
+            --gold-light: #FEF3C7;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-card: 0 2px 8px rgba(0,0,0,0.05);
+            --transition: all .2s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            direction: rtl;
+            text-align: right;
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            max-width: 540px;
+            margin: 0 auto;
+            background: var(--bg);
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Header */
+        .app-header {
+            background: #fff;
+            padding: 14px 18px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .app-logo {
+            width: 42px; height: 42px;
+            border-radius: 14px;
+            background: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 22px;
+            flex-shrink: 0;
+        }
+        .app-brand { flex: 1; }
+        .app-title { font-size: 17px; font-weight: 900; color: var(--text); }
+        .app-subtitle { font-size: 12px; color: var(--text-light); margin-top: 1px; }
+
+        /* Screen */
+        .screen {
+            display: none;
+            padding: 18px 14px;
+            animation: fadeIn .3s ease;
+        }
+        .screen.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .stat-value { font-size: 28px; font-weight: 900; color: var(--primary); line-height: 1; }
+        .stat-label { font-size: 12px; color: var(--text-light); margin-top: 6px; font-weight: 500; }
+
+        /* Cards / menu items */
+        .menu-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 15px 14px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+        .menu-card:active { transform: scale(.98); background: var(--primary-light); border-color: var(--primary); }
+        .menu-icon {
+            width: 46px; height: 46px;
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .menu-icon.green { background: #ECFDF3; color: #16A34A; }
+        .menu-icon.blue { background: #EEF4FF; color: #246BFD; }
+        .menu-icon.gold { background: #FEF3C7; color: #D97706; }
+        .menu-icon.red { background: #FEF2F2; color: #DC2626; }
+        .menu-icon.purple { background: #EDE9FE; color: #7C3AED; }
+        .menu-icon.cyan { background: #CFFAFE; color: #0891B2; }
+        .menu-content { flex: 1; }
+        .menu-title { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+        .menu-desc { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+        .menu-arrow { color: #D1D5DB; font-size: 18px; flex-shrink: 0; }
+
+        /* Buttons */
+        .btn {
+            width: 100%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'Tajawal', sans-serif;
+            border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 800;
+            padding: 14px;
+            transition: var(--transition);
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:active { background: var(--primary-dark); }
+        .btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+        .btn-outline:active { background: var(--primary-light); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-sm { width: auto; padding: 7px 12px; font-size: 12px; border-radius: 10px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--text); }
+        .form-input {
+            width: 100%; padding: 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            color: var(--text);
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px var(--primary-light); }
+        textarea.form-input { resize: vertical; min-height: 100px; }
+        select.form-input { appearance: none; -webkit-appearance: none; }
+
+        /* List items */
+        .list-item {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .back-btn {
+            background: none; border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 13px; font-weight: 800;
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 16px;
+            padding: 4px;
+        }
+
+        .section-title {
+            font-size: 18px; font-weight: 900;
+            margin-bottom: 12px; color: var(--text);
+        }
+
+        .selection-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+        .selection-card:active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(249,250,251,.97);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 999;
+        }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 3.5px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin-bottom: 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Options */
+        .options-list { margin: 10px 0; }
+        .option-row {
+            display: flex; gap: 8px; align-items: center;
+            margin-bottom: 8px;
+        }
+        .option-row .form-input { flex: 1; }
+        .correct-badge {
+            background: var(--success); color: white;
+            padding: 2px 8px; border-radius: 8px; font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* User card */
+        .user-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+        }
+        .user-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 12px;
+        }
+        .user-avatar {
+            width: 44px; height: 44px; border-radius: 13px;
+            background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 900; flex-shrink: 0;
+        }
+        .user-name { font-size: 15px; font-weight: 800; }
+        .user-phone { font-size: 12px; color: var(--text-light); }
+        .user-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .user-details div {
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            padding: 9px 11px;
+            border-radius: 10px;
+            font-size: 11px; color: var(--text-light);
+        }
+        .user-details span { display: block; margin-top: 3px; color: var(--text); font-weight: 800; font-size: 13px; }
+        .user-actions { display: flex; gap: 8px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-light);
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 14px; opacity: .3; }
+
+        .badge {
+            padding: 3px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 800;
+            display: inline-block;
+        }
+        .badge-green { background: var(--success-light); color: var(--success); }
+        .badge-yellow { background: var(--gold-light); color: #92400E; }
+        .badge-red { background: var(--danger-light); color: var(--danger); }
+
+        .request-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .tag-row {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+        }
+        .tag {
+            font-size: 11px; font-weight: 600;
+            padding: 3px 9px; border-radius: 8px;
+            background: var(--bg); color: var(--text-light);
+            border: 1px solid var(--border);
+        }
+
+        .action-row {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        .info-grid div { display: flex; align-items: center; gap: 5px; }
+        .info-grid.full { grid-template-columns: 1fr; }
+
+        .toast {
+            position: fixed;
+            top: 70px;
+            right: 14px;
+            left: 14px;
+            background: var(--text);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 700;
+            text-align: center;
+            z-index: 200;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all .25s ease;
+            pointer-events: none;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header class="app-header">
+        <div class="app-logo"><i class="ph ph-shield-check"></i></div>
+        <div class="app-brand">
+            <div class="app-title">لوحة التحكم</div>
+            <div class="app-subtitle">JO Driver &mdash; إدارة المنصة</div>
+        </div>
+    </header>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Main -->
+    <div id="mainScreen" class="screen active">
+        <div class="stat-grid">
+            <div class="stat-card"><div class="stat-value" id="govCount">0</div><div class="stat-label">محافظة</div></div>
+            <div class="stat-card"><div class="stat-value" id="areaCount">0</div><div class="stat-label">منطقة</div></div>
+            <div class="stat-card"><div class="stat-value" id="centerCount">0</div><div class="stat-label">مركز تدريب</div></div>
+            <div class="stat-card"><div class="stat-value" id="userCount">0</div><div class="stat-label">مستخدم</div></div>
+        </div>
+
+        <div class="menu-card" onclick="showWelcomeManager()">
+            <div class="menu-icon green"><i class="ph ph-chat-circle-text"></i></div>
+            <div class="menu-content"><div class="menu-title">إدارة رسالة الترحيب</div><div class="menu-desc">تعديل رسالة وصورة الترحيب للمستخدمين</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showUsersManager()">
+            <div class="menu-icon blue"><i class="ph ph-users"></i></div>
+            <div class="menu-content"><div class="menu-title">إدارة المستخدمين</div><div class="menu-desc">عرض وإدارة جميع المستخدمين المسجلين</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showQuestionsManager()">
+            <div class="menu-icon gold"><i class="ph ph-question"></i></div>
+            <div class="menu-content"><div class="menu-title">إدارة الأسئلة</div><div class="menu-desc">إضافة وتعديل وحذف أسئلة الفحص النظري</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showCenterRequestsManager()">
+            <div class="menu-icon purple"><i class="ph ph-clipboard-text"></i></div>
+            <div class="menu-content"><div class="menu-title">طلبات الانتساب</div><div class="menu-desc">مراجعة ونشر طلبات إضافة مراكز التدريب</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showAddForm('governorate')">
+            <div class="menu-icon cyan"><i class="ph ph-map-trifold"></i></div>
+            <div class="menu-content"><div class="menu-title">إضافة محافظة</div><div class="menu-desc">إنشاء محافظة جديدة داخل النظام</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showAddForm('area')">
+            <div class="menu-icon blue"><i class="ph ph-map-pin"></i></div>
+            <div class="menu-content"><div class="menu-title">إضافة منطقة</div><div class="menu-desc">ربط منطقة بمحافظة موجودة</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showAddForm('center')">
+            <div class="menu-icon gold"><i class="ph ph-buildings"></i></div>
+            <div class="menu-content"><div class="menu-title">إضافة مركز تدريب</div><div class="menu-desc">إضافة مركز قيادة جديد</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showEditMenu()">
+            <div class="menu-icon blue"><i class="ph ph-pencil-simple"></i></div>
+            <div class="menu-content"><div class="menu-title">تعديل البيانات</div><div class="menu-desc">تعديل المحافظات والمناطق والمراكز</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+        <div class="menu-card" onclick="showDeleteMenu()">
+            <div class="menu-icon red"><i class="ph ph-trash"></i></div>
+            <div class="menu-content"><div class="menu-title">حذف البيانات</div><div class="menu-desc">إزالة المحافظات أو المناطق أو المراكز</div></div>
+            <i class="ph ph-caret-left menu-arrow"></i>
+        </div>
+    </div>
+
+    <!-- Welcome manager -->
+    <div id="welcomeScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div class="section-title">إدارة رسالة الترحيب</div>
+        <div class="form-group">
+            <label class="form-label">نص الترحيب</label>
+            <textarea class="form-input" id="welcomeText" rows="5"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">رابط الصورة</label>
+            <input type="text" class="form-input" id="welcomePhoto" placeholder="https://...">
+        </div>
+        <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:10px;">
+            <i class="ph ph-floppy-disk"></i> حفظ
+        </button>
+        <button class="btn btn-outline" onclick="resetWelcome()">
+            <i class="ph ph-arrow-counter-clockwise"></i> إعادة للافتراضي
+        </button>
+    </div>
+
+    <!-- Users -->
+    <div id="usersScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="section-title" style="margin:0;">المستخدمين</div>
+            <span class="badge badge-green" id="userCountBadge">0</span>
+        </div>
+        <div id="usersList"></div>
+    </div>
+
+    <!-- Add form -->
+    <div id="addScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div id="addFormContent"></div>
+    </div>
+
+    <!-- Edit -->
+    <div id="editScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div id="editContent"></div>
+    </div>
+
+    <!-- Delete -->
+    <div id="deleteScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div id="deleteContent"></div>
+    </div>
+
+    <!-- Questions manager -->
+    <div id="questionsManagerScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div class="section-title">إدارة الأسئلة</div>
+        <button class="btn btn-primary" onclick="showAddQuestionForm()" style="margin-bottom:10px;">
+            <i class="ph ph-plus"></i> إضافة سؤال
+        </button>
+        <button class="btn btn-outline" onclick="showEditQuestionList()" style="margin-bottom:10px;">
+            <i class="ph ph-pencil-simple"></i> تعديل سؤال
+        </button>
+        <button class="btn btn-outline" onclick="showDeleteQuestionList()" style="margin-bottom:10px;">
+            <i class="ph ph-trash"></i> حذف سؤال
+        </button>
+    </div>
+
+    <!-- Add question -->
+    <div id="addQuestionScreen" class="screen">
+        <button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div class="section-title" id="qFormTitle">إضافة سؤال جديد</div>
+        <div class="form-group">
+            <label class="form-label">القسم</label>
+            <select class="form-input" id="qCategory">
+                <option value="قواعد السير والمرور">قواعد السير والمرور</option>
+                <option value="الميكانيك">الميكانيك</option>
+                <option value="السلامة على الطريق">السلامة على الطريق</option>
+                <option value="أسعافات أولية">أسعافات أولية</option>
+                <option value="الشواخص والخطوط والعلامات">الشواخص والخطوط والعلامات</option>
+                <option value="المخالفات واحتساب النقاط">المخالفات واحتساب النقاط</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">نوع السؤال</label>
+            <select class="form-input" id="qType" onchange="toggleMediaField()">
+                <option value="text">نصي</option>
+                <option value="image">صورة</option>
+                <option value="video">فيديو / GIF</option>
+            </select>
+        </div>
+        <div class="form-group" id="mediaField" style="display:none;">
+            <label class="form-label">رابط الوسائط</label>
+            <input type="text" class="form-input" id="qMediaUrl" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label class="form-label">السؤال</label>
+            <textarea class="form-input" id="qText" rows="3" placeholder="نص السؤال..."></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">الخيارات</label>
+            <div id="optionsContainer"></div>
+            <button class="btn btn-sm btn-outline" onclick="addOption()" style="width:auto; margin-top:8px;">
+                <i class="ph ph-plus"></i> خيار
+            </button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">الإجابة الصحيحة</label>
+            <select class="form-input" id="qCorrect"></select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">شرح الإجابة (اختياري)</label>
+            <textarea class="form-input" id="qExplanation" rows="2" placeholder="شرح مختصر..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="qSaveBtn" onclick="saveQuestion()">
+            <i class="ph ph-floppy-disk"></i> حفظ
+        </button>
+    </div>
+
+    <!-- Center requests -->
+    <div id="centerRequestsScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="section-title" style="margin:0;">طلبات الانتساب</div>
+            <span class="badge badge-yellow" id="requestsCountBadge">0</span>
+        </div>
+        <div id="requestsList"></div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+        <p style="font-weight:800; color:var(--text-light); font-size:14px;" id="loadingText">جارٍ التحميل...</p>
+    </div>
+</div>
+
+<script>
+// ===== Firebase =====
+firebase.initializeApp({
+    apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+    databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "al3arbicv"
+});
+const db = firebase.database();
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+let allGovs = {}, allAreas = {}, allCenters = {}, allQuestions = {}, allRequests = {};
+let currentQuestionCategory = null;
+
+const questionCategories = [
+    "قواعد السير والمرور",
+    "الميكانيك",
+    "السلامة على الطريق",
+    "أسعافات أولية",
+    "الشواخص والخطوط والعلامات",
+    "المخالفات واحتساب النقاط"
+];
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function showMain() { showScreen('mainScreen'); loadStats(); }
+
+function showLoading(text = 'جارٍ التحميل...') {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+async function loadData() {
+    try {
+        const [govSnap, areaSnap, centerSnap] = await Promise.all([
+            db.ref('governorates').once('value'),
+            db.ref('areas').once('value'),
+            db.ref('centers').once('value')
+        ]);
+        allGovs = govSnap.val() || {};
+        allAreas = areaSnap.val() || {};
+        allCenters = centerSnap.val() || {};
+    } catch(e) { console.error(e); }
+}
+
+async function loadAllQuestions() {
+    try { const snap = await db.ref('questions').once('value'); allQuestions = snap.val() || {}; }
+    catch(e) { console.error(e); }
+}
+
+async function loadAllUsers() {
+    try { return (await db.ref('users').once('value')).val() || {}; }
+    catch(e) { console.error(e); return {}; }
+}
+
+async function loadAllRequests() {
+    try { const snap = await db.ref('centerRequests').once('value'); allRequests = snap.val() || {}; }
+    catch(e) { console.error(e); }
+}
+
+async function loadStats() {
+    await loadData();
+    const users = await loadAllUsers();
+    document.getElementById('govCount').textContent = Object.keys(allGovs).length;
+    document.getElementById('areaCount').textContent = Object.keys(allAreas).length;
+    document.getElementById('centerCount').textContent = Object.keys(allCenters).length;
+    document.getElementById('userCount').textContent = Object.keys(users).length;
+}
+
+// ===== Welcome =====
+async function showWelcomeManager() {
+    showScreen('welcomeScreen');
+    showLoading();
+    try {
+        const snap = await db.ref('welcome').once('value');
+        const data = snap.val() || {};
+        document.getElementById('welcomeText').value = data.text || '';
+        document.getElementById('welcomePhoto').value = data.photo || '';
+    } catch(e) {}
+    hideLoading();
+}
+
+async function saveWelcome() {
+    const text = document.getElementById('welcomeText').value;
+    const photo = document.getElementById('welcomePhoto').value;
+    showLoading('جارٍ الحفظ...');
+    try {
+        await db.ref('welcome').set({ text, photo });
+        showToast('تم حفظ الترحيب بنجاح');
+        showMain();
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function resetWelcome() {
+    showLoading('جارٍ الاستعادة...');
+    try {
+        await db.ref('welcome').set({
+            text: "مرحباً بك في تطبيق الفحص النظري لرخصة القيادة! 🚗\n\nقم بالتسجيل للوصول إلى جميع الأسئلة والامتحانات.",
+            photo: ""
+        });
+        showToast('تمت الاستعادة');
+        showMain();
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Users =====
+async function showUsersManager() {
+    showScreen('usersScreen');
+    showLoading();
+    const container = document.getElementById('usersList');
+    const users = await loadAllUsers();
+    const entries = Object.entries(users);
+    document.getElementById('userCountBadge').textContent = entries.length + ' مستخدم';
+
+    if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>لا يوجد مستخدمون مسجلون</p></div>`;
+        hideLoading(); return;
+    }
+
+    container.innerHTML = entries.map(([uid, u]) => {
+        const initials = (u.name || u.firstName || 'U').charAt(0).toUpperCase();
+        const best = u.bestScore || 0;
+        const tests = u.testsTaken || 0;
+        const reg = u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('ar-JO') : '-';
+        return `
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">${initials}</div>
+                <div>
+                    <div class="user-name">${u.name || u.firstName || 'مستخدم'} ${u.lastName || ''}</div>
+                    <div class="user-phone">${u.phone || uid}</div>
+                </div>
+            </div>
+            <div class="user-details">
+                <div>أفضل نتيجة<span>${best}%</span></div>
+                <div>اختبارات<span>${tests}</span></div>
+                <div>التسجيل<span>${reg}</span></div>
+                <div>المحافظة<span>${u.governorate || '-'}</span></div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-sm btn-danger" onclick="deleteUser('${uid}','${(u.name||'').replace(/'/g,'\\'')}')">
+                    <i class="ph ph-trash"></i> حذف
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+    hideLoading();
+}
+
+async function deleteUser(uid, name) {
+    if (!confirm('حذف المستخدم "' + name + '"؟')) return;
+    showLoading();
+    try { await db.ref('users/'+uid).remove(); showToast('تم الحذف'); showUsersManager(); }
+    catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Add =====
+function showAddForm(type) {
+    showScreen('addScreen');
+    const c = document.getElementById('addFormContent');
+    if (type === 'governorate') {
+        c.innerHTML = `
+            <div class="section-title">إضافة محافظة</div>
+            <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="addGovName" placeholder="مثال: عمّان"></div>
+            <button class="btn btn-primary" onclick="saveGovernorate()"><i class="ph ph-floppy-disk"></i> حفظ</button>`;
+    } else if (type === 'area') {
+        let opts = Object.entries(allGovs).map(([id,g]) => `<option value="${id}">${g.name}</option>`).join('');
+        c.innerHTML = `
+            <div class="section-title">إضافة منطقة</div>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="addAreaGov">${opts}</select></div>
+            <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="addAreaName" placeholder="مثال: خلدا"></div>
+            <button class="btn btn-primary" onclick="saveArea()"><i class="ph ph-floppy-disk"></i> حفظ</button>`;
+    } else if (type === 'center') {
+        let gopts = Object.entries(allGovs).map(([id,g]) => `<option value="${id}">${g.name}</option>`).join('');
+        let aopts = Object.entries(allAreas).map(([id,a]) => `<option value="${id}">${a.name}</option>`).join('');
+        c.innerHTML = `
+            <div class="section-title">إضافة مركز تدريب</div>
+            <div class="form-group"><label class="form-label">الاسم</label><input type="text" class="form-input" id="addCenterName" placeholder="اسم المركز"></div>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="addCenterGov">${gopts}</select></div>
+            <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="addCenterArea">${aopts}</select></div>
+            <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="addCenterAddress" placeholder="العنوان التفصيلي"></div>
+            <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="text" class="form-input" id="addCenterPhone" placeholder="07XXXXXXXX"></div>
+            <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="addCenterMap" placeholder="Google Maps link"></div>
+            <div class="form-group"><label class="form-label">التقييم (0-5)</label><input type="number" class="form-input" id="addCenterRating" min="0" max="5" step="0.1" value="0"></div>
+            <div class="form-group"><label class="form-label">ساعات الدوام</label><input type="text" class="form-input" id="addCenterHours" placeholder="8:00 ص - 4:00 م"></div>
+            <div class="form-group"><label class="form-label">أيام الدوام (مفصولة بفاصلة)</label><input type="text" class="form-input" id="addCenterDays" placeholder="الأحد,الإثنين,الثلاثاء"></div>
+            <button class="btn btn-primary" onclick="saveCenter()"><i class="ph ph-floppy-disk"></i> حفظ</button>`;
+    }
+}
+
+async function saveGovernorate() {
+    const name = document.getElementById('addGovName').value.trim();
+    if (!name) { showToast('أدخل اسم المحافظة'); return; }
+    showLoading();
+    try { await db.ref('governorates').push({ name }); showToast('تم الإضافة'); showMain(); }
+    catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function saveArea() {
+    const govId = document.getElementById('addAreaGov').value;
+    const name = document.getElementById('addAreaName').value.trim();
+    if (!name) { showToast('أدخل اسم المنطقة'); return; }
+    showLoading();
+    try { await db.ref('areas').push({ name, governorateId: govId }); showToast('تم الإضافة'); showMain(); }
+    catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function saveCenter() {
+    const name = document.getElementById('addCenterName').value.trim();
+    if (!name) { showToast('أدخل اسم المركز'); return; }
+    const days = document.getElementById('addCenterDays').value.split(',').map(s=>s.trim()).filter(Boolean);
+    showLoading();
+    try {
+        await db.ref('centers').push({
+            name,
+            governorateId: document.getElementById('addCenterGov').value,
+            areaId: document.getElementById('addCenterArea').value,
+            address: document.getElementById('addCenterAddress').value.trim() || null,
+            phone: document.getElementById('addCenterPhone').value.trim() || null,
+            mapLink: document.getElementById('addCenterMap').value.trim() || null,
+            rating: parseFloat(document.getElementById('addCenterRating').value) || 0,
+            workingHours: document.getElementById('addCenterHours').value.trim() || null,
+            workingDays: days.length ? days : null
+        });
+        showToast('تم الإضافة'); showMain();
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Edit =====
+function showEditMenu() {
+    showScreen('editScreen');
+    document.getElementById('editContent').innerHTML = `
+        <div class="section-title">تعديل البيانات</div>
+        <div class="selection-card" onclick="showEditList('governorates')">المحافظات</div>
+        <div class="selection-card" onclick="showEditList('areas')">المناطق</div>
+        <div class="selection-card" onclick="showEditList('centers')">مراكز التدريب</div>`;
+}
+
+async function showEditList(type) {
+    showLoading();
+    await loadData();
+    let html = `<button class="back-btn" onclick="showEditMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">تعديل ${type === 'governorates' ? 'المحافظات' : type === 'areas' ? 'المناطق' : 'مراكز التدريب'}</div>`;
+
+    const data = type === 'governorates' ? allGovs : type === 'areas' ? allAreas : allCenters;
+    const entries = Object.entries(data);
+
+    if (entries.length === 0) {
+        html += `<div class="empty-state"><i class="ph ph-folder-open"></i><p>لا توجد بيانات</p></div>`;
+    } else {
+        entries.forEach(([id, item]) => {
+            const label = type === 'centers' ? item.name : item.name;
+            html += `<div class="list-item"><span style="font-size:14px; font-weight:700;">${label}</span><button class="btn btn-sm btn-outline" onclick="editItem('${type}','${id}')">تعديل</button></div>`;
+        });
+    }
+    document.getElementById('editContent').innerHTML = html;
+    hideLoading();
+}
+
+async function editItem(type, id) {
+    const item = type === 'governorates' ? allGovs[id] : type === 'areas' ? allAreas[id] : allCenters[id];
+    if (!item) return;
+    showScreen('addScreen');
+    const c = document.getElementById('addFormContent');
+    if (type === 'governorates') {
+        c.innerHTML = `<div class="section-title">تعديل محافظة</div>
+            <div class="form-group"><label class="form-label">الاسم</label><input type="text" class="form-input" id="editGovName" value="${item.name}"></div>
+            <button class="btn btn-primary" onclick="updateItem('governorates','${id}')">حفظ</button>`;
+    } else if (type === 'areas') {
+        let opts = Object.entries(allGovs).map(([gid,g]) => `<option value="${gid}" ${gid===item.governorateId?'selected':''}>${g.name}</option>`).join('');
+        c.innerHTML = `<div class="section-title">تعديل منطقة</div>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="editAreaGov">${opts}</select></div>
+            <div class="form-group"><label class="form-label">الاسم</label><input type="text" class="form-input" id="editAreaName" value="${item.name}"></div>
+            <button class="btn btn-primary" onclick="updateItem('areas','${id}')">حفظ</button>`;
+    } else {
+        let gopts = Object.entries(allGovs).map(([gid,g]) => `<option value="${gid}" ${gid===item.governorateId?'selected':''}>${g.name}</option>`).join('');
+        let aopts = Object.entries(allAreas).map(([aid,a]) => `<option value="${aid}" ${aid===item.areaId?'selected':''}>${a.name}</option>`).join('');
+        c.innerHTML = `<div class="section-title">تعديل مركز</div>
+            <div class="form-group"><label class="form-label">الاسم</label><input type="text" class="form-input" id="editCenterName" value="${item.name||''}"></div>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="editCenterGov">${gopts}</select></div>
+            <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="editCenterArea">${aopts}</select></div>
+            <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="editCenterAddress" value="${item.address||''}"></div>
+            <div class="form-group"><label class="form-label">الهاتف</label><input type="text" class="form-input" id="editCenterPhone" value="${item.phone||''}"></div>
+            <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="editCenterMap" value="${item.mapLink||''}"></div>
+            <div class="form-group"><label class="form-label">التقييم</label><input type="number" class="form-input" id="editCenterRating" min="0" max="5" step="0.1" value="${item.rating||0}"></div>
+            <div class="form-group"><label class="form-label">ساعات الدوام</label><input type="text" class="form-input" id="editCenterHours" value="${item.workingHours||''}"></div>
+            <div class="form-group"><label class="form-label">أيام الدوام (مفصولة بفاصلة)</label><input type="text" class="form-input" id="editCenterDays" value="${(item.workingDays||[]).join(',')}"></div>
+            <button class="btn btn-primary" onclick="updateItem('centers','${id}')">حفظ</button>`;
+    }
+}
+
+async function updateItem(type, id) {
+    showLoading('جارٍ الحفظ...');
+    try {
+        if (type === 'governorates') {
+            await db.ref('governorates/'+id).update({ name: document.getElementById('editGovName').value.trim() });
+        } else if (type === 'areas') {
+            await db.ref('areas/'+id).update({ name: document.getElementById('editAreaName').value.trim(), governorateId: document.getElementById('editAreaGov').value });
+        } else {
+            const days = document.getElementById('editCenterDays').value.split(',').map(s=>s.trim()).filter(Boolean);
+            await db.ref('centers/'+id).update({
+                name: document.getElementById('editCenterName').value.trim(),
+                governorateId: document.getElementById('editCenterGov').value,
+                areaId: document.getElementById('editCenterArea').value,
+                address: document.getElementById('editCenterAddress').value.trim() || null,
+                phone: document.getElementById('editCenterPhone').value.trim() || null,
+                mapLink: document.getElementById('editCenterMap').value.trim() || null,
+                rating: parseFloat(document.getElementById('editCenterRating').value) || 0,
+                workingHours: document.getElementById('editCenterHours').value.trim() || null,
+                workingDays: days.length ? days : null
+            });
+        }
+        showToast('تم التحديث'); showEditList(type);
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Delete =====
+function showDeleteMenu() {
+    showScreen('deleteScreen');
+    document.getElementById('deleteContent').innerHTML = `
+        <div class="section-title">حذف البيانات</div>
+        <div class="selection-card" onclick="showDeleteList('governorates')">حذف محافظة</div>
+        <div class="selection-card" onclick="showDeleteList('areas')">حذف منطقة</div>
+        <div class="selection-card" onclick="showDeleteList('centers')">حذف مركز تدريب</div>`;
+}
+
+async function showDeleteList(type) {
+    showLoading();
+    await loadData();
+    let html = `<button class="back-btn" onclick="showDeleteMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">حذف ${type === 'governorates' ? 'المحافظات' : type === 'areas' ? 'المناطق' : 'مراكز التدريب'}</div>`;
+    const data = type === 'governorates' ? allGovs : type === 'areas' ? allAreas : allCenters;
+    const entries = Object.entries(data);
+    if (entries.length === 0) {
+        html += `<div class="empty-state"><i class="ph ph-folder-open"></i><p>لا توجد بيانات</p></div>`;
+    } else {
+        entries.forEach(([id, item]) => {
+            html += `<div class="list-item">
+                <span style="font-size:14px; font-weight:700;">${item.name}</span>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem('${type}','${id}','${item.name.replace(/'/g,'\\'')}')">حذف</button>
+            </div>`;
+        });
+    }
+    document.getElementById('deleteContent').innerHTML = html;
+    hideLoading();
+}
+
+async function deleteItem(type, id, name) {
+    if (!confirm('حذف "' + name + '"؟')) return;
+    showLoading('جارٍ الحذف...');
+    try { await db.ref(type+'/'+id).remove(); showToast('تم الحذف'); showDeleteList(type); }
+    catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Questions =====
+function showQuestionsManager() { showScreen('questionsManagerScreen'); }
+function showQuestionsManagerMain() { showScreen('questionsManagerScreen'); }
+
+function toggleMediaField() {
+    const show = document.getElementById('qType').value !== 'text';
+    document.getElementById('mediaField').style.display = show ? 'block' : 'none';
+}
+
+function addOption() {
+    const container = document.getElementById('optionsContainer');
+    const row = document.createElement('div');
+    row.className = 'option-row';
+    row.innerHTML = `<input type="text" class="form-input option-input" placeholder="الخيار ${container.children.length + 1}"><button class="btn btn-sm btn-outline" onclick="this.parentElement.remove(); updateCorrectSelect();" style="width:auto;"><i class="ph ph-x"></i></button>`;
+    container.appendChild(row);
+    updateCorrectSelect();
+}
+
+function updateCorrectSelect() {
+    const opts = document.querySelectorAll('#optionsContainer .option-input');
+    const sel = document.getElementById('qCorrect');
+    const oldVal = sel.value;
+    sel.innerHTML = '';
+    opts.forEach((inp, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `الخيار ${i + 1}`;
+        sel.appendChild(opt);
+    });
+    if (oldVal !== '' && parseInt(oldVal) < opts.length) sel.value = oldVal;
+}
+
+function showAddQuestionForm() {
+    showScreen('addQuestionScreen');
+    document.getElementById('qFormTitle').textContent = 'إضافة سؤال جديد';
+    document.getElementById('qCategory').value = questionCategories[0];
+    document.getElementById('qType').value = 'text';
+    document.getElementById('qMediaUrl').value = '';
+    document.getElementById('qText').value = '';
+    document.getElementById('qExplanation').value = '';
+    toggleMediaField();
+    document.getElementById('optionsContainer').innerHTML = '';
+    addOption(); addOption();
+    updateCorrectSelect();
+    document.getElementById('qCorrect').value = 0;
+    const btn = document.getElementById('qSaveBtn');
+    btn.innerHTML = '<i class="ph ph-floppy-disk"></i> حفظ';
+    btn.onclick = saveQuestion;
+}
+
+async function saveQuestion() {
+    const category = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const mediaUrl = document.getElementById('qMediaUrl').value.trim();
+    const question = document.getElementById('qText').value.trim();
+    const explanation = document.getElementById('qExplanation').value.trim();
+    const correctAnswer = parseInt(document.getElementById('qCorrect').value);
+    const options = Array.from(document.querySelectorAll('#optionsContainer .option-input')).map(i => i.value.trim()).filter(Boolean);
+
+    if (!question) { showToast('أدخل نص السؤال'); return; }
+    if (options.length < 2) { showToast('يجب خيارين على الأقل'); return; }
+    if (type !== 'text' && !mediaUrl) { showToast('أدخل رابط الوسائط'); return; }
+
+    showLoading('جارٍ الحفظ...');
+    try {
+        await db.ref('questions').push({
+            category,
+            mediaType: type,
+            mediaUrl: type !== 'text' ? mediaUrl : null,
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
+        });
+        showToast('تم الحفظ');
+        showQuestionsManagerMain();
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function showEditQuestionList() {
+    showLoading();
+    await loadAllQuestions();
+    let html = `<button class="back-btn" onclick="showQuestionsManagerMain()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">اختر القسم</div>`;
+    questionCategories.forEach(cat => {
+        html += `<div class="selection-card" onclick="showCategoryQuestionsForEdit('${cat}')">${cat}</div>`;
+    });
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+    hideLoading();
+}
+
+async function showCategoryQuestionsForEdit(category) {
+    currentQuestionCategory = category;
+    showLoading();
+    await loadAllQuestions();
+    const qs = Object.entries(allQuestions).filter(([_,q]) => q.category === category).map(([id,q]) => ({id,...q}));
+    let html = `<button class="back-btn" onclick="showEditQuestionList()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">${category}</div>`;
+    if (qs.length === 0) { html += `<div class="empty-state"><i class="ph ph-question"></i><p>لا توجد أسئلة</p></div>`; }
+    else {
+        qs.forEach(q => {
+            html += `<div class="list-item"><span style="font-size:13px;">${q.question.substring(0,55)}...</span><button class="btn btn-sm btn-outline" onclick="editQuestionForm('${q.id}')">تعديل</button></div>`;
+        });
+    }
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+    hideLoading();
+}
+
+function editQuestionForm(id) {
+    const q = allQuestions[id]; if (!q) return;
+    showScreen('addQuestionScreen');
+    document.getElementById('qFormTitle').textContent = 'تعديل سؤال';
+    document.getElementById('qCategory').value = q.category;
+    document.getElementById('qType').value = q.mediaType || 'text';
+    document.getElementById('qMediaUrl').value = q.mediaUrl || '';
+    document.getElementById('qText').value = q.question;
+    document.getElementById('qExplanation').value = q.explanation || '';
+    toggleMediaField();
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    q.options.forEach(opt => {
+        const row = document.createElement('div'); row.className = 'option-row';
+        row.innerHTML = `<input type="text" class="form-input option-input" value="${opt}"><button class="btn btn-sm btn-outline" onclick="this.parentElement.remove(); updateCorrectSelect();" style="width:auto;"><i class="ph ph-x"></i></button>`;
+        container.appendChild(row);
+    });
+    updateCorrectSelect();
+    document.getElementById('qCorrect').value = q.correctAnswer;
+    const btn = document.getElementById('qSaveBtn');
+    btn.innerHTML = '<i class="ph ph-check"></i> تحديث';
+    btn.onclick = () => updateQuestion(id);
+}
+
+async function updateQuestion(id) {
+    const category = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const mediaUrl = document.getElementById('qMediaUrl').value.trim();
+    const question = document.getElementById('qText').value.trim();
+    const explanation = document.getElementById('qExplanation').value.trim();
+    const correctAnswer = parseInt(document.getElementById('qCorrect').value);
+    const options = Array.from(document.querySelectorAll('#optionsContainer .option-input')).map(i => i.value.trim()).filter(Boolean);
+
+    if (!question) { showToast('أدخل نص السؤال'); return; }
+    if (options.length < 2) { showToast('يجب خيارين على الأقل'); return; }
+    if (type !== 'text' && !mediaUrl) { showToast('أدخل رابط الوسائط'); return; }
+
+    showLoading('جارٍ التحديث...');
+    try {
+        await db.ref('questions/'+id).update({
+            category,
+            mediaType: type,
+            mediaUrl: type !== 'text' ? mediaUrl : null,
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
+        });
+        showToast('تم التحديث');
+        showCategoryQuestionsForEdit(category);
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function showDeleteQuestionList() {
+    showLoading();
+    await loadAllQuestions();
+    let html = `<button class="back-btn" onclick="showQuestionsManagerMain()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">اختر القسم</div>`;
+    questionCategories.forEach(cat => {
+        html += `<div class="selection-card" onclick="showCategoryQuestionsForDelete('${cat}')">${cat}</div>`;
+    });
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+    hideLoading();
+}
+
+async function showCategoryQuestionsForDelete(category) {
+    currentQuestionCategory = category;
+    showLoading();
+    await loadAllQuestions();
+    const qs = Object.entries(allQuestions).filter(([_,q]) => q.category === category).map(([id,q]) => ({id,...q}));
+    let html = `<button class="back-btn" onclick="showDeleteQuestionList()"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<div class="section-title">${category}</div>`;
+    if (qs.length === 0) { html += `<div class="empty-state"><i class="ph ph-question"></i><p>لا توجد أسئلة</p></div>`; }
+    else {
+        qs.forEach(q => {
+            html += `<div class="list-item"><span style="font-size:13px;">${q.question.substring(0,50)}...</span><button class="btn btn-sm btn-danger" onclick="deleteQuestionConfirm('${q.id}','${q.question.replace(/'/g,"\\'")}')">حذف</button></div>`;
+        });
+    }
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+    hideLoading();
+}
+
+async function deleteQuestionConfirm(id, text) {
+    if (!confirm('حذف: "' + text.substring(0,50) + '"؟')) return;
+    showLoading('جارٍ الحذف...');
+    try { await db.ref('questions/'+id).remove(); showToast('تم الحذف'); showCategoryQuestionsForDelete(currentQuestionCategory); }
+    catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+// ===== Center Requests =====
+async function showCenterRequestsManager() {
+    showScreen('centerRequestsScreen');
+    showLoading();
+    await loadAllRequests();
+    renderRequests();
+    hideLoading();
+}
+
+function renderRequests() {
+    const container = document.getElementById('requestsList');
+    const entries = Object.entries(allRequests);
+    document.getElementById('requestsCountBadge').textContent = entries.length;
+    if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="ph ph-clipboard-text"></i><p>لا توجد طلبات حالياً</p></div>`;
+        return;
+    }
+    entries.sort((a, b) => (b[1].submittedAt || '').localeCompare(a[1].submittedAt || ''));
+    container.innerHTML = entries.map(([reqId, req]) => {
+        const areasList = (req.areas || []).map(a => a.name).join('، ');
+        const workingDaysList = (req.workingDays || []).join('، ');
+        const status = req.status === 'pending' ? {cls:'badge-yellow',txt:'قيد المراجعة'}
+            : req.status === 'approved' ? {cls:'badge-green',txt:'تم النشر'}
+            : {cls:'badge-red',txt:'مرفوض'};
+        return `
+        <div class="request-card" id="req-${reqId}">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+                <h4 style="font-size:16px;font-weight:800; flex:1;">${req.name}</h4>
+                <span class="badge ${status.cls}" style="margin-right:8px;">${status.txt}</span>
+            </div>
+            <div class="info-grid">
+                <div><i class="ph ph-map-pin" style="color:var(--primary);"></i> ${req.governorateName || 'غير محدد'}</div>
+                <div><i class="ph ph-buildings" style="color:var(--primary);"></i> ${areasList || 'لا يوجد'}</div>
+                <div><i class="ph ph-phone" style="color:var(--primary);"></i> ${req.phone || 'لا يوجد'}</div>
+                <div><i class="ph ph-star" style="color:var(--gold);"></i> ${req.rating || 0}/5</div>
+            </div>
+            <div class="info-grid full">
+                <div><i class="ph ph-map-pin" style="color:var(--text-light);"></i> ${req.address || 'لا يوجد عنوان'}</div>
+            </div>
+            ${req.workingDays && req.workingDays.length > 0 ? `<div style="font-size:12px;color:var(--text-light);margin-bottom:6px;"><i class="ph ph-calendar"></i> ${workingDaysList}</div>` : ''}
+            ${req.workingHours ? `<div style="font-size:12px;color:var(--text-light);margin-bottom:8px;"><i class="ph ph-clock"></i> ${req.workingHours}</div>` : ''}
+            <div class="action-row">
+                <button class="btn btn-sm btn-success" onclick="publishRequest('${reqId}')"><i class="ph ph-check-circle"></i> نشر</button>
+                <button class="btn btn-sm btn-outline" onclick="editRequestForm('${reqId}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectRequest('${reqId}')"><i class="ph ph-x-circle"></i> رفض</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function publishRequest(reqId) {
+    const req = allRequests[reqId]; if (!req) return;
+    if (!confirm('نشر "' + req.name + '"؟ سيتم ظهوره في مراكز التدريب.')) return;
+    showLoading('جاري النشر...');
+    try {
+        const centerData = {
+            name: req.name,
+            address: req.address,
+            mapLink: req.mapLink,
+            phone: req.phone,
+            rating: req.rating || 0,
+            workingDays: req.workingDays || [],
+            workingHours: req.workingHours || '',
+            areas: req.areas || [],
+            areaId: req.areas[0]?.id || '',
+            governorateId: req.governorateId || '',
+            publishedAt: new Date().toISOString()
+        };
+        await db.ref('centers').push(centerData);
+        await db.ref('centerRequests/'+reqId).remove();
+        showToast('تم النشر');
+        showCenterRequestsManager();
+        loadStats();
+    } catch(e) { showToast('حدث خطأ'); }
+    hideLoading();
+}
+
+async function rejectRequest(reqId) {
+    const req = allRequests[reqId]; if (!req) return;
+    if (!confirm('رفض "' + req.name + '"؟ سيُحذف الطلب نهائياً.')) return;
+    try {
+        await db.ref('centerRequests/'+reqId).remove();
+        showToast('تم الرفض');
+        showCenterRequestsManager();
+    } catch(e) { showToast('حدث خطأ'); }
+}
+
+function editRequestForm(reqId) {
+    const req = allRequests[reqId]; if (!req) return;
+    const newName = prompt('اسم المركز:', req.name); if (newName === null) return;
+    const newPhone = prompt('الهاتف:', req.phone); if (newPhone === null) return;
+    const newRating = prompt('التقييم (من 5):', req.rating || 0); if (newRating === null) return;
+    const newHours = prompt('ساعات الدوام:', req.workingHours || ''); if (newHours === null) return;
+    db.ref('centerRequests/'+reqId).update({
+        name: newName || req.name,
+        phone: newPhone || req.phone,
+        rating: parseFloat(newRating) || 0,
+        workingHours: newHours || req.workingHours
+    }).then(() => { showToast('تم التحديث'); showCenterRequestsManager(); });
+}
+
+loadStats();
+</script>
+</body>
+</html>
