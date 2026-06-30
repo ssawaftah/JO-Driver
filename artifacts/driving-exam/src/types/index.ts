@@ -19,6 +19,13 @@ export interface GuideSectionItem {
   icon?: string;
 }
 
+export interface FooterSponsor { id: string; imageUrl: string; link?: string; }
+export interface FooterData {
+  sponsors: FooterSponsor[];
+  social: Record<string, string>;
+  defaultSponsorLink: string;
+}
+
 export interface GuideSection {
   id?: string;
   title: string;

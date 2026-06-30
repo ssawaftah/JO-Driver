@@ -1,4 +1,5 @@
 import AppFooter from "../components/Footer";
+import type { FooterData } from "../types";
 
 interface Props {
   name: string;
@@ -6,6 +7,7 @@ interface Props {
   onStudy: () => void;
   onCenters: () => void;
   onGuide: () => void;
+  footerData: FooterData | null;
 }
 
 const cards = [
@@ -15,7 +17,7 @@ const cards = [
   { icon: "book-open-text",     color: "#7C3AED", bg: "#EDE9FE", title: "دليل الامتحان النظري",  desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة",     badge: null, action: "onGuide"   },
 ];
 
-export default function Home({ name, onExam, onStudy, onCenters, onGuide }: Props) {
+export default function Home({ name, onExam, onStudy, onCenters, onGuide, footerData }: Props) {
   const actions: Record<string, () => void> = { onExam, onStudy, onCenters, onGuide };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
@@ -99,7 +101,7 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide }: Prop
           ))}
         </div>
       </div>
-      <AppFooter />
+      <AppFooter initialData={footerData} />
     </div>
   );
 }

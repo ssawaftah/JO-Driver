@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import type { GuideSection, GuideSectionType, GuideSectionItem } from "../types";
 
-interface Props { onBack: () => void; }
+interface Props { onBack: () => void; initialSections?: GuideSection[] | null; }
 
 /* ── Accordion ─────────────────────────────────── */
 function Accordion({ icon, iconColor, iconBg, title, children, defaultOpen = false }: {
@@ -220,17 +220,23 @@ const DEFAULT_SECTIONS: GuideSection[] = [
 ];
 
 /* ── Root ──────────────────────────────────────────── */
-export default function GuideScreen({ onBack }: Props) {
-  const [sections, setSections] = useState<GuideSection[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function GuideScreen({ onBack, initialSections }: Props) {
+  const [sections, setSections] = useState<GuideSection[]>(initialSections ?? []);
+  const [loading, setLoading] = useState(!initialSections);
 
   useEffect(() => {
+    // Skip Firebase load if data was pre-loaded by App.tsx
+    if (initialSections && initialSections.length > 0) {
+      setSections(initialSections);
+      setLoading(false);
+      return;
+    }
+    // Fallback: load from Firebase
     db.ref("guide/sections").once("value")
       .then(snap => {
         const val = snap.val() || {};
         let arr: GuideSection[];
         if (Object.keys(val).length === 0) {
-          // Use defaults if Firebase is empty
           arr = DEFAULT_SECTIONS.map(s => ({ ...s }));
         } else {
           arr = Object.entries(val).map(([id, s]: [string, any]) => ({ id, ...s }));
@@ -240,7 +246,7 @@ export default function GuideScreen({ onBack }: Props) {
         setLoading(false);
       })
       .catch(() => { setSections(DEFAULT_SECTIONS.map(s => ({ ...s }))); setLoading(false); });
-  }, []);
+  }, [initialSections]);
 
   return (
     <div style={{

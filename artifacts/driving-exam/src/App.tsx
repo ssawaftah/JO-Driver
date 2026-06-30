@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { db, auth } from "./lib/firebase";
 import { initTelegram, getTelegramUser } from "./lib/telegram";
-import type { Screen, Question, Governorate, Area, Center } from "./types";
+import type { Screen, Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
 
 import RegisterScreen from "./screens/Register";
 import HomeScreen from "./screens/Home";
@@ -83,6 +83,33 @@ export default function App() {
 
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
+  // ── Shared preloaded data ──────────────────────────────────
+  const [footerData, setFooterData] = useState<FooterData | null>(null);
+  const [guideSections, setGuideSections] = useState<GuideSection[] | null>(null);
+
+  async function preloadSharedData() {
+    const [spSnap, soSnap, dlSnap, gSnap] = await Promise.all([
+      db.ref("footer/sponsors").once("value"),
+      db.ref("footer/social").once("value"),
+      db.ref("footer/defaultSponsorLink").once("value"),
+      db.ref("guide/sections").once("value"),
+    ]);
+    const spVal = spSnap.val() || {};
+    const sponsors = Object.entries(spVal).map(([id, v]: [string, any]) => ({ id, ...v }));
+    setFooterData({
+      sponsors,
+      social: soSnap.val() || {},
+      defaultSponsorLink: dlSnap.val() || "",
+    });
+    const gsVal = gSnap.val() || {};
+    if (Object.keys(gsVal).length > 0) {
+      const arr = Object.entries(gsVal)
+        .map(([id, s]: [string, any]) => ({ id, ...s }))
+        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+      setGuideSections(arr as GuideSection[]);
+    }
+  }
+
   // ── On mount: restore session + check #admin hash + Firebase auth state ──
   useEffect(() => {
     initTelegram();
@@ -110,6 +137,7 @@ export default function App() {
       setUserName(saved);
       setScreen("home");
       setLoading(false);
+      preloadSharedData();
       return;
     }
 
@@ -122,6 +150,7 @@ export default function App() {
             setUserName(name);
             saveSession(name);
             setScreen("home");
+            preloadSharedData();
           } else {
             setScreen("register");
           }
@@ -143,6 +172,7 @@ export default function App() {
     setUserName(name);
     saveSession(name);
     go("home");
+    preloadSharedData();
   }
 
   async function openCenters() {
@@ -245,6 +275,7 @@ export default function App() {
           onStudy={openCategories}
           onCenters={openCenters}
           onGuide={() => go("guide")}
+          footerData={footerData}
         />
       )}
       {screen === "centers"    && (
@@ -283,7 +314,7 @@ export default function App() {
           onRetry={retryExam} onHome={() => go("home")}
         />
       )}
-      {screen === "guide" && <GuideScreen onBack={() => go("home")} />}
+      {screen === "guide" && <GuideScreen onBack={() => go("home")} initialSections={guideSections} />}
       {screen === "admin-login" && (
         <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
       )}

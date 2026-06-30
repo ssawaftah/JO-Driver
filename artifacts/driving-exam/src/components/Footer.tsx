@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { db } from "../lib/firebase";
-
-interface Sponsor { id: string; imageUrl: string; link?: string; }
-interface Social { facebook?: string; whatsapp?: string; instagram?: string; x?: string; }
+import type { FooterData } from "../types";
 
 const DEFAULT_SPONSOR_IMG = "/sponsor-default.png";
 
@@ -33,28 +31,35 @@ const SOCIAL_ICONS: Record<string, { svg: string; label: string; color: string; 
   },
 };
 
-export default function AppFooter() {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [social, setSocial] = useState<Social>({});
-  const [defaultSponsorLink, setDefaultSponsorLink] = useState("");
+interface Props { initialData: FooterData | null; }
+
+export default function AppFooter({ initialData }: Props) {
+  const [sponsors, setSponsors] = useState(initialData?.sponsors ?? []);
+  const [social, setSocial] = useState<Record<string, string>>(initialData?.social ?? {});
+  const [defaultSponsorLink, setDefaultSponsorLink] = useState(initialData?.defaultSponsorLink ?? "");
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // If initialData wasn't ready yet when component mounted, load from Firebase
   useEffect(() => {
-    db.ref("footer/sponsors").once("value").then(s => {
-      const val = s.val();
-      if (val) {
-        const arr = Object.entries(val).map(([id, v]: [string, any]) => ({ id, ...v }));
-        setSponsors(arr);
-      }
+    if (initialData) {
+      setSponsors(initialData.sponsors);
+      setSocial(initialData.social);
+      setDefaultSponsorLink(initialData.defaultSponsorLink);
+      return;
+    }
+    // Fallback: load from Firebase if no pre-loaded data
+    Promise.all([
+      db.ref("footer/sponsors").once("value"),
+      db.ref("footer/social").once("value"),
+      db.ref("footer/defaultSponsorLink").once("value"),
+    ]).then(([spSnap, soSnap, dlSnap]) => {
+      const spVal = spSnap.val() || {};
+      setSponsors(Object.entries(spVal).map(([id, v]: [string, any]) => ({ id, ...v })));
+      setSocial(soSnap.val() || {});
+      setDefaultSponsorLink(dlSnap.val() || "");
     });
-    db.ref("footer/social").once("value").then(s => {
-      if (s.exists()) setSocial(s.val());
-    });
-    db.ref("footer/defaultSponsorLink").once("value").then(s => {
-      if (s.exists()) setDefaultSponsorLink(s.val() || "");
-    });
-  }, []);
+  }, [initialData]);
 
   useEffect(() => {
     if (sponsors.length <= 1) return;
@@ -64,8 +69,7 @@ export default function AppFooter() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [sponsors.length]);
 
-  const isDefault = sponsors.length === 0;
-  const displaySponsors = isDefault
+  const displaySponsors = sponsors.length === 0
     ? [{ id: "default", imageUrl: DEFAULT_SPONSOR_IMG, link: defaultSponsorLink }]
     : sponsors;
   const totalSlides = displaySponsors.length;
@@ -75,7 +79,7 @@ export default function AppFooter() {
     if (item.link) window.open(item.link, "_blank");
   }
 
-  const activeSocials = Object.entries(SOCIAL_ICONS).filter(([key]) => !!(social as any)[key]);
+  const activeSocials = Object.entries(SOCIAL_ICONS).filter(([key]) => !!social[key]);
 
   return (
     <div style={{ background: "#F9FAFB", borderTop: "1px solid #E5E7EB", direction: "rtl" }}>
@@ -142,7 +146,7 @@ export default function AppFooter() {
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
             {activeSocials.map(([key, { svg, label, color, bg }]) => (
-              <a key={key} href={(social as any)[key]} target="_blank" rel="noopener noreferrer"
+              <a key={key} href={social[key]} target="_blank" rel="noopener noreferrer"
                 style={{
                   width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center",
                   background: bg, color, flexShrink: 0, textDecoration: "none",
