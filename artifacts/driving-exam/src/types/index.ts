@@ -1,5 +1,5 @@
 export type Screen =
-  | "landing" | "register" | "home"
+  | "register" | "home"
   | "centers" | "categories"
   | "study" | "test" | "result"
   | "exam-rules" | "exam" | "exam-result"

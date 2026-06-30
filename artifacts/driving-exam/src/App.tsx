@@ -3,7 +3,6 @@ import { db, auth } from "./lib/firebase";
 import { initTelegram, getTelegramUser } from "./lib/telegram";
 import type { Screen, Question, Governorate, Area, Center } from "./types";
 
-import LandingScreen from "./screens/Landing";
 import RegisterScreen from "./screens/Register";
 import HomeScreen from "./screens/Home";
 import CentersScreen from "./screens/Centers";
@@ -59,7 +58,7 @@ function loadSession(): string | null {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("landing");
+  const [screen, setScreen] = useState<Screen>("register");
   const [loading, setLoading] = useState(true);
   const [loadMsg, setLoadMsg] = useState("جارٍ التحميل...");
 
@@ -124,13 +123,13 @@ export default function App() {
             saveSession(name);
             setScreen("home");
           } else {
-            setScreen("landing");
+            setScreen("register");
           }
         })
-        .catch(() => setScreen("landing"))
+        .catch(() => setScreen("register"))
         .finally(() => setLoading(false));
     } else {
-      setScreen("landing");
+      setScreen("register");
       setLoading(false);
     }
     return;
@@ -139,8 +138,6 @@ export default function App() {
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }
   function unload() { setLoading(false); }
   function go(s: Screen) { setScreen(s); }
-
-  function handleStart() { go("register"); }
 
   function handleRegistered(name: string) {
     setUserName(name);
@@ -238,7 +235,6 @@ export default function App() {
 
   return (
     <div className="shell">
-      {screen === "landing"    && <LandingScreen onStart={handleStart} />}
       {screen === "register"   && (
         <RegisterScreen onSuccess={handleRegistered} onLoad={load} onUnload={unload} />
       )}
