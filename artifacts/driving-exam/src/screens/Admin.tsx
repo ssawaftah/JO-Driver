@@ -12,6 +12,7 @@ const Q_CATS = [
   "أسعافات أولية",
   "الشواخص والخطوط والعلامات",
   "المخالفات واحتساب النقاط",
+  "الصور المتحركة",
 ];
 
 // ── Design tokens ────────────────────────────────
@@ -476,17 +477,18 @@ export default function Admin({ onBack }: Props) {
             <Select label="نوع السؤال" value={qForm.type} onChange={v => setQForm(f => ({ ...f, type: v as any }))}>
               <option value="text">نصي (بدون وسائط)</option>
               <option value="image">صورة</option>
-              <option value="video">فيديو / GIF</option>
+              <option value="gif">صور متحركة (GIF)</option>
+              <option value="video">فيديو</option>
             </Select>
             {isMedia && (
               <>
                 <Input label="رابط الوسائط" value={qForm.mediaUrl} onChange={v => setQForm(f => ({ ...f, mediaUrl: v }))} placeholder="https://..." />
                 {qForm.mediaUrl.trim() && (
                   <div style={{ marginBottom: 14, borderRadius: 10, overflow: "hidden", border: `1px solid ${C.border}`, background: C.bg }}>
-                    {qForm.type === "image" ? (
-                      <img src={qForm.mediaUrl} alt="preview" style={{ width: "100%", height: 160, objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                    ) : (
+                    {qForm.type === "video" ? (
                       <video src={qForm.mediaUrl} controls style={{ width: "100%", height: 160, objectFit: "cover" }} onError={e => { (e.target as HTMLVideoElement).style.display = "none"; }} />
+                    ) : (
+                      <img src={qForm.mediaUrl} alt="preview" style={{ width: "100%", height: 160, objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     )}
                   </div>
                 )}

@@ -113,7 +113,7 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
-                    borderRadius: "0 0 0 16px",
+                    borderRadius: "0 0 16px 0",
                   }}
                 >
                   <i className="ph ph-book-open" style={{ fontSize: 18, flexShrink: 0 }} />
@@ -135,7 +135,7 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
-                    borderRadius: "0 0 16px 0",
+                    borderRadius: "0 0 0 16px",
                   }}
                 >
                   <i className="ph ph-pencil-line" style={{ fontSize: 18, flexShrink: 0 }} />
