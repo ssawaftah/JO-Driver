@@ -2,7 +2,8 @@ export type Screen =
   | "landing" | "register" | "home"
   | "centers" | "categories"
   | "study" | "test" | "result"
-  | "exam-rules" | "exam" | "exam-result";
+  | "exam-rules" | "exam" | "exam-result"
+  | "faq";
 
 export interface Question {
   id?: string;

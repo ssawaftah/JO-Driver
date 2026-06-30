@@ -3,16 +3,18 @@ interface Props {
   onExam: () => void;
   onStudy: () => void;
   onCenters: () => void;
+  onFaq: () => void;
 }
 
 const cards = [
-  { icon: "pencil-line", color: "#16A34A", bg: "#DCFCE7", title: "الامتحان النظري", desc: "محاكاة واقعية لاختبار القيادة", badge: null, action: "onExam" },
-  { icon: "book-open",   color: "#2563EB", bg: "#DBEAFE", title: "دراسة الأسئلة",   desc: "مراجعة الأسئلة حسب الأقسام",  badge: null,     action: "onStudy" },
-  { icon: "map-pin",     color: "#D97706", bg: "#FEF3C7", title: "مراكز تدريب القيادة", desc: "ابحث عن أقرب مركز تدريب معتمد", badge: null, action: "onCenters" },
+  { icon: "pencil-line",        color: "#16A34A", bg: "#DCFCE7", title: "الامتحان النظري",      desc: "محاكاة واقعية لاختبار القيادة",              badge: null, action: "onExam"    },
+  { icon: "book-open",          color: "#2563EB", bg: "#DBEAFE", title: "دراسة الأسئلة",        desc: "مراجعة الأسئلة حسب الأقسام",                badge: null, action: "onStudy"   },
+  { icon: "map-pin",            color: "#D97706", bg: "#FEF3C7", title: "مراكز تدريب القيادة", desc: "ابحث عن أقرب مركز تدريب معتمد",             badge: null, action: "onCenters" },
+  { icon: "question",           color: "#7C3AED", bg: "#EDE9FE", title: "دليل الامتحان النظري",  desc: "رسوم، وثائق، شروط وأسئلة شائعة",            badge: null, action: "onFaq"     },
 ];
 
-export default function Home({ name, onExam, onStudy, onCenters }: Props) {
-  const actions: Record<string, () => void> = { onExam, onStudy, onCenters };
+export default function Home({ name, onExam, onStudy, onCenters, onFaq }: Props) {
+  const actions: Record<string, () => void> = { onExam, onStudy, onCenters, onFaq };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
 
