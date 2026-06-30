@@ -10,7 +10,7 @@ const META: Record<string, { icon: string; color: string; bg: string }> = {
   "قواعد السير والمرور":        { icon: "traffic-sign",  color: "#2563EB", bg: "#DBEAFE" },
   "الميكانيك":                  { icon: "wrench",         color: "#16A34A", bg: "#DCFCE7" },
   "السلامة على الطريق":         { icon: "shield-check",   color: "#DC2626", bg: "#FEE2E2" },
-  "الإسعافات الأولية":          { icon: "first-aid-kit",  color: "#DB2777", bg: "#FCE7F3" },
+  "أسعافات أولية":              { icon: "first-aid-kit",  color: "#DB2777", bg: "#FCE7F3" },
   "الشواخص والخطوط والعلامات": { icon: "signpost",       color: "#D97706", bg: "#FEF3C7" },
   "المخالفات واحتساب النقاط":  { icon: "warning-circle", color: "#7C3AED", bg: "#EDE9FE" },
 };
