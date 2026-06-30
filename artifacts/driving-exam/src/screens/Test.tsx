@@ -170,8 +170,8 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
             إنهاء الاختبار
           </button>
         )}
+        <AppFooter initialData={null} />
       </div>
-      <AppFooter initialData={null} />
     </div>
   );
 }

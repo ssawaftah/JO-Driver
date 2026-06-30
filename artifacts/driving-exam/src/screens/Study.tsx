@@ -166,8 +166,8 @@ export default function Study({ qs, cat, onBack }: Props) {
               إنهاء المراجعة
             </button>
           )}
+        <AppFooter initialData={null} />
       </div>
-      <AppFooter initialData={null} />
     </div>
   );
 }
