@@ -20,14 +20,18 @@ export default function Register({ onSuccess, onLoad, onUnload }: Props) {
     const n = name.trim(), p = phone.trim();
     if (!n) { setErr("الرجاء إدخال الاسم الكامل"); return; }
     if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صحيح (10 أرقام)"); return; }
-    if (!tgUser?.id) { setErr("تعذر التحقق من حساب تيليغرام"); return; }
 
     onLoad("جارٍ التسجيل...");
     try {
-      await db.ref("users/" + tgUser.id).set({
-        name: n, phone: p,
-        username: tgUser.username || "",
-        userId: tgUser.id,
+      const key = tgUser?.id
+        ? String(tgUser.id)
+        : "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+
+      await db.ref("users/" + key).set({
+        name: n,
+        phone: p,
+        username: tgUser?.username || "",
+        userId: tgUser?.id || null,
         registeredAt: new Date().toISOString(),
       });
       onUnload();
