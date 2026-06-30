@@ -1523,6 +1523,7 @@ export default function Admin({ onBack }: Props) {
   // ── FOOTER ADMIN ────────────────────────────────────────────
   const [footerSponsors, setFooterSponsors] = useState<Record<string, any>>({});
   const [footerSocial, setFooterSocial] = useState<Record<string, string>>({});
+  const [footerDefaultLink, setFooterDefaultLink] = useState("");
   const [sponsorImgUrl, setSponsorImgUrl] = useState("");
   const [sponsorLink, setSponsorLink] = useState("");
   const [socialKey, setSocialKey] = useState("facebook");
@@ -1536,12 +1537,14 @@ export default function Admin({ onBack }: Props) {
   ];
 
   async function loadFooter() {
-    const [spSnap, soSnap] = await Promise.all([
+    const [spSnap, soSnap, dlSnap] = await Promise.all([
       db.ref("footer/sponsors").once("value"),
       db.ref("footer/social").once("value"),
+      db.ref("footer/defaultSponsorLink").once("value"),
     ]);
     setFooterSponsors(spSnap.val() || {});
     setFooterSocial(soSnap.val() || {});
+    setFooterDefaultLink(dlSnap.val() || "");
   }
 
   function FooterAdminSection() {
@@ -1590,10 +1593,26 @@ export default function Admin({ onBack }: Props) {
         <BackBtn onClick={() => setView("menu")} />
         <SectionTitle>إدارة الفوتر</SectionTitle>
 
+        {/* ── Default Sponsor Link ── */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-link" style={{ color: C.primary }} /> رابط الصورة الافتراضية
+          </div>
+          <Input label="الرابط عند الضغط على الصورة الافتراضية" value={footerDefaultLink} onChange={setFooterDefaultLink} placeholder="https://t.me/jodriver" />
+          <Btn variant="primary" onClick={async () => {
+            setLoading(true);
+            try {
+              await db.ref("footer/defaultSponsorLink").set(footerDefaultLink.trim() || null);
+              showToast("تم الحفظ");
+            } catch { showToast("حدث خطأ"); }
+            setLoading(false);
+          }}><i className="ph ph-floppy-disk" /> حفظ الرابط</Btn>
+        </div>
+
         {/* ── Sponsors ── */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="ph ph-image" style={{ color: C.gold }} /> صور الراعي الرسمي
+            <i className="ph ph-image" style={{ color: C.gold }} /> صور الراعي الرسمي (رعاة مدفوعون)
             <span style={{ fontSize: 11, background: C.goldLight, color: C.gold, padding: "1px 8px", borderRadius: 20 }}>{sponsorArr.length}</span>
           </div>
 
