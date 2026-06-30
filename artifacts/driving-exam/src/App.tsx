@@ -89,8 +89,19 @@ export default function App() {
     initTelegram();
 
     if (window.location.hash === "#admin") {
-      setAdminLoggedIn(true);
-      setScreen("admin");
+      const unsub = auth.onAuthStateChanged(user => {
+        if (user) {
+          setAdminLoggedIn(true);
+          setScreen("admin");
+        } else {
+          setScreen("admin-login");
+        }
+        setLoading(false);
+      });
+      return () => unsub();
+    }
+    if (window.location.hash === "#guide") {
+      setScreen("guide");
       setLoading(false);
       return;
     }

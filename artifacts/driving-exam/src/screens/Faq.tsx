@@ -161,6 +161,64 @@ function SectionContent({ type, items }: { type: GuideSectionType; items: GuideS
   }
 }
 
+/* ── Default sections (fallback when Firebase is empty) ── */
+const DEFAULT_SECTIONS: GuideSection[] = [
+  {
+    id: "default-steps", title: "خطوات الحصول على رخصة القيادة",
+    icon: "list-numbers", iconColor: "#7C3AED", iconBg: "#EDE9FE", type: "steps", order: 1,
+    items: [
+      { text: "التسجيل في مدرسة سواقة معتمدة", sub: "اختر مدرسة معتمدة لدى دائرة الترخيص وسجّل باسمك برقم هويتك الوطنية." },
+      { text: "إتمام الدروس النظرية والعملية", sub: "أكمل الساعات المطلوبة من الدروس النظرية والعملية مع المدرسة." },
+      { text: "انتظار رسالة SMS من دائرة الترخيص", sub: "بعد إدخال المدرسة بياناتك في النظام، ستصلك رسالة تأكيد خلال أيام." },
+      { text: "التوجه لدائرة الترخيص", sub: "احضر مع وثائقك المطلوبة، ادفع الرسوم، وتقدم لحجز موعد الفحص النظري." },
+      { text: "اجتياز الفحص النظري", sub: "60 سؤال خلال 60 دقيقة. تحتاج الإجابة على 51 سؤالاً على الأقل للنجاح." },
+      { text: "اجتياز الفحص العملي واستلام الرخصة", sub: "بعد النجاح في النظري تحدد موعداً للفحص العملي، وعند النجاح تستلم رخصتك." },
+    ],
+  },
+  {
+    id: "default-docs", title: "الأوراق والوثائق المطلوبة",
+    icon: "folder-open", iconColor: "#D97706", iconBg: "#FEF3C7", type: "documents", order: 2,
+    items: [
+      { text: "بطاقة هوية وطنية سارية المفعول", sub: "للأردنيين — جواز سفر ساري للمقيمين", icon: "identification-card" },
+      { text: "دفتر خدمة العلم أو وثيقة الإعفاء", sub: "للذكور دون سن الأربعين", icon: "book-open" },
+      { text: "صورتان شخصيتان", sub: "خلفية بيضاء، حديثتان", icon: "image-square" },
+      { text: "شهادة اللياقة الطبية", sub: "تُستخرج من أي مركز صحي معتمد", icon: "heart-pulse" },
+      { text: "إيصال دفع رسوم التقديم", sub: "يُدفع في الدائرة أو عبر منظومة موحد", icon: "receipt" },
+    ],
+  },
+  {
+    id: "default-fees", title: "الرسوم التقريبية",
+    icon: "currency-circle-dollar", iconColor: "#16A34A", iconBg: "#DCFCE7", type: "fees", order: 3,
+    items: [
+      { text: "رسوم تسجيل طلب التقديم", amount: "3 د.أ", note: "تُدفع لدى دائرة الترخيص" },
+      { text: "رسوم الفحص النظري", amount: "10 د.أ", note: "في حال الرسوب تُعاد الرسوم" },
+      { text: "رسوم الفحص العملي", amount: "20 د.أ", note: "لكل محاولة" },
+      { text: "رسوم استخراج الرخصة", amount: "30 د.أ", note: "عند النجاح في الفحصين" },
+    ],
+  },
+  {
+    id: "default-conditions", title: "شروط التقديم",
+    icon: "user-check", iconColor: "#0891B2", iconBg: "#CFFAFE", type: "conditions", order: 4,
+    items: [
+      { text: "الحد الأدنى للعمر: 18 سنة", icon: "calendar-blank" },
+      { text: "اجتياز فحص النظر في المركز الصحي", icon: "eye" },
+      { text: "لا يوجد سجل جنائي يمنع استخراج الرخصة", icon: "shield-check" },
+      { text: "إكمال الدروس المقررة في المدرسة المسجّل بها", icon: "graduation-cap" },
+    ],
+  },
+  {
+    id: "default-faq", title: "أسئلة شائعة",
+    icon: "chat-circle-question", iconColor: "#246BFD", iconBg: "#EEF4FF", type: "faq", order: 5,
+    items: [
+      { text: "ماذا لو رسبت في الامتحان النظري؟", answer: "يمكنك إعادة التقديم بعد 24 ساعة، وتُسدَّد رسوم جديدة لكل محاولة." },
+      { text: "هل يمكن تقديم الامتحان بدون رسالة SMS؟", answer: "لا. الرسالة شرط إلزامي، وهي تؤكد أن المدرسة سجّلت إتمام دروسك في نظام دائرة الترخيص." },
+      { text: "كم عدد المحاولات المسموحة في الفحص النظري؟", answer: "لا يوجد حد أقصى للمحاولات، غير أن كل محاولة تحتاج رسوماً جديدة." },
+      { text: "هل يختلف الامتحان بين المحافظات؟", answer: "الاختبار موحَّد ورقمي في جميع فروع دائرة الترخيص في المملكة." },
+      { text: "هل تُقبل الهوية منتهية الصلاحية؟", answer: "لا. يجب أن تكون الهوية الوطنية سارية المفعول يوم التقديم." },
+    ],
+  },
+];
+
 /* ── Root ──────────────────────────────────────────── */
 export default function GuideScreen({ onBack }: Props) {
   const [sections, setSections] = useState<GuideSection[]>([]);
@@ -170,14 +228,18 @@ export default function GuideScreen({ onBack }: Props) {
     db.ref("guide/sections").once("value")
       .then(snap => {
         const val = snap.val() || {};
-        const arr: GuideSection[] = Object.entries(val).map(([id, s]: [string, any]) => ({
-          id, ...s,
-        }));
+        let arr: GuideSection[];
+        if (Object.keys(val).length === 0) {
+          // Use defaults if Firebase is empty
+          arr = DEFAULT_SECTIONS.map(s => ({ ...s }));
+        } else {
+          arr = Object.entries(val).map(([id, s]: [string, any]) => ({ id, ...s }));
+        }
         arr.sort((a, b) => (a.order || 0) - (b.order || 0));
         setSections(arr);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setSections(DEFAULT_SECTIONS.map(s => ({ ...s }))); setLoading(false); });
   }, []);
 
   return (
