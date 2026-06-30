@@ -316,7 +316,6 @@ export default function GuideScreen({ onBack, initialSections }: Props) {
                 iconColor={s.iconColor}
                 iconBg={s.iconBg}
                 title={s.title}
-                defaultOpen={s.type === "steps"}
               >
                 <SectionContent type={s.type} items={s.items} />
               </Accordion>
