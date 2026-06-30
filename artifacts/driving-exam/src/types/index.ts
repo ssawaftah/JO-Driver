@@ -4,7 +4,8 @@ export type Screen =
   | "study" | "test" | "result"
   | "exam-rules" | "exam" | "exam-result"
   | "faq"
-  | "admin";
+  | "admin"
+  | "admin-login";
 
 export interface Question {
   id?: string;

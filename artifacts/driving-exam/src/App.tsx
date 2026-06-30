@@ -16,6 +16,7 @@ import ExamRulesScreen from "./screens/ExamRules";
 import ExamScreen from "./screens/Exam";
 import ExamResultScreen from "./screens/ExamResult";
 import FaqScreen from "./screens/Faq";
+import AdminLoginScreen from "./screens/AdminLogin";
 import AdminScreen from "./screens/Admin";
 
 const CATS = [
@@ -81,9 +82,17 @@ export default function App() {
   const [examTotal, setExamTotal] = useState(0);
   const [examSkipped, setExamSkipped] = useState(0);
 
-  // ── On mount: restore session ─────────────────────────────
+  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
+
+  // ── On mount: restore session + check #admin hash ──────────
   useEffect(() => {
     initTelegram();
+
+    if (window.location.hash === "#admin") {
+      setScreen("admin-login");
+      setLoading(false);
+      return;
+    }
 
     const saved = loadSession();
     if (saved) {
@@ -228,7 +237,6 @@ export default function App() {
           onStudy={openCategories}
           onCenters={openCenters}
           onFaq={() => go("faq")}
-          onAdmin={() => go("admin")}
         />
       )}
       {screen === "centers"    && (
@@ -268,7 +276,14 @@ export default function App() {
         />
       )}
       {screen === "faq" && <FaqScreen onBack={() => go("home")} />}
-      {screen === "admin" && <AdminScreen onBack={() => go("home")} />}
+      {screen === "admin-login" && (
+        <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
+      )}
+      {screen === "admin" && (
+        adminLoggedIn
+          ? <AdminScreen onBack={() => { setAdminLoggedIn(false); go("home"); }} />
+          : <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
+      )}
       {loading && <Loading msg={loadMsg} />}
     </div>
   );
