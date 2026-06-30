@@ -86,14 +86,16 @@ export default function AppFooter() {
         </div>
 
         {/* Slider */}
-        <div style={{ position: "relative", overflow: "hidden", borderRadius: 12 }}>
+        <div style={{ position: "relative", overflow: "hidden", borderRadius: 12, width: "100%" }}>
           <div style={{
             display: "flex",
-            transform: `translateX(${current * 100}%)`,
+            width: `${totalSlides * 100}%`,
+            transform: `translateX(-${current * (100 / totalSlides)}%)`,
             transition: "transform 0.5s ease",
+            direction: "ltr",
           }}>
             {displaySponsors.map((sp, i) => (
-              <div key={sp.id} style={{ minWidth: "100%", flexShrink: 0 }}>
+              <div key={sp.id} style={{ width: `${100 / totalSlides}%`, flexShrink: 0, padding: "0 1px" }}>
                 <img
                   src={sp.imageUrl}
                   alt="راعي رسمي"

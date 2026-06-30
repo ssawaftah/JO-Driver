@@ -1701,7 +1701,7 @@ export default function Admin({ onBack }: Props) {
       case "edit-list": return <EditListSection />;
       case "delete-list": return <DeleteSection />;
       case "guide-admin": return <GuideAdminSection />;
-      case "footer-admin": return <FooterAdminSection />;
+      case "footer-admin": return FooterAdminSection();
       default: return null;
     }
   };
