@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../lib/firebase";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
@@ -44,7 +44,6 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
 function ReviewCard({ name, stars, comment, date }: { name: string; stars: number; comment: string; date: string }) {
   return (
     <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 14, padding: 14 }}>
-      {/* Name on right, stars on left */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, direction: "rtl" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #246BFD, #4f86ff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, flexShrink: 0 }}>
@@ -78,25 +77,42 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
   if (!open) return null;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setErr("");
     const n = name.trim(), p = phone.trim();
+
     if (anonymous) {
-      // Anonymous: no registration needed, just publish as مجهول
       saveSession("مجهول", "anon_" + Date.now());
       onSuccess("مجهول", "anon_" + Date.now());
       return;
     }
+
     if (!n) { setErr("الرجاء إدخال الاسم"); return; }
     if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صحيح (عشر أرقام)"); return; }
+
     setSaving(true);
     try {
-      const key = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-      await db.ref("users/" + key).set({ name: n, phone: p, registeredAt: new Date().toISOString() });
-      saveSession(n, key);
-      onSuccess(n, key);
+      const usersSnap = await db.ref("users").once("value");
+      const users = usersSnap.val() || {};
+      let existingKey = null;
+      let existingName = null;
+      for (const [key, user] of Object.entries(users)) {
+        const u = user as any;
+        if (u.phone === p) { existingKey = key; existingName = u.name; break; }
+      }
+      if (existingKey) {
+        saveSession(existingName || n, existingKey);
+        onSuccess(existingName || n, existingKey);
+      } else {
+        const key = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+        await db.ref("users/" + key).set({ name: n, phone: p, registeredAt: new Date().toISOString() });
+        saveSession(n, key);
+        onSuccess(n, key);
+      }
     } catch { setSaving(false); setErr("حدث خطأ، حاول مرة أخرى"); }
   }
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, direction: "rtl" }} onClick={onClose}>
       <div style={{ background: "#fff", borderRadius: 20, padding: "24px", width: "100%", maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.25)", animation: "fadeUp 0.22s ease", animationFillMode: "both" }} onClick={e => e.stopPropagation()}>
@@ -141,31 +157,6 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
   );
 }
 
-/* ── Summary Bar ─────────────────────────────────────────────────── */
-function SummaryBar({ avg, count }: { avg: number; count: number }) {
-  const pct = count > 0 ? (avg / 5) * 100 : 0;
-  return (
-    <div style={{ background: "linear-gradient(135deg, #F59E0B, #F97316)", borderRadius: 16, padding: "18px 20px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-      <div>
-        <div style={{ fontSize: 28, fontWeight: 900 }}>{avg.toFixed(1)}</div>
-        <div style={{ fontSize: 12, opacity: 0.9 }}>متوسط التقييم</div>
-      </div>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 22, fontWeight: 900 }}>{count}</div>
-        <div style={{ fontSize: 11, opacity: 0.9 }}>تقييم</div>
-      </div>
-      <div style={{ width: 80, textAlign: "center" }}>
-        <div style={{ display: "flex", gap: 3, direction: "ltr", justifyContent: "center" }}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <StarIcon key={i} filled={i < Math.round(avg)} size={16} />
-          ))}
-        </div>
-        <div style={{ fontSize: 10, opacity: 0.8, marginTop: 4 }}>{pct.toFixed(0)}%</div>
-      </div>
-    </div>
-  );
-}
-
 /* ── Reviews Screen ─────────────────────────────────────────────── */
 export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -175,39 +166,48 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
   const [reviewMsg, setReviewMsg] = useState("");
   const [showReg, setShowReg] = useState(false);
   const [reviewsList, setReviewsList] = useState<{ id: string; name: string; stars: number; comment: string; createdAt: string }[]>([]);
-  const [avgStars, setAvgStars] = useState(0);
+  const [postAsAnonymous, setPostAsAnonymous] = useState(false);
+  const msgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load reviews on mount
   useEffect(() => {
     db.ref("reviews").once("value").then(snap => {
       const val = snap.val() || {};
       const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
       setReviewsList(arr);
-      if (arr.length > 0) {
-        const avg = arr.reduce((s, r) => s + (r.stars || 0), 0) / arr.length;
-        setAvgStars(avg);
-      }
     }).catch(() => {});
   }, []);
+
+  // Auto-hide success message after 3 seconds
+  useEffect(() => {
+    if (reviewMsg && reviewMsg.includes("شكراً")) {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => setReviewMsg(""), 3000);
+    }
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, [reviewMsg]);
 
   async function submitReview() {
     if (reviewStars === 0) { setReviewMsg("اختر تقييماً بالنجوم"); return; }
     const session = loadSession();
+
     if (!session) { setShowReg(true); return; }
+
     setReviewSaving(true); setReviewMsg("");
     try {
-      await db.ref("reviews").push({ name: session.name, stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() });
-      setReviewStars(0); setReviewComment(""); setReviewMsg("شكراً! تم نشر رأيك بنجاح");
+      const displayName = postAsAnonymous ? "مجهول" : session.name;
+      await db.ref("reviews").push({ name: displayName, stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() });
+      setReviewStars(0); setReviewComment(""); setPostAsAnonymous(false);
+      setReviewMsg("شكراً! تم نشر رأيك بنجاح");
       const snap = await db.ref("reviews").once("value");
       const val = snap.val() || {};
       const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
       setReviewsList(arr);
-      if (arr.length > 0) {
-        const avg = arr.reduce((s, r) => s + (r.stars || 0), 0) / arr.length;
-        setAvgStars(avg);
-      }
     } catch { setReviewMsg("حدث خطأ أثناء النشر"); }
     setReviewSaving(false);
   }
+
+  const session = loadSession();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#F3F6FF" }}>
@@ -223,9 +223,6 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
           <h1 style={{ fontSize: 20, fontWeight: 900, color: "#111827", margin: 0 }}>سجل الزوار</h1>
           <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>شاركنا تجربتك وقيّم خدماتنا</p>
         </div>
-
-        {/* Summary */}
-        <SummaryBar avg={avgStars} count={reviewsList.length} />
 
         {/* Review Form */}
         <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, marginBottom: 16 }}>
@@ -250,6 +247,14 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
               onBlur={e => e.currentTarget.style.borderColor = "#E5E7EB"}
             />
           </div>
+
+          {/* Anonymous toggle for logged-in users */}
+          {session && !session.key.startsWith("anon_") && (
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#6B7280", marginBottom: 12 }}>
+              <input type="checkbox" checked={postAsAnonymous} onChange={e => setPostAsAnonymous(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#246BFD" }} />
+              التعليق كمجهول (بدل من {session.name || "اسمك"})
+            </label>
+          )}
 
           <button
             onClick={submitReview}
