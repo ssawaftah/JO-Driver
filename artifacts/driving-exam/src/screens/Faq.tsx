@@ -322,14 +322,14 @@ export default function GuideScreen({ onBack, initialSections }: Props) {
             ))}
 
             {/* Official link */}
-            <a href="https://www.motc.gov.jo" target="_blank" rel="noreferrer" style={{
+            <a href="https://wa.me/9620778244772?text=" target="_blank" rel="noreferrer" style={{
               display: "flex", flexDirection: "row", alignItems: "center",
               justifyContent: "center", gap: 8, padding: "14px",
               borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff",
               fontSize: 13, fontWeight: 700, color: "#246BFD", textDecoration: "none",
             }}>
-              <i className="ph ph-globe" style={{ fontSize: 18 }} />
-              الموقع الرسمي لوزارة الداخلية — دائرة الترخيص
+              <i className="" style={{ fontSize: 18 }} />
+              لم تجد جواب لسؤالك ؟ تواصل معنا عبر واتساب
             </a>
             <div style={{ height: 16 }} />
           </div>
