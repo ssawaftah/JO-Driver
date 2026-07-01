@@ -573,10 +573,10 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
             <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>مراكز التدريب</div>
-            <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 1 }}>
+            <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>مراكز التدريب</h1>
+            <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 1 }}>
               {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد`}
-            </div>
+            </p>
           </div>
           <button
             onClick={() => setShowJoinForm(true)}

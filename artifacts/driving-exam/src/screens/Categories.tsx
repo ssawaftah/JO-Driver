@@ -42,8 +42,8 @@ export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: P
           <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
         </button>
         <div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>أقسام الأسئلة</div>
-          <div style={{ fontSize: 12, color: "#9CA3AF" }}>اختر قسماً للمراجعة أو الاختبار</div>
+          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>أقسام الأسئلة</h1>
+          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>اختر قسماً للمراجعة أو الاختبار</p>
         </div>
       </div>
 

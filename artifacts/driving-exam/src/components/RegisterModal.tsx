@@ -52,7 +52,7 @@ export default function RegisterModal({ open, onClose, onSuccess }: Props) {
           background: "#fff", borderRadius: 20, padding: "24px",
           width: "100%", maxWidth: 400,
           boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-          animation: "fadeUp 0.25s ease",
+          animation: "fadeUp 0.22s ease", animationFillMode: "both",
         }}
         onClick={e => e.stopPropagation()}
       >

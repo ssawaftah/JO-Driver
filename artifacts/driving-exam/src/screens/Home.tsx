@@ -53,8 +53,8 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, footer
         }}>
           <div>
             <p style={{ fontSize: 13, opacity: 0.85, marginBottom: 4 }}>{greet}،</p>
-            <h2 style={{ fontSize: 20, fontWeight: 900 }}>{name || "مرحباً بك!"}</h2>
-            <p style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>جاهز للاختبار؟</p>
+            <h1 style={{ fontSize: 20, fontWeight: 900, margin: 0 }}>{name || "مرحباً بك!"}</h1>
+            <p style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>جاهز لامتحان القيادة النظري في الأردن؟</p>
           </div>
           <div style={{ fontSize: 48, opacity: 0.25 }}>
             <i className="ph ph-student" />

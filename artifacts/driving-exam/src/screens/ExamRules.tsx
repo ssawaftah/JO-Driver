@@ -35,8 +35,8 @@ export default function ExamRules({ onStart, onBack }: Props) {
           <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
         </button>
         <div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>الامتحان النظري</div>
-          <div style={{ fontSize: 12, color: "#9CA3AF" }}>محاكاة اختبار دائرة الترخيص</div>
+          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>الامتحان النظري</h1>
+          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>محاكاة اختبار دائرة الترخيص</p>
         </div>
       </div>
 

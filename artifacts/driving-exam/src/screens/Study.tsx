@@ -64,7 +64,7 @@ export default function Study({ qs, cat, onBack }: Props) {
           <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, border: "1px solid #E5E7EB", background: "#fff", height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {q.mediaType === "video"
               ? <video controls src={q.mediaUrl} preload="auto" style={{ width: "100%", maxHeight: 240, display: "block", objectFit: "contain" }} />
-              : <img src={q.mediaUrl} alt="" loading="eager" style={{ width: "100%", maxHeight: 240, display: "block", objectFit: "contain" }} />
+              : <img src={q.mediaUrl} alt={q.question ? "صورة توضيحية: " + q.question.slice(0, 60) : "صورة توضيحية للسؤال"} loading="eager" style={{ width: "100%", maxHeight: 240, display: "block", objectFit: "contain" }} />
             }
           </div>
         )}

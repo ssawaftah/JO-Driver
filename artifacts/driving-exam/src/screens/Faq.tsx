@@ -268,8 +268,8 @@ export default function GuideScreen({ onBack, initialSections }: Props) {
           <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
         </button>
         <div style={{ flex: 1, textAlign: "right" }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>دليل الامتحان النظري</div>
-          <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>كل ما تحتاجه قبل يوم الاختبار</div>
+          <h1 style={{ fontSize: 16, fontWeight: 900, color: "#111827", margin: 0 }}>دليل الامتحان النظري</h1>
+          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>كل ما تحتاجه قبل يوم الاختبار</p>
         </div>
       </div>
 
