@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Governorate, Area, Center } from "../types";
-import AppFooter from "../components/Footer";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 
 interface Props {
   govs: Record<string, Governorate>;
@@ -253,7 +253,7 @@ export function JoinRequestForm({ govs, areas, onClose }: {
 
   if (sent) {
     return (
-      <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
         <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, background: "#fff", borderBottom: "1.5px solid #F0F1F3" }}>
           <button onClick={onClose} style={{
             width: 40, height: 40, borderRadius: 12,
@@ -294,7 +294,7 @@ export function JoinRequestForm({ govs, areas, onClose }: {
   }
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
       {/* Header */}
       <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, background: "#fff", borderBottom: "1.5px solid #F0F1F3", flexShrink: 0 }}>
         <button onClick={onClose} style={{
@@ -547,7 +547,7 @@ export default function Centers({ govs, areas, centers }: Props) {
   const totalCenters = Object.keys(centers).length;
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F9FAFB" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F9FAFB" }}>
 
       <Header />
 
@@ -649,7 +649,6 @@ export default function Centers({ govs, areas, centers }: Props) {
             ))
           )}
         </div>
-
         <AppFooter />
       </div>
     </div>

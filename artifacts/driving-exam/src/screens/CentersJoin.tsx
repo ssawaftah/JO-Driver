@@ -81,7 +81,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
 
   if (sent) {
     return (
-      <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
         <Header />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24 }}>
           <div style={{
@@ -112,7 +112,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
   }
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F6F8FB" }}>
       <Header />
 
       <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -258,8 +258,8 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           <i className="ph ph-paper-plane-right" style={{ fontSize: 18 }} />
           {sending ? "جاري الإرسال..." : "إرسال الطلب"}
         </button>
+        <AppFooter />
       </div>
-      <AppFooter />
     </div>
   );
 }

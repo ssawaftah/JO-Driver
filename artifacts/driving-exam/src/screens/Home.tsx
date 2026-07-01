@@ -1,6 +1,6 @@
 import { useState } from "react";
-import AppFooter from "../components/Footer";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 import SideDrawer from "../components/SideDrawer";
 
 interface Props {

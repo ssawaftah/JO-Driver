@@ -132,7 +132,7 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
   const qNum = currentIdx + 1;
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#fff" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#fff" }}>
 
       <Header />
 

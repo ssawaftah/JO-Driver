@@ -1,5 +1,5 @@
-import AppFooter from "../components/Footer";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 
 interface Props {
   cats: string[];
@@ -21,7 +21,7 @@ const DEF = { icon: "book-open", color: "#2563EB", bg: "#DBEAFE" };
 
 export default function Categories({ cats, qCounts, onStudy, onTest }: Props) {
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F3F6FF" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#F3F6FF" }}>
       <Header />
 
       {/* Scrollable body — plain block, no flex */}

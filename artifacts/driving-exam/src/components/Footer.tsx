@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../lib/firebase";
 
 const SOCIAL_ICONS: Record<string, { label: string; phIcon: string; color: string }> = {
@@ -8,10 +9,17 @@ const SOCIAL_ICONS: Record<string, { label: string; phIcon: string; color: strin
   x:         { label: "X",         phIcon: "ph-x-logo",         color: "#0f172a" },
 };
 
-const DEFAULT_ABOUT =
-  "منصة JO Driver هي دليلك الأول لاجتياز امتحان القيادة النظري في الأردن.";
+const DEFAULT_ABOUT = "منصة JO Driver هي دليلك الأول لاجتياز امتحان القيادة النظري في الأردن.";
+
+/** Only show footer on these routes */
+const HIDE_FOOTER_PATHS = ["/exam", "/test", "/study"];
+function shouldShowFooter(path: string): boolean {
+  return !HIDE_FOOTER_PATHS.some(p => path.startsWith(p));
+}
 
 export default function AppFooter() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [social, setSocial] = useState<Record<string, string>>({});
   const [aboutText, setAboutText] = useState(DEFAULT_ABOUT);
 
@@ -26,63 +34,110 @@ export default function AppFooter() {
     });
   }, []);
 
+  if (!shouldShowFooter(location.pathname)) return null;
+
   const activeSocials = Object.entries(SOCIAL_ICONS).filter(([key]) => !!social[key]);
 
   return (
     <footer style={{
-      background: "#fff",
-      borderTop: "1px solid #E8EAED",
       direction: "rtl",
       color: "#6B7280",
-      padding: "12px 16px",
-      flexShrink: 0,
+      padding: "28px 16px 20px",
+      borderTop: "1px solid #E8EAED",
+      background: "transparent",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        {/* Left: logo + about */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: "linear-gradient(135deg, #246BFD, #4f86ff)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 14, color: "#fff", flexShrink: 0,
-          }}>
-            <i className="ph ph-steering-wheel" />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#1A1D1F", marginBottom: 1 }}>JO Driver</div>
-            <div style={{ fontSize: 10, color: "#9CA3AF", lineHeight: 1.4 }}>{aboutText}</div>
+      {/* ── Brand row: logo + name + about ── */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 10,
+          background: "linear-gradient(135deg, #246BFD, #4f86ff)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 20, color: "#fff", flexShrink: 0,
+        }}>
+          <i className="ph ph-steering-wheel" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827", marginBottom: 3 }}>JO Driver</div>
+          <p style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.6, margin: 0 }}>
+            {aboutText}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Social icons ── */}
+      {activeSocials.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+          {activeSocials.map(([key, { phIcon, color }]) => (
+            <a key={key} href={social[key]} target="_blank" rel="noopener noreferrer"
+              style={{
+                width: 36, height: 36, borderRadius: 10,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "#F6F8FB", color,
+                textDecoration: "none", fontSize: 16,
+                border: "1px solid #E8EAED",
+                transition: "transform .15s, background .15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = color + "15"; e.currentTarget.style.transform = "scale(1.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "#F6F8FB"; e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <i className={`ph ${phIcon}`} />
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* ── Link columns ── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "20px 16px",
+        marginBottom: 24,
+      }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "#374151", marginBottom: 8 }}>الدليل</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <FooterLink onClick={() => navigate("/guide")}>دليل الامتحان</FooterLink>
+            <FooterLink onClick={() => navigate("/centers")}>مراكز التدريب</FooterLink>
+            <FooterLink onClick={() => navigate("/centers/join")}>انضم كمركز</FooterLink>
           </div>
         </div>
-
-        {/* Right: social icons */}
-        {activeSocials.length > 0 && (
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            {activeSocials.map(([key, { phIcon, color }]) => (
-              <a key={key} href={social[key]} target="_blank" rel="noopener noreferrer"
-                style={{
-                  width: 28, height: 28, borderRadius: 7,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "#F6F8FB", color,
-                  textDecoration: "none", fontSize: 14,
-                  transition: "transform .15s, background .15s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = color + "15"; e.currentTarget.style.transform = "scale(1.1)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "#F6F8FB"; e.currentTarget.style.transform = "scale(1)"; }}
-              >
-                <i className={`ph ${phIcon}`} />
-              </a>
-            ))}
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "#374151", marginBottom: 8 }}>التطبيق</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <FooterLink onClick={() => navigate("/")}>الرئيسية</FooterLink>
+            <FooterLink onClick={() => navigate("/categories")}>الأقسام والأسئلة</FooterLink>
+            <FooterLink onClick={() => navigate("/exam-rules")}>الامتحان النظري</FooterLink>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Copyright */}
+      {/* ── Copyright ── */}
       <div style={{
-        textAlign: "center", marginTop: 8,
-        fontSize: 9, color: "#CBD5E1",
+        textAlign: "center",
+        fontSize: 11, color: "#CBD5E1",
+        paddingTop: 12,
+        borderTop: "1px solid #F0F1F3",
       }}>
-        جميع الحقوق محفوظة © {new Date().getFullYear()}
+        جميع الحقوق محفوظة لمنصة JO Driver © {new Date().getFullYear()}
       </div>
     </footer>
+  );
+}
+
+function FooterLink({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: "none", border: "none", padding: 0, margin: 0,
+        fontSize: 12, color: "#6B7280", cursor: "pointer",
+        fontFamily: "inherit", textAlign: "right",
+        transition: "color .15s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.color = "#246BFD"; }}
+      onMouseLeave={e => { e.currentTarget.style.color = "#6B7280"; }}
+    >
+      {children}
+    </button>
   );
 }

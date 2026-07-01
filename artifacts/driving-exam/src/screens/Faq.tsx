@@ -252,7 +252,7 @@ export default function GuideScreen({ initialSections }: Props) {
 
   return (
     <div style={{
-      height: "100dvh", display: "flex", flexDirection: "column",
+      minHeight: "100dvh", display: "flex", flexDirection: "column",
       background: "#F9FAFB", direction: "rtl",
     }}>
       <Header />
@@ -318,8 +318,8 @@ export default function GuideScreen({ initialSections }: Props) {
             <div style={{ height: 16 }} />
           </div>
         )}
+        <AppFooter />
       </div>
-      <AppFooter />
     </div>
   );
 }

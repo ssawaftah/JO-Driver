@@ -29,6 +29,15 @@ const CATS = [
   "الصور المتحركة",
 ];
 
+function catId(cat: string): string {
+  const idx = CATS.indexOf(cat);
+  return idx >= 0 ? String(idx) : "0";
+}
+function catFromId(id: string): string {
+  const n = parseInt(id, 10);
+  return CATS[n] || CATS[0];
+}
+
 const SESSION_KEY = "dex_user";
 
 /** Normalize Arabic text: unify alef variants, strip tashkeel */
@@ -152,14 +161,14 @@ function AppRoutes() {
     const qs = getCatQs(cat);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setStudyQs(qs);
-    navigate(`/study/${encodeURIComponent(cat)}`);
+    navigate(`/study/${catId(cat)}`);
   }
 
   function startTest(cat: string) {
     const qs = getCatQs(cat).sort(() => Math.random() - 0.5);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setTestQs(qs);
-    navigate(`/test/${encodeURIComponent(cat)}`);
+    navigate(`/test/${catId(cat)}`);
   }
 
   function handleResult(ok: number, total: number) {
@@ -222,10 +231,10 @@ function AppRoutes() {
         <Route path="/categories" element={
           <CategoriesScreen cats={CATS} qCounts={qCounts} onStudy={startStudy} onTest={startTest} />
         } />
-        <Route path="/study/:cat" element={
+        <Route path="/study/:id" element={
           <StudyScreenWrapper qs={studyQs} onBack={() => navigate("/categories")} />
         } />
-        <Route path="/test/:cat" element={
+        <Route path="/test/:id" element={
           <TestScreenWrapper qs={testQs} onBack={() => navigate("/categories")} onFinish={handleResult} />
         } />
         <Route path="/result" element={
@@ -262,15 +271,13 @@ function AppRoutes() {
 /* ── Wrappers that read :cat param and pass it to inner screens ── */
 
 function StudyScreenWrapper({ qs, onBack }: { qs: Question[]; onBack: () => void }) {
-  const { cat } = useParams<{ cat: string }>();
-  const catName = decodeURIComponent(cat || "");
-  return <StudyScreen qs={qs} cat={catName} onBack={onBack} />;
+  const { id } = useParams<{ id: string }>();
+  return <StudyScreen qs={qs} cat={catFromId(id || "0")} onBack={onBack} />;
 }
 
 function TestScreenWrapper({ qs, onBack, onFinish }: { qs: Question[]; onBack: () => void; onFinish: (ok: number, total: number) => void }) {
-  const { cat } = useParams<{ cat: string }>();
-  const catName = decodeURIComponent(cat || "");
-  return <TestScreen qs={qs} cat={catName} onBack={onBack} onFinish={onFinish} />;
+  const { id } = useParams<{ id: string }>();
+  return <TestScreen qs={qs} cat={catFromId(id || "0")} onBack={onBack} onFinish={onFinish} />;
 }
 
 export default function App() { return <AppRoutes />; }

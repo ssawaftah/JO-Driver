@@ -1770,9 +1770,8 @@ export default function Admin({ onBack }: Props) {
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>
         {renderView()}
         <div style={{ height: 20 }} />
+        <AppFooter />
       </div>
-
-      <AppFooter />
 
       {/* Toast & Loading */}
       <Toast msg={toast} />

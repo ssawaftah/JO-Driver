@@ -34,7 +34,7 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
       <Header />
       <div style={{ padding: "12px 16px", background: "#fff", borderBottom: "1px solid #E5E7EB" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
