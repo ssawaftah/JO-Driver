@@ -16,36 +16,37 @@ const Q_CATS = [
   "الصور المتحركة",
 ];
 
-// ── Design tokens ────────────────────────────────
+// ── Design tokens (Modern — Clean Light) ────────────────────────────────
 const C = {
-  primary: "#246BFD", primaryLight: "#E8F0FE", primaryDark: "#1a54d4",
-  bg: "#F6F8FB", surface: "#FFFFFF", surface2: "#F9FAFB",
-  border: "#E8EAED", borderHover: "#246BFD",
-  text: "#1A1D1F", textSec: "#6B7280", textLight: "#9CA3AF",
-  green: "#16A34A", greenLight: "#DCFCE7",
-  red: "#DC2626", redLight: "#FEE2E2",
-  gold: "#D97706", goldLight: "#FEF3C7",
-  purple: "#7C3AED", purpleLight: "#EDE9FE",
-  cyan: "#0891B2", cyanLight: "#CFFAFE",
+  primary: "#2563EB", primaryLight: "#EFF6FF", primaryDark: "#1d4ed8",
+  bg: "#FAFBFC", surface: "#FFFFFF", surface2: "#F8FAFC",
+  border: "#E2E8F0", borderHover: "#2563EB",
+  text: "#0F172A", textSec: "#64748B", textLight: "#94A3B8",
+  green: "#059669", greenLight: "#ECFDF5",
+  red: "#DC2626", redLight: "#FEF2F2",
+  gold: "#D97706", goldLight: "#FFFBEB",
+  purple: "#7C3AED", purpleLight: "#F5F3FF",
+  cyan: "#0891B2", cyanLight: "#ECFEFF",
+  pink: "#EC4899", pinkLight: "#FDF2F8",
 };
 
 // ── Reusable UI helpers ─────────────────────────────
-function Card({ icon, color, colorBg, title, desc, onClick, count }: { icon: string; color: string; colorBg: string; title: string; desc: string; onClick: () => void; count?: number }) {
+function Card({ icon, color, colorBg, iconColor, title, desc, onClick, count }: { icon: string; color: string; colorBg: string; iconColor: string; title: string; desc: string; onClick: () => void; count?: number }) {
   return (
     <button onClick={onClick} style={{
       width: "100%", background: C.surface, border: `1px solid ${C.border}`,
       borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12,
       cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-      boxShadow: "0 1px 2px rgba(0,0,0,0.03)", transition: "all .15s",
-    }} onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
-      <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: colorBg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "all .2s",
+    }} onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"; }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: colorBg, color: iconColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
         <i className={`ph ph-${icon}`} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{title}</span>
-          {count !== undefined && <span style={{ fontSize: 11, fontWeight: 800, padding: "1px 7px", borderRadius: 20, background: colorBg, color }}>{count}</span>}
+          {count !== undefined && <span style={{ fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: colorBg, color: iconColor }}>{count}</span>}
         </div>
         <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
       </div>
@@ -138,15 +139,15 @@ function Btn({ children, onClick, variant = "primary", style = {} }: { children:
 function StatCard({ label, value, icon, color, bg }: { label: string; value: number; icon: string; color: string; bg: string }) {
   return (
     <div style={{
-      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
-      padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 12,
+      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16,
+      padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", gap: 12,
     }}>
-      <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
         <i className={`ph ph-${icon}`} />
       </div>
       <div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: C.text, lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 12, color: C.textSec, marginTop: 3, fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: C.text, lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 12, color: C.textSec, marginTop: 4, fontWeight: 700 }}>{label}</div>
       </div>
     </div>
   );
@@ -1811,29 +1812,47 @@ export default function Admin({ onBack }: Props) {
     switch (view) {
       case "menu": return (
         <div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: C.text, marginBottom: 16, letterSpacing: "-0.3px" }}>لوحة التحكم</div>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: C.text }}>JO Driver</div>
+              <div style={{ fontSize: 12, color: C.textSec, fontWeight: 600 }}>لوحة التحكم</div>
+            </div>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, background: C.primary, color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+            }}>
+              <i className="ph ph-steering-wheel" />
+            </div>
+          </div>
+
+          {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
-            <StatCard label="محافظة" value={stats.gov} icon="map-trifold" color={C.cyan} bg={C.cyan} />
-            <StatCard label="منطقة" value={stats.area} icon="map-pin" color={C.primary} bg={C.primary} />
-            <StatCard label="مركز" value={stats.center} icon="buildings" color={C.gold} bg={C.gold} />
-            <StatCard label="مستخدم" value={stats.user} icon="users" color={C.green} bg={C.green} />
+            <StatCard label="محافظة" value={stats.gov} icon="map-trifold" color={C.cyan} bg={C.cyanLight} />
+            <StatCard label="منطقة" value={stats.area} icon="map-pin" color={C.primary} bg={C.primaryLight} />
+            <StatCard label="مركز" value={stats.center} icon="buildings" color={C.gold} bg={C.goldLight} />
+            <StatCard label="مستخدم" value={stats.user} icon="users" color={C.green} bg={C.greenLight} />
           </div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>الإدارة</div>
+
+          {/* Management */}
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px" }}>الإدارة</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Card icon="users" color={C.primary} colorBg={C.primary} title="المستخدمين" desc="عرض وحذف المستخدمين" onClick={() => setView("users")} count={stats.user} />
-            <Card icon="question" color={C.gold} colorBg={C.gold} title="الأسئلة" desc="إضافة، تعديل، حذف الأسئلة" onClick={() => { setQSub("menu"); setView("questions"); }} count={stats.q} />
-            <Card icon="book-open-text" color={C.purple} colorBg={C.purple} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
-            <Card icon="clipboard-text" color={C.pink} colorBg={C.pink} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
-            <Card icon="layout" color={C.cyan} colorBg={C.cyan} title="إدارة الفوتر" desc="الراعي الرسمي، سوشيال ميديا، من نحن" onClick={() => { loadFooter(); setView("footer-admin"); }} />
-            <Card icon="star" color={C.gold} colorBg={C.gold} title="آراء الزوار" desc="سجل التقييمات والملاحظات" onClick={() => setView("reviews")} count={stats.reviews} />
+            <Card icon="users" color={C.primary} colorBg={C.primaryLight} iconColor={C.primary} title="المستخدمين" desc="عرض وحذف المستخدمين" onClick={() => setView("users")} count={stats.user} />
+            <Card icon="question" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="الأسئلة" desc="إضافة، تعديل، حذف" onClick={() => { setQSub("menu"); setView("questions"); }} count={stats.q} />
+            <Card icon="book-open-text" color={C.purple} colorBg={C.purpleLight} iconColor={C.purple} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
+            <Card icon="clipboard-text" color={C.pink} colorBg={C.pinkLight} iconColor={C.pink} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
+            <Card icon="layout" color={C.cyan} colorBg={C.cyanLight} iconColor={C.cyan} title="إدارة الفوتر" desc="الراعي، سوشيال، من نحن" onClick={() => { loadFooter(); setView("footer-admin"); }} />
+            <Card icon="star" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="آراء الزوار" desc="سجل التقييمات" onClick={() => setView("reviews")} count={stats.reviews} />
           </div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginTop: 20, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>البيانات الجغرافية</div>
+
+          {/* Geographic Data */}
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginTop: 20, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px" }}>البيانات الجغرافية</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Card icon="map-trifold" color={C.cyan} colorBg={C.cyan} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
-            <Card icon="map-pin" color={C.primary} colorBg={C.primary} title="إضافة منطقة" desc="ربط منطقة بمحافظة" onClick={() => setView("add-area")} />
-            <Card icon="buildings" color={C.gold} colorBg={C.gold} title="إضافة مركز" desc="إضافة مركز تدريب جديد" onClick={() => setView("add-center")} />
-            <Card icon="pencil-simple" color={C.primary} colorBg={C.primary} title="تعديل البيانات" desc="تعديل المحافظات والمناطق والمراكز" onClick={() => { setEditType(null); setView("edit-list"); }} />
-            <Card icon="trash" color={C.red} colorBg={C.red} title="حذف البيانات" desc="إزالة المحافظات أو المناطق أو المراكز" onClick={() => { setDelType(null); setView("delete-list"); }} />
+            <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} iconColor={C.cyan} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
+            <Card icon="map-pin" color={C.primary} colorBg={C.primaryLight} iconColor={C.primary} title="إضافة منطقة" desc="ربط منطقة بمحافظة" onClick={() => setView("add-area")} />
+            <Card icon="buildings" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="إضافة مركز" desc="مركز تدريب جديد" onClick={() => setView("add-center")} />
+            <Card icon="pencil-simple" color={C.primary} colorBg={C.primaryLight} iconColor={C.primary} title="تعديل البيانات" desc="تعديل المحافظات والمناطق" onClick={() => { setEditType(null); setView("edit-list"); }} />
+            <Card icon="trash" color={C.red} colorBg={C.redLight} iconColor={C.red} title="حذف البيانات" desc="إزالة البيانات" onClick={() => { setDelType(null); setView("delete-list"); }} />
           </div>
         </div>
       );
