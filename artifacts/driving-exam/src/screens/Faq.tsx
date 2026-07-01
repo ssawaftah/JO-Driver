@@ -229,13 +229,14 @@ const DEFAULT_SECTIONS: GuideSection[] = [
 /* ── Star Rating Input ─────────────────────────── */
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
+  const displayValue = hover || value;
   return (
-    <div style={{ display: "flex", gap: 4, direction: "ltr", justifyContent: "center" }}>
+    <div style={{ display: "flex", gap: 4, direction: "ltr", justifyContent: "center" }} onMouseLeave={() => setHover(0)}>
       {[1, 2, 3, 4, 5].map(n => (
-        <button key={n} type="button" onClick={() => onChange(n)} onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontFamily: "inherit" }}>
-          <i className={`ph ph-star${(hover ? n <= hover : n <= value) ? "-fill" : ""}`}
-            style={{ fontSize: 28, color: (hover ? n <= hover : n <= value) ? "#F59E0B" : "#D1D5DB", transition: "color .15s" }} />
+        <button key={n} type="button" onClick={() => { onChange(n); setHover(0); }} onMouseEnter={() => setHover(n)}
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontFamily: "inherit", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
+          <i className={`ph ${n <= displayValue ? "ph-star-fill" : "ph-star"}`}
+            style={{ fontSize: 28, color: n <= displayValue ? "#F59E0B" : "#D1D5DB", transition: "color .15s" }} />
         </button>
       ))}
     </div>
@@ -454,13 +455,13 @@ export default function GuideScreen({ initialSections }: Props) {
               </Accordion>
             ))}
 
-            {/* ── Reviews Section ── */}
+            {/* ── Visitor Log Section (standalone) ── */}
             <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, marginTop: 4 }}>
               <div style={{ textAlign: "center", marginBottom: 14 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #F59E0B, #F97316)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, margin: "0 auto 10px" }}>
                   <i className="ph ph-star" />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 900, color: "#111827", marginBottom: 4 }}>آراء الزوار</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: "#111827", marginBottom: 4 }}>سجل الزوار</div>
                 <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.7 }}>
                   إذا استفدت من الموقع، رأيك هو أكبر داعم لنا للاستمرار. شاركنا تجربتك!
                 </div>
@@ -513,7 +514,7 @@ export default function GuideScreen({ initialSections }: Props) {
               {/* Reviews list */}
               {reviewsList.length > 0 && (
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#9CA3AF", marginBottom: 10, textAlign: "center" }}>آراء الزوار</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#9CA3AF", marginBottom: 10, textAlign: "center" }}>آخر التقييمات</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {reviewsList.slice(0, 10).map(r => (
                       <ReviewCard key={r.id} name={r.name} stars={r.stars} comment={r.comment} date={r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : "-"} />
