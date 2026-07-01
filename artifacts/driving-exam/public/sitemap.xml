@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://jodriver.replit.app/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <url><loc>https://jodriver.replit.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://jodriver.replit.app/quaed-al-sayr.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-mechanic.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-shwakhes.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-salamah.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-asafat.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-mokhalafat.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/al-soor-al-mutaharrek.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://jodriver.replit.app/marakiz-tadreeb.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://jodriver.replit.app/daleel-emtehan.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
 </urlset>
