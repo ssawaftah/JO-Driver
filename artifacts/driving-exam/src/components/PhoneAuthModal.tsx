@@ -93,7 +93,17 @@ export default function PhoneAuthModal({
       setStep("otp");
       setCountdown(60);
     } catch (error: any) {
-      setErr(error?.message || "حدث خطأ أثناء إرسال رمز التحقق");
+      const code = error?.code || "";
+      const msg = error?.message || "";
+      console.error("Firebase Phone Auth error:", code, msg);
+      let userMsg = "حدث خطأ أثناء إرسال رمز التحقق";
+      if (code.includes("invalid-phone-number")) userMsg = "رقم الهاتف غير صالح. تأكد من صحة الرقم (مثلاً 07XXXXXXXX)";
+      else if (code.includes("quota-exceeded")) userMsg = "تم تجاوز الحصة اليومية. جرّب غداً.";
+      else if (code.includes("captcha-check-failed")) userMsg = "فشل التحقق الأمني. أعد تحميل الصفحة وحاول مجدداً.";
+      else if (code.includes("app-not-authorized") || code.includes("unauthorized-domain")) userMsg = "هذا الموقع غير مصرح له بإرسال رموز التحقق. أضف النطاق (domain) إلى Firebase Console > Auth > Settings > Authorized domains.";
+      else if (code.includes("operation-not-allowed")) userMsg = "تسجيل الدخول برقم الهاتف غير مفعل في Firebase Console. اذهب إلى Authentication > Sign-in method وفعّل 'Phone'.";
+      else if (msg) userMsg = msg;
+      setErr(userMsg);
     }
     setSaving(false);
   }
