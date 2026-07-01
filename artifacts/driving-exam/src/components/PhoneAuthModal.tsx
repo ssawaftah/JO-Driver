@@ -22,7 +22,7 @@ export default function PhoneAuthModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [anonymous, setAnonymous] = useState(false);
-  const [step, setStep] = useState<"login" | "details">("login");
+  const [step, setStep] = useState<"login" | "checking" | "details">("login");
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
   const [googleUser, setGoogleUser] = useState<firebase.User | null>(null);
@@ -56,6 +56,9 @@ export default function PhoneAuthModal({
       const user = result.user;
       if (!user) throw new Error("فشل تسجيل الدخول");
 
+      // Show checking spinner while we verify user in DB
+      setStep("checking");
+
       // Check if user already exists in our DB by firebaseUid
       const usersSnap = await db.ref("users").once("value");
       const users = usersSnap.val() || {};
@@ -75,6 +78,7 @@ export default function PhoneAuthModal({
         // New user — ask for name + phone
         setGoogleUser(user);
         setName(user.displayName || "");
+        setSaving(false);
         setStep("details");
       }
     } catch (error: any) {
@@ -103,6 +107,7 @@ export default function PhoneAuthModal({
     const n = name.trim();
     const p = phone.trim();
     if (!n) { setErr("الرجاء إدخال الاسم"); return; }
+    if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صالح (عشر أرقام)"); return; }
 
     setSaving(true);
     try {
@@ -145,7 +150,13 @@ export default function PhoneAuthModal({
           <p style={{ fontSize: 13, color: "#6B7280" }}>{subtitle || "سجّل بواسطة Google للمتابعة"}</p>
         </div>
 
-        {step === "login" ? (
+        {step === "checking" ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "20px 0" }}>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid #E5E7EB", borderTopColor: "#246BFD", animation: "spin 0.8s linear infinite" }} />
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#374151" }}>جارٍ التحقق من البيانات...</p>
+            <p style={{ fontSize: 12, color: "#6B7280" }}>تم تسجيل الدخول بواسطة Google</p>
+          </div>
+        ) : step === "login" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {/* Google Sign In button */}
             <button
@@ -217,7 +228,7 @@ export default function PhoneAuthModal({
               <input className="inp" type="text" placeholder="أدخل اسمك" value={name} onChange={e => setName(e.target.value)} />
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>رقم الهاتف (اختياري)</label>
+              <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>رقم الهاتف *</label>
               <input className="inp" type="tel" placeholder="07xxxxxxxx" value={phone} onChange={e => setPhone(e.target.value)} style={{ direction: "ltr", textAlign: "right" }} />
             </div>
             {err && (
