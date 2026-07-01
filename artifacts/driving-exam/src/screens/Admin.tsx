@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { db } from "../lib/firebase";
 import Header from "../components/Header";
-import AppFooter from "../components/Footer";
 
 interface Props { onBack: () => void; }
 
@@ -1747,7 +1746,6 @@ export default function Admin({ onBack }: Props) {
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>
         {renderView()}
         <div style={{ height: 20 }} />
-        <AppFooter />
       </div>
 
       {/* Toast & Loading */}
