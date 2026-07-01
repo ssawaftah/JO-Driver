@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
+import Header from "../components/Header";
 import type { GuideSection, GuideSectionType, GuideSectionItem } from "../types";
 
-interface Props { onBack: () => void; initialSections?: GuideSection[] | null; }
+interface Props { initialSections?: GuideSection[] | null; }
 
 /* ── Accordion ─────────────────────────────────── */
 function Accordion({ icon, iconColor, iconBg, title, children, defaultOpen = false }: {
@@ -220,7 +221,7 @@ const DEFAULT_SECTIONS: GuideSection[] = [
 ];
 
 /* ── Root ──────────────────────────────────────────── */
-export default function GuideScreen({ onBack, initialSections }: Props) {
+export default function GuideScreen({ initialSections }: Props) {
   const [sections, setSections] = useState<GuideSection[]>(initialSections ?? []);
   const [loading, setLoading] = useState(!initialSections);
 
@@ -253,25 +254,7 @@ export default function GuideScreen({ onBack, initialSections }: Props) {
       height: "100dvh", display: "flex", flexDirection: "column",
       background: "#F9FAFB", direction: "rtl",
     }}>
-      {/* Header */}
-      <div style={{
-        background: "#fff", borderBottom: "1.5px solid #F0F1F3",
-        padding: "14px 16px", display: "flex", flexDirection: "row", alignItems: "center", gap: 12,
-        flexShrink: 0,
-      }}>
-        <button onClick={onBack} style={{
-          width: 40, height: 40, borderRadius: 12,
-          border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", flexShrink: 0,
-        }}>
-          <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
-        </button>
-        <div style={{ flex: 1, textAlign: "right" }}>
-          <h1 style={{ fontSize: 16, fontWeight: 900, color: "#111827", margin: 0 }}>دليل الامتحان النظري</h1>
-          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>كل ما تحتاجه قبل يوم الاختبار</p>
-        </div>
-      </div>
+      <Header />
 
       {/* Body */}
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "14px 14px" }}>

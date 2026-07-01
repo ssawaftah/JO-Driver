@@ -1,4 +1,5 @@
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
 
 interface Props {
   ok: number;
@@ -28,6 +29,7 @@ export default function Result({ ok, total, onBack, onRetry }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#fff" }}>
+      <Header />
       {/* Top colored bar */}
       <div style={{ height: 5, background: passed ? "#16A34A" : "#DC2626" }} />
 

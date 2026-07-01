@@ -1,9 +1,9 @@
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
 
 interface Props {
   cats: string[];
   qCounts: Record<string, number>;
-  onBack: () => void;
   onStudy: (cat: string) => void;
   onTest: (cat: string) => void;
 }
@@ -19,33 +19,10 @@ const META: Record<string, { icon: string; color: string; bg: string }> = {
 };
 const DEF = { icon: "book-open", color: "#2563EB", bg: "#DBEAFE" };
 
-export default function Categories({ cats, qCounts, onBack, onStudy, onTest }: Props) {
+export default function Categories({ cats, qCounts, onStudy, onTest }: Props) {
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F3F6FF" }}>
-
-      {/* Header */}
-      <div style={{
-        flexShrink: 0,
-        padding: "14px 16px",
-        background: "#fff",
-        borderBottom: "1.5px solid #F3F4F6",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-      }}>
-        <button onClick={onBack} style={{
-          width: 40, height: 40, borderRadius: 12,
-          border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", flexShrink: 0,
-        }}>
-          <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
-        </button>
-        <div>
-          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>أقسام الأسئلة</h1>
-          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>اختر قسماً للمراجعة أو الاختبار</p>
-        </div>
-      </div>
+      <Header />
 
       {/* Scrollable body — plain block, no flex */}
       <div style={{

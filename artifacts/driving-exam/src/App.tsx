@@ -223,10 +223,10 @@ function AppRoutes() {
           />
         } />
         <Route path="/centers" element={
-          <CentersScreen govs={govs} areas={areas} centers={centers} onBack={() => navigate("/")} />
+          <CentersScreen govs={govs} areas={areas} centers={centers} />
         } />
         <Route path="/categories" element={
-          <CategoriesScreen cats={CATS} qCounts={qCounts} onBack={() => navigate("/")} onStudy={startStudy} onTest={startTest} />
+          <CategoriesScreen cats={CATS} qCounts={qCounts} onStudy={startStudy} onTest={startTest} />
         } />
         <Route path="/study/:cat" element={
           <StudyScreenWrapper qs={studyQs} onBack={() => navigate("/categories")} />
@@ -238,17 +238,17 @@ function AppRoutes() {
           <ResultScreen ok={resultOk} total={resultTotal} onBack={() => navigate("/categories")} onRetry={() => startTest(studyQs[0]?.category || "")} />
         } />
         <Route path="/exam-rules" element={
-          <ExamRulesScreen onStart={startExam} onBack={() => navigate("/")} />
+          <ExamRulesScreen onStart={startExam} />
         } />
         <Route path="/exam" element={
           examQs.length > 0 ? <ExamScreen allQuestions={examQs} onFinish={handleExamFinish} onBack={() => navigate("/exam-rules")} />
-            : <ExamRulesScreen onStart={startExam} onBack={() => navigate("/")} />
+            : <ExamRulesScreen onStart={startExam} />
         } />
         <Route path="/exam-result" element={
           <ExamResultScreen ok={examOk} wrong={examWrong} total={examTotal} skipped={examSkipped} onRetry={() => navigate("/exam-rules")} onHome={() => navigate("/")} />
         } />
         <Route path="/guide" element={
-          <GuideScreen onBack={() => navigate("/")} initialSections={guideSections} />
+          <GuideScreen initialSections={guideSections} />
         } />
         <Route path="/admin-login" element={
           <AdminLoginScreen onLogin={handleAdminLogin} />

@@ -1,12 +1,12 @@
 import { useState, useMemo, useRef } from "react";
 import type { Governorate, Area, Center } from "../types";
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
 
 interface Props {
   govs: Record<string, Governorate>;
   areas: Record<string, Area>;
   centers: Record<string, Center>;
-  onBack: () => void;
 }
 
 /* ── Day helpers ───────────────────────────────────────── */
@@ -485,7 +485,7 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
 }
 
 /* ── Root ────────────────────────────────────────────────── */
-export default function Centers({ govs, areas, centers, onBack }: Props) {
+export default function Centers({ govs, areas, centers }: Props) {
   const [govId, setGovId] = useState<string | null>(null);
   const [areaId, setAreaId] = useState<string | null>(null);
   const [q, setQ] = useState("");
@@ -553,7 +553,9 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F9FAFB" }}>
 
-      {/* ── Header ── */}
+      <Header />
+
+      {/* ── Local header content ── */}
       <div style={{
         background: "#fff",
         borderBottom: "1.5px solid #F0F1F3",
@@ -562,16 +564,7 @@ export default function Centers({ govs, areas, centers, onBack }: Props) {
         {/* Top bar */}
         <div style={{
           padding: "14px 16px",
-          display: "flex", alignItems: "center", gap: 12,
         }}>
-          <button onClick={onBack} style={{
-            width: 40, height: 40, borderRadius: 12,
-            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0,
-          }}>
-            <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
-          </button>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>مراكز التدريب</h1>
             <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 1 }}>

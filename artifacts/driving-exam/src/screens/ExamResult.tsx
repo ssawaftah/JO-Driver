@@ -1,4 +1,5 @@
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
 
 interface Props {
   ok: number;
@@ -21,6 +22,7 @@ export default function ExamResult({ ok, wrong, total, skipped, onRetry, onHome 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#fff" }}>
 
+      <Header />
       {/* Top accent */}
       <div style={{ height: 6, background: passed ? "#16A34A" : "#DC2626", flexShrink: 0 }} />
 

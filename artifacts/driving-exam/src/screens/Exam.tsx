@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Question } from "../types";
+import Header from "../components/Header";
 
 interface Props {
   allQuestions: Question[];
@@ -132,6 +133,8 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
 
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#fff" }}>
+
+      <Header />
 
       {/* ── Status bar ─────────────────────────────────────── */}
       <div style={{ flexShrink: 0, background: "#fff", borderBottom: "1.5px solid #F3F4F6" }}>

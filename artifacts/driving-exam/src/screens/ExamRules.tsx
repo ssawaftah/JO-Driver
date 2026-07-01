@@ -1,8 +1,8 @@
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
 
 interface Props {
   onStart: () => void;
-  onBack: () => void;
 }
 
 const rules = [
@@ -14,31 +14,10 @@ const rules = [
   { icon: "skip-forward",   color: "#0891B2", bg: "#CFFAFE", text: "يمكنك تخطي السؤال وسيعود في نهاية الاختبار تلقائياً" },
 ];
 
-export default function ExamRules({ onStart, onBack }: Props) {
+export default function ExamRules({ onStart }: Props) {
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F3F6FF" }}>
-
-      {/* Header */}
-      <div style={{
-        flexShrink: 0,
-        padding: "14px 16px",
-        background: "#fff",
-        borderBottom: "1.5px solid #F3F4F6",
-        display: "flex", alignItems: "center", gap: 12,
-      }}>
-        <button onClick={onBack} style={{
-          width: 40, height: 40, borderRadius: 12,
-          border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", flexShrink: 0,
-        }}>
-          <i className="ph ph-arrow-right" style={{ fontSize: 19, color: "#246BFD" }} />
-        </button>
-        <div>
-          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>الامتحان النظري</h1>
-          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 2 }}>محاكاة اختبار دائرة الترخيص</p>
-        </div>
-      </div>
+      <Header />
 
       {/* Body */}
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { auth } from "../lib/firebase";
+import Header from "../components/Header";
 
 interface Props {
   onLogin: () => void;
@@ -33,10 +34,12 @@ export default function AdminLogin({ onLogin }: Props) {
   };
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", minHeight: "100dvh", padding: "24px", background: "#fff",
-    }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#fff" }}>
+      <Header />
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", flex: 1, padding: "24px",
+      }}>
       <div style={{
         width: 64, height: 64, borderRadius: 20, background: "#246BFD",
         display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
@@ -84,6 +87,7 @@ export default function AdminLogin({ onLogin }: Props) {
           {loading ? "جارٍ التحقق..." : "دخول"}
         </button>
       </form>
+      </div>
     </div>
   );
 }

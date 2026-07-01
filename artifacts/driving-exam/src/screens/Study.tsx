@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Question } from "../types";
+import Header from "../components/Header";
 
 interface Props {
   qs: Question[];
@@ -15,19 +16,9 @@ export default function Study({ qs, cat, onBack }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh" }}>
-      {/* Header */}
-      <div style={{
-        padding: "12px 16px", borderBottom: "1px solid #E5E7EB",
-        background: "#fff", position: "sticky", top: 0, zIndex: 10,
-      }}>
+      <Header />
+      <div style={{ padding: "12px 16px", background: "#fff", borderBottom: "1px solid #E5E7EB" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <button onClick={onBack} style={{
-            width: 36, height: 36, borderRadius: 11, border: "1.5px solid #E5E7EB",
-            background: "#F9FAFB", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <i className="ph ph-arrow-right" style={{ fontSize: 17, color: "#246BFD" }} />
-          </button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cat}</div>
           </div>
