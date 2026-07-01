@@ -49,10 +49,11 @@ const SOCIAL_SVGS: Record<string, { label: string; icon: typeof IconFacebook; co
 };
 
 /* ── 3 sponsor placeholders ── */
-const SPONSORS = [
-  "كن راعي رسمي لـ JO Driver",
-  "كن راعي رسمي لـ JO Driver",
-  "كن راعي رسمي لـ JO Driver",
+type Sponsor = { name: string; link: string };
+const DEFAULT_SPONSORS: Sponsor[] = [
+  { name: "كن راعي رسمي لـ JO Driver", link: "https://wa.me/9620778244772?text=" },
+  { name: "كن راعي رسمي لـ JO Driver", link: "https://wa.me/9620778244772?text=" },
+  { name: "كن راعي رسمي لـ JO Driver", link: "https://wa.me/9620778244772?text=" },
 ];
 
 /* ── Reusable right-aligned section header with accent line ── */
@@ -80,15 +81,22 @@ export default function AppFooter() {
   const location = useLocation();
   const [social, setSocial] = useState<Record<string, string>>({});
   const [aboutText, setAboutText] = useState(DEFAULT_ABOUT);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(DEFAULT_SPONSORS);
 
   useEffect(() => {
     Promise.all([
       db.ref("footer/social").once("value"),
       db.ref("footer/aboutText").once("value"),
-    ]).then(([soSnap, atSnap]) => {
+      db.ref("footer/sponsors").once("value"),
+    ]).then(([soSnap, atSnap, spSnap]) => {
       setSocial(soSnap.val() || {});
       const at = atSnap.val();
       if (at && typeof at === "string") setAboutText(at);
+      const spVal = spSnap.val();
+      if (spVal && typeof spVal === "object") {
+        const arr = Object.values(spVal) as Sponsor[];
+        if (arr.length > 0) setSponsors(arr);
+      }
     });
   }, []);
 
@@ -131,8 +139,8 @@ export default function AppFooter() {
       <div style={{ marginBottom: 28 }}>
         <SectionTitle>الرعاة</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {SPONSORS.map((name, i) => (
-            <a key={i} href={SPONSOR_LINK} target="_blank" rel="noopener noreferrer"
+          {sponsors.map((s, i) => (
+            <a key={i} href={s.link || "#"} target="_blank" rel="noopener noreferrer"
               style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "12px 14px",
@@ -156,7 +164,7 @@ export default function AppFooter() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
-                  {name}
+                  {s.name}
                 </div>
               </div>
             </a>

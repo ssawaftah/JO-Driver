@@ -1527,9 +1527,8 @@ export default function Admin({ onBack }: Props) {
   // ── FOOTER ADMIN ────────────────────────────────────────────
   const [footerSponsors, setFooterSponsors] = useState<Record<string, any>>({});
   const [footerSocial, setFooterSocial] = useState<Record<string, string>>({});
-  const [footerDefaultLink, setFooterDefaultLink] = useState("");
   const [footerAbout, setFooterAbout] = useState("");
-  const [sponsorImgUrl, setSponsorImgUrl] = useState("");
+  const [sponsorName, setSponsorName] = useState("");
   const [sponsorLink, setSponsorLink] = useState("");
   const [socialKey, setSocialKey] = useState("facebook");
   const [socialUrl, setSocialUrl] = useState("");
@@ -1542,33 +1541,31 @@ export default function Admin({ onBack }: Props) {
   ];
 
   async function loadFooter() {
-    const [spSnap, soSnap, dlSnap, atSnap] = await Promise.all([
+    const [spSnap, soSnap, atSnap] = await Promise.all([
       db.ref("footer/sponsors").once("value"),
       db.ref("footer/social").once("value"),
-      db.ref("footer/defaultSponsorLink").once("value"),
       db.ref("footer/aboutText").once("value"),
     ]);
     setFooterSponsors(spSnap.val() || {});
     setFooterSocial(soSnap.val() || {});
-    setFooterDefaultLink(dlSnap.val() || "");
     setFooterAbout(atSnap.val() || "");
   }
 
   function FooterAdminSection() {
 
     async function addSponsor() {
-      if (!sponsorImgUrl.trim()) { showToast("أدخل رابط الصورة"); return; }
+      if (!sponsorName.trim()) { showToast("أدخل اسم الراعي"); return; }
       setLoading(true);
       try {
-        await db.ref("footer/sponsors").push({ imageUrl: sponsorImgUrl.trim(), link: sponsorLink.trim() || null });
-        setSponsorImgUrl(""); setSponsorLink("");
+        await db.ref("footer/sponsors").push({ name: sponsorName.trim(), link: sponsorLink.trim() || "https://wa.me/9620778244772?text=" });
+        setSponsorName(""); setSponsorLink("");
         showToast("تمت الإضافة"); await loadFooter();
       } catch { showToast("حدث خطأ"); }
       setLoading(false);
     }
 
     async function removeSponsor(id: string) {
-      if (!confirm("حذف هذه الصورة؟")) return;
+      if (!confirm("حذف هذا الراعي؟")) return;
       setLoading(true);
       try { await db.ref("footer/sponsors/" + id).remove(); showToast("تم الحذف"); await loadFooter(); }
       catch { showToast("حدث خطأ"); }
@@ -1600,77 +1597,26 @@ export default function Admin({ onBack }: Props) {
         <BackBtn onClick={() => setView("menu")} />
         <SectionTitle>إدارة الفوتر</SectionTitle>
 
-        {/* ── Default Sponsor Link ── */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="ph ph-link" style={{ color: C.primary }} /> رابط الصورة الافتراضية
-          </div>
-          <Input label="الرابط عند الضغط على الصورة الافتراضية" value={footerDefaultLink} onChange={setFooterDefaultLink} placeholder="https://t.me/jodriver" />
-          <Btn variant="primary" onClick={async () => {
-            setLoading(true);
-            try {
-              await db.ref("footer/defaultSponsorLink").set(footerDefaultLink.trim() || null);
-              showToast("تم الحفظ");
-            } catch { showToast("حدث خطأ"); }
-            setLoading(false);
-          }}><i className="ph ph-floppy-disk" /> حفظ الرابط</Btn>
-        </div>
-
-        {/* ── About text ── */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="ph ph-text-align-right" style={{ color: C.primary }} /> نص قسم "من نحن" في الفوتر
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>الوصف (اختياري)</label>
-            <textarea
-              value={footerAbout}
-              onChange={e => setFooterAbout(e.target.value)}
-              placeholder="منصة JO Driver هي دليلك الأول لاجتياز..."
-              rows={4}
-              style={{
-                width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
-                background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
-                resize: "vertical", lineHeight: 1.7,
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = C.primary}
-              onBlur={e => e.currentTarget.style.borderColor = C.border}
-            />
-          </div>
-          <Btn variant="primary" onClick={async () => {
-            setLoading(true);
-            try {
-              await db.ref("footer/aboutText").set(footerAbout.trim() || null);
-              showToast("تم الحفظ");
-            } catch { showToast("حدث خطأ"); }
-            setLoading(false);
-          }}><i className="ph ph-floppy-disk" /> حفظ الوصف</Btn>
-        </div>
-
         {/* ── Sponsors ── */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="ph ph-image" style={{ color: C.gold }} /> صور الراعي الرسمي (رعاة مدفوعون)
+            <i className="ph ph-crown" style={{ color: C.gold }} /> بطاقات الرعاة
             <span style={{ fontSize: 11, background: C.goldLight, color: C.gold, padding: "1px 8px", borderRadius: 20 }}>{sponsorArr.length}</span>
           </div>
 
-          <Input label="رابط الصورة (URL)" value={sponsorImgUrl} onChange={setSponsorImgUrl} placeholder="https://example.com/logo.jpg" />
-          <Input label="رابط الضغط (اختياري)" value={sponsorLink} onChange={setSponsorLink} placeholder="https://example.com" />
-          {sponsorImgUrl.trim() && (
-            <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden", border: `1px solid ${C.border}`, background: "#F9FAFB" }}>
-              <img src={sponsorImgUrl} alt="preview" style={{ width: "100%", height: 80, objectFit: "contain", display: "block" }}
-                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            </div>
-          )}
-          <Btn variant="primary" onClick={addSponsor}><i className="ph ph-plus" /> إضافة صورة</Btn>
+          <Input label="اسم الراعي" value={sponsorName} onChange={setSponsorName} placeholder="مثال: مركز السلام للتدريب" />
+          <Input label="رابط عند الضغط (اختياري)" value={sponsorLink} onChange={setSponsorLink} placeholder="https://..." />
+          <Btn variant="primary" onClick={addSponsor}><i className="ph ph-plus" /> إضافة بطاقة</Btn>
 
           {sponsorArr.length > 0 && (
             <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
               {sponsorArr.map(([id, sp]) => (
                 <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, background: C.bg, borderRadius: 10, padding: "10px 12px", border: `1px solid ${C.border}` }}>
-                  <img src={sp.imageUrl} alt="" style={{ width: 56, height: 40, objectFit: "contain", borderRadius: 6, background: "#fff", border: `1px solid ${C.border}`, flexShrink: 0 }}
-                    onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3"; }} />
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: C.primaryLight, color: C.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+                    <i className="ph ph-steering-wheel" />
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{sp.name || "بدون اسم"}</div>
                     <div style={{ fontSize: 11, color: C.textSec, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {sp.link ? <a href={sp.link} target="_blank" rel="noreferrer" style={{ color: C.primary }}>{sp.link}</a> : <span style={{ color: C.textLight }}>بدون رابط</span>}
                     </div>
@@ -1685,7 +1631,7 @@ export default function Admin({ onBack }: Props) {
         </div>
 
         {/* ── Social Media ── */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
             <i className="ph ph-share-network" style={{ color: C.primary }} /> مواقع التواصل الاجتماعي
           </div>
@@ -1716,6 +1662,37 @@ export default function Admin({ onBack }: Props) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ── About text ── */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-text-align-right" style={{ color: C.primary }} /> نص قسم "من نحن" في الفوتر
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>الوصف (اختياري)</label>
+            <textarea
+              value={footerAbout}
+              onChange={e => setFooterAbout(e.target.value)}
+              placeholder="منصة JO Driver هي دليلك الأول لاجتياز..."
+              rows={4}
+              style={{
+                width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+                background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+                resize: "vertical", lineHeight: 1.7,
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = C.primary}
+              onBlur={e => e.currentTarget.style.borderColor = C.border}
+            />
+          </div>
+          <Btn variant="primary" onClick={async () => {
+            setLoading(true);
+            try {
+              await db.ref("footer/aboutText").set(footerAbout.trim() || null);
+              showToast("تم الحفظ");
+            } catch { showToast("حدث خطأ"); }
+            setLoading(false);
+          }}><i className="ph ph-floppy-disk" /> حفظ الوصف</Btn>
         </div>
       </div>
     );
