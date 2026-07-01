@@ -60,15 +60,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Responsive: on desktop center content with comfortable max-width */
-@media (min-width: 768px) {
-  .shell {
-    max-width: 720px;
-    margin: 0 auto;
-    box-shadow: 0 0 40px rgba(0,0,0,0.06);
-  }
-}
-
 /* Scrollable screen content */
 .screen-body {
   flex: 1;
