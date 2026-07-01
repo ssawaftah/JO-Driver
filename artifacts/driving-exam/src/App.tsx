@@ -189,8 +189,18 @@ function AppRoutes() {
     navigate(`/test/${catId(cat)}`);
   }
 
-  function startTest(cat: string) {
-    if (!loadSession()) {
+  async function startTest(cat: string) {
+    const session = loadSession();
+    if (!session) {
+      setPendingAction("test");
+      setPendingCat(cat);
+      setShowReg(true);
+      return;
+    }
+    // Verify user still exists in DB (not deleted)
+    const userSnap = await db.ref("users/" + session.key).once("value");
+    if (!userSnap.exists()) {
+      localStorage.removeItem(SESSION_KEY);
       setPendingAction("test");
       setPendingCat(cat);
       setShowReg(true);
@@ -219,8 +229,18 @@ function AppRoutes() {
     navigate("/exam-rules");
   }
 
-  function startExam() {
-    if (!loadSession()) {
+  async function startExam() {
+    const session = loadSession();
+    if (!session) {
+      setPendingAction("exam");
+      setPendingCat(null);
+      setShowReg(true);
+      return;
+    }
+    // Verify user still exists in DB (not deleted)
+    const userSnap = await db.ref("users/" + session.key).once("value");
+    if (!userSnap.exists()) {
+      localStorage.removeItem(SESSION_KEY);
       setPendingAction("exam");
       setPendingCat(null);
       setShowReg(true);
