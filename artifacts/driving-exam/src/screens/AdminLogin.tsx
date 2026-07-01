@@ -34,21 +34,20 @@ export default function AdminLogin({ onLogin }: Props) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#0F1629", direction: "rtl" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#F6F8FB", direction: "rtl" }}>
       <Header />
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center",
         justifyContent: "center", flex: 1, padding: "24px",
       }}>
         <div style={{
-          width: 72, height: 72, borderRadius: 22, background: "linear-gradient(135deg, #246BFD 0%, #1a54d4 100%)",
-          display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
-          boxShadow: "0 8px 32px rgba(36,107,253,0.3)",
+          width: 64, height: 64, borderRadius: 16, background: "#246BFD",
+          display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20,
         }}>
-          <i className="ph ph-shield-check" style={{ fontSize: 36, color: "#fff" }} />
+          <i className="ph ph-shield-check" style={{ fontSize: 32, color: "#fff" }} />
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, color: "#F0F2F7", letterSpacing: "-0.3px" }}>لوحة التحكم</h1>
-        <p style={{ fontSize: 14, color: "#8B96B3", marginBottom: 32 }}>تسجيل الدخول للمشرف</p>
+        <h1 style={{ fontSize: 22, fontWeight: 900, marginBottom: 6, color: "#1A1D1F" }}>لوحة التحكم</h1>
+        <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 28 }}>تسجيل الدخول للمشرف</p>
         <form onSubmit={e => { e.preventDefault(); handleSubmit(); }} style={{ width: "100%", maxWidth: 320 }}>
           <input
             type="email"
@@ -57,13 +56,13 @@ export default function AdminLogin({ onLogin }: Props) {
             placeholder="البريد الإلكتروني"
             autoComplete="email"
             style={{
-              width: "100%", padding: "14px 16px", border: "1.5px solid #2A3650",
+              width: "100%", padding: "14px 16px", border: "1.5px solid #E8EAED",
               borderRadius: 14, fontSize: 15, fontFamily: "inherit", marginBottom: 14,
-              outline: "none", direction: "rtl", background: "#1A2236", color: "#F0F2F7",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)", transition: "border-color .15s",
+              outline: "none", direction: "rtl", background: "#fff", color: "#1A1D1F",
+              transition: "border-color .15s, box-shadow .15s",
             }}
-            onFocus={e => e.currentTarget.style.borderColor = "#246BFD"}
-            onBlur={e => e.currentTarget.style.borderColor = "#2A3650"}
+            onFocus={e => { e.currentTarget.style.borderColor = "#246BFD"; e.currentTarget.style.boxShadow = "0 0 0 3px #E8F0FE"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "#E8EAED"; e.currentTarget.style.boxShadow = "none"; }}
           />
           <input
             type="password"
@@ -72,15 +71,15 @@ export default function AdminLogin({ onLogin }: Props) {
             placeholder="كلمة المرور"
             autoComplete="current-password"
             style={{
-              width: "100%", padding: "14px 16px", border: "1.5px solid #2A3650",
+              width: "100%", padding: "14px 16px", border: "1.5px solid #E8EAED",
               borderRadius: 14, fontSize: 15, fontFamily: "inherit", marginBottom: 14,
-              outline: "none", direction: "rtl", background: "#1A2236", color: "#F0F2F7",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)", transition: "border-color .15s",
+              outline: "none", direction: "rtl", background: "#fff", color: "#1A1D1F",
+              transition: "border-color .15s, box-shadow .15s",
             }}
-            onFocus={e => e.currentTarget.style.borderColor = "#246BFD"}
-            onBlur={e => e.currentTarget.style.borderColor = "#2A3650"}
+            onFocus={e => { e.currentTarget.style.borderColor = "#246BFD"; e.currentTarget.style.boxShadow = "0 0 0 3px #E8F0FE"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "#E8EAED"; e.currentTarget.style.boxShadow = "none"; }}
           />
-          {error && <p style={{ color: "#EF4444", fontSize: 13, marginBottom: 14, fontWeight: 700 }}>{error}</p>}
+          {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 14, fontWeight: 700 }}>{error}</p>}
           <button
             type="submit"
             disabled={loading}
@@ -88,7 +87,7 @@ export default function AdminLogin({ onLogin }: Props) {
               width: "100%", padding: "14px", borderRadius: 14, border: "none",
               background: "#246BFD", color: "#fff", fontSize: 15, fontWeight: 800,
               cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1,
-              fontFamily: "inherit", transition: "all .15s", boxShadow: "0 4px 16px rgba(36,107,253,0.3)",
+              fontFamily: "inherit", transition: "all .15s",
             }}
           >
             {loading ? "جارٍ التحقق..." : "دخول"}

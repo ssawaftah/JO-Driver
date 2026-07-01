@@ -4,7 +4,7 @@ import Header from "../components/Header";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin" | "footer-admin";
+type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin" | "footer-admin" | "reviews";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -16,40 +16,36 @@ const Q_CATS = [
   "الصور المتحركة",
 ];
 
-// ── Design tokens (Admin Dark-Accent theme) ──────
+// ── Design tokens ────────────────────────────────
 const C = {
-  primary: "#246BFD", primaryLight: "rgba(36,107,253,0.15)", primaryDark: "#1a54d4",
-  bg: "#121B30", surface: "#1A2236", surface2: "#232D45",
-  border: "#2A3650", borderHover: "#246BFD",
-  text: "#F0F2F7", textSec: "#8B96B3", textLight: "#5A6785",
-  green: "#22C55E", greenLight: "#166534", greenGlow: "rgba(34,197,94,0.15)",
-  red: "#EF4444", redLight: "#7F1D1D", redGlow: "rgba(239,68,68,0.15)",
-  gold: "#F59E0B", goldLight: "#78350F", goldGlow: "rgba(245,158,11,0.15)",
-  purple: "#A855F7", purpleLight: "#581C87", purpleGlow: "rgba(168,85,247,0.15)",
-  cyan: "#06B6D4", cyanLight: "#0E7490", cyanGlow: "rgba(6,182,212,0.15)",
-  orange: "#F97316", orangeLight: "#7C2D12", orangeGlow: "rgba(249,115,22,0.15)",
-  pink: "#EC4899", pinkLight: "#831843", pinkGlow: "rgba(236,72,153,0.15)",
+  primary: "#246BFD", primaryLight: "#E8F0FE", primaryDark: "#1a54d4",
+  bg: "#F6F8FB", surface: "#FFFFFF", surface2: "#F9FAFB",
+  border: "#E8EAED", borderHover: "#246BFD",
+  text: "#1A1D1F", textSec: "#6B7280", textLight: "#9CA3AF",
+  green: "#16A34A", greenLight: "#DCFCE7",
+  red: "#DC2626", redLight: "#FEE2E2",
+  gold: "#D97706", goldLight: "#FEF3C7",
+  purple: "#7C3AED", purpleLight: "#EDE9FE",
+  cyan: "#0891B2", cyanLight: "#CFFAFE",
 };
 
 // ── Reusable UI helpers ─────────────────────────────
 function Card({ icon, color, colorBg, title, desc, onClick, count }: { icon: string; color: string; colorBg: string; title: string; desc: string; onClick: () => void; count?: number }) {
-  const glow = (C as any)[`${Object.keys(C).find(k => (C as any)[k] === colorBg) || ""}Glow`] || "rgba(0,0,0,0.3)";
-  const isGlow = glow !== "rgba(0,0,0,0.3)";
   return (
     <button onClick={onClick} style={{
       width: "100%", background: C.surface, border: `1px solid ${C.border}`,
       borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12,
       cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.25)", transition: "all .15s ease",
-    }} onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = `0 4px 16px ${glow}`; e.currentTarget.style.transform = "translateY(-1px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.25)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-      <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: isGlow ? "rgba(255,255,255,0.06)" : colorBg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: isGlow ? `inset 0 0 16px ${glow}` : "none" }}>
+      boxShadow: "0 1px 2px rgba(0,0,0,0.03)", transition: "all .15s",
+    }} onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: colorBg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
         <i className={`ph ph-${icon}`} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{title}</span>
-          {count !== undefined && <span style={{ fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: "rgba(255,255,255,0.1)", color }}>{count}</span>}
+          {count !== undefined && <span style={{ fontSize: 11, fontWeight: 800, padding: "1px 7px", borderRadius: 20, background: colorBg, color }}>{count}</span>}
         </div>
         <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
       </div>
@@ -61,12 +57,10 @@ function Card({ icon, color, colorBg, title, desc, onClick, count }: { icon: str
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`, color: C.textSec,
-      cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700,
-      display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20, padding: "6px 12px",
-      borderRadius: 10, transition: "all .15s",
-    }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = C.text; }}
-      onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = C.textSec; }}>
+      background: "none", border: "none", color: C.primary,
+      cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 800,
+      display: "flex", alignItems: "center", gap: 6, marginBottom: 16, padding: "4px 0",
+    }}>
       <i className="ph ph-arrow-right" style={{ fontSize: 16 }} />
       رجوع
     </button>
@@ -90,8 +84,7 @@ function Input({ label, value, onChange, placeholder, type = "text", ...rest }: 
         width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12,
         background: C.surface2, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
         transition: "border-color .15s, box-shadow .15s",
-        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
-      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `inset 0 1px 3px rgba(0,0,0,0.2), 0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.2)"; }} />
+      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }} />
     </div>
   );
 }
@@ -104,8 +97,7 @@ function TextArea({ label, value, onChange, placeholder, rows = 3 }: { label: st
         width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12,
         background: C.surface2, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none", resize: "vertical",
         transition: "border-color .15s, box-shadow .15s",
-        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
-      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `inset 0 1px 3px rgba(0,0,0,0.2), 0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.2)"; }} />
+      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }} />
     </div>
   );
 }
@@ -117,9 +109,8 @@ function Select({ label, value, onChange, children }: { label: string; value: st
       <select value={value} onChange={e => onChange(e.target.value)} style={{
         width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12,
         background: C.surface2, fontSize: 14, fontFamily: "inherit", color: C.text, appearance: "none",
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B96B3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
         backgroundRepeat: "no-repeat", backgroundPosition: "left 14px center",
-        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
       }}>{children}</select>
     </div>
   );
@@ -128,9 +119,9 @@ function Select({ label, value, onChange, children }: { label: string; value: st
 function Btn({ children, onClick, variant = "primary", style = {} }: { children: React.ReactNode; onClick: () => void; variant?: "primary" | "outline" | "danger" | "ghost"; style?: React.CSSProperties }) {
   const colors = {
     primary: { bg: C.primary, color: "#fff", border: "none", hoverBg: C.primaryDark },
-    outline: { bg: "transparent", color: C.primary, border: `1.5px solid ${C.primary}`, hoverBg: "rgba(36,107,253,0.1)" },
+    outline: { bg: "transparent", color: C.primary, border: `1.5px solid ${C.primary}`, hoverBg: "#E8F0FE" },
     danger: { bg: C.red, color: "#fff", border: "none", hoverBg: "#B91C1C" },
-    ghost: { bg: "rgba(255,255,255,0.04)", color: C.textSec, border: `1px solid ${C.border}`, hoverBg: "rgba(255,255,255,0.08)" },
+    ghost: { bg: C.bg, color: C.textSec, border: `1px solid ${C.border}`, hoverBg: C.surface2 },
   }[variant];
   return (
     <button onClick={onClick} style={{
@@ -138,22 +129,19 @@ function Btn({ children, onClick, variant = "primary", style = {} }: { children:
       display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       fontFamily: "inherit", fontSize: 14, fontWeight: 800,
       padding: "12px", borderRadius: 12, cursor: "pointer", transition: "all .15s",
-      boxShadow: variant === "primary" ? "0 2px 8px rgba(36,107,253,0.3)" : "none",
       ...style,
-    }} onMouseEnter={e => { e.currentTarget.style.background = colors.hoverBg; e.currentTarget.style.transform = "translateY(-1px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.background = colors.bg; e.currentTarget.style.transform = "translateY(0)"; }}>{children}</button>
+    }} onMouseEnter={e => { e.currentTarget.style.background = colors.hoverBg; }}
+      onMouseLeave={e => { e.currentTarget.style.background = colors.bg; }}>{children}</button>
   );
 }
 
 function StatCard({ label, value, icon, color, bg }: { label: string; value: number; icon: string; color: string; bg: string }) {
-  const glow = (C as any)[`${Object.keys(C).find(k => (C as any)[k] === bg) || ""}Glow`] || "rgba(0,0,0,0.3)";
-  const isGlow = glow !== "rgba(0,0,0,0.3)";
   return (
     <div style={{
       background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
-      padding: "14px", boxShadow: `0 2px 8px rgba(0,0,0,0.2), inset 0 0 20px ${glow}`, display: "flex", alignItems: "center", gap: 12,
+      padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 12,
     }}>
-      <div style={{ width: 40, height: 40, borderRadius: 10, background: isGlow ? "rgba(255,255,255,0.05)" : bg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, boxShadow: isGlow ? `inset 0 0 12px ${glow}` : "none" }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
         <i className={`ph ph-${icon}`} />
       </div>
       <div>
@@ -169,8 +157,7 @@ function ListItem({ label, sub, actions }: { label: string; sub?: string; action
     <div style={{
       background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
       padding: "14px", marginBottom: 8, display: "flex", alignItems: "center",
-      justifyContent: "space-between", gap: 10, boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-      transition: "all .15s",
+      justifyContent: "space-between", gap: 10, boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: C.text, display: "block" }}>{label}</span>
@@ -198,7 +185,7 @@ function Toast({ msg }: { msg: string }) {
       background: C.surface2, color: C.text, padding: "12px 20px",
       borderRadius: 14, fontSize: 13, fontWeight: 700,
       textAlign: "center", zIndex: 200, whiteSpace: "nowrap",
-      boxShadow: `0 8px 32px rgba(0,0,0,0.4)`, border: `1px solid ${C.border}`,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.1)", border: `1px solid ${C.border}`,
     }}>{msg}</div>
   );
 }
@@ -208,7 +195,7 @@ export default function Admin({ onBack }: Props) {
   const [view, setView] = useState<View>("menu");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0, q: 0, guide: 0 });
+  const [stats, setStats] = useState({ gov: 0, area: 0, center: 0, user: 0, req: 0, q: 0, guide: 0, reviews: 0 });
 
   const [govs, setGovs] = useState<Record<string, { name: string }>>({});
   const [areas, setAreas] = useState<Record<string, { name: string; governorateId: string }>>({});
@@ -217,23 +204,24 @@ export default function Admin({ onBack }: Props) {
   const [questions, setQuestions] = useState<Record<string, any>>({});
   const [requests, setRequests] = useState<Record<string, any>>({});
   const [guideSections, setGuideSections] = useState<Record<string, any>>({});
+  const [reviews, setReviews] = useState<Record<string, any>>({});
 
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
   async function loadAll() {
     setLoading(true);
     try {
-      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, guideSnap] = await Promise.all([
+      const [govSnap, areaSnap, centerSnap, userSnap, qSnap, reqSnap, guideSnap, revSnap] = await Promise.all([
         db.ref("governorates").once("value"), db.ref("areas").once("value"), db.ref("centers").once("value"),
         db.ref("users").once("value"), db.ref("questions").once("value"), db.ref("centerRequests").once("value"),
-        db.ref("guide/sections").once("value"),
+        db.ref("guide/sections").once("value"), db.ref("reviews").once("value"),
       ]);
       const g = govSnap.val() || {}, a = areaSnap.val() || {}, c = centerSnap.val() || {};
-      const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, gs = guideSnap.val() || {};
-      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setGuideSections(gs);
+      const u = userSnap.val() || {}, q = qSnap.val() || {}, r = reqSnap.val() || {}, gs = guideSnap.val() || {}, rv = revSnap.val() || {};
+      setGovs(g); setAreas(a); setCenters(c); setUsers(u); setQuestions(q); setRequests(r); setGuideSections(gs); setReviews(rv);
       const guideCount = Object.keys(gs).length || Object.keys(DEFAULT_GUIDE_SECTIONS).length;
       setStats({ gov: Object.keys(g).length, area: Object.keys(a).length, center: Object.keys(c).length,
-        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, guide: guideCount });
+        user: Object.keys(u).length, req: Object.keys(r).length, q: Object.keys(q).length, guide: guideCount, reviews: Object.keys(rv).length });
     } catch { showToast("خطأ في التحميل"); }
     setLoading(false);
   }
@@ -284,7 +272,7 @@ export default function Admin({ onBack }: Props) {
                 </div>
                 {u.governorate && <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}><i className="ph ph-map-pin" /> {u.governorate}</div>}
               </div>
-              <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 20, background: tests > 0 ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.04)", color: tests > 0 ? C.green : C.textSec, whiteSpace: "nowrap", border: `1px solid ${tests > 0 ? C.green : C.border}` }}>{tests > 0 ? "نشط" : "جديد"}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 20, background: tests > 0 ? C.greenLight : C.surface2, color: tests > 0 ? C.green : C.textSec, whiteSpace: "nowrap", border: `1px solid ${tests > 0 ? C.green : C.border}` }}>{tests > 0 ? "نشط" : "جديد"}</span>
             </div>
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
@@ -293,7 +281,7 @@ export default function Admin({ onBack }: Props) {
                 { label: "اختبارات", value: tests, icon: "exam", color: C.primary },
                 { label: "متوسط", value: (u.averageScore || 0) + "%", icon: "chart-bar", color: C.cyan },
               ].map(s => (
-                <div key={s.label} style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, textAlign: "center" }}>
+                <div key={s.label} style={{ background: C.surface2, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, textAlign: "center" }}>
                   <i className={`ph ph-${s.icon}`} style={{ color: s.color, fontSize: 18, marginBottom: 4, display: "block" }} />
                   <span style={{ display: "block", color: C.text, fontWeight: 900, fontSize: 15 }}>{s.value}</span>
                   <span style={{ fontSize: 10, color: C.textSec, marginTop: 2, display: "block" }}>{s.label}</span>
@@ -301,10 +289,10 @@ export default function Admin({ onBack }: Props) {
               ))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
+              <div style={{ background: C.surface2, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
                 <i className="ph ph-calendar-blank" style={{ marginLeft: 4 }} />التسجيل<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 800, fontSize: 13 }}>{reg}</span>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
+              <div style={{ background: C.surface2, border: `1px solid ${C.border}`, padding: "10px", borderRadius: 10, fontSize: 11, color: C.textSec }}>
                 <i className="ph ph-clock" style={{ marginLeft: 4 }} />آخر نشاط<span style={{ display: "block", marginTop: 3, color: C.text, fontWeight: 800, fontSize: 13 }}>{lastActive}</span>
               </div>
             </div>
@@ -314,7 +302,7 @@ export default function Admin({ onBack }: Props) {
                 <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginBottom: 8 }}>نتائج الأقسام</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {catEntries.map(([cat, score]: [string, any]) => (
-                    <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px" }}>
+                    <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px" }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: C.text, flex: 1 }}>{cat}</div>
                       <div style={{ fontSize: 13, fontWeight: 900, color: (score || 0) >= 70 ? C.green : (score || 0) >= 50 ? C.gold : C.red }}>{score || 0}%</div>
                     </div>
@@ -385,7 +373,7 @@ export default function Admin({ onBack }: Props) {
                 boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
               }} onMouseEnter={e => { e.currentTarget.style.borderColor = C.borderHover; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)"; }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: isNew ? "rgba(255,255,255,0.04)" : `linear-gradient(135deg, ${C.primary}, ${C.cyan})`, color: isNew ? C.textLight : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, flexShrink: 0, border: `1px solid ${isNew ? C.border : "transparent"}` }}>{initials}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: isNew ? C.surface2 : `linear-gradient(135deg, ${C.primary}, ${C.cyan})`, color: isNew ? C.textLight : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, flexShrink: 0, border: `1px solid ${isNew ? C.border : "transparent"}` }}>{initials}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{u.name || u.firstName || "مستخدم"}</span>
@@ -679,7 +667,7 @@ export default function Admin({ onBack }: Props) {
                   {/* Working days + hours */}
                   {(activeDays.length > 0 || req.workingHours) && (
                     <div style={{
-                      background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: 10,
+                      background: C.surface2, borderRadius: 10, padding: 10,
                       marginBottom: 10, border: `1px solid ${C.border}`,
                     }}>
                       {req.workingHours && (
@@ -695,7 +683,7 @@ export default function Admin({ onBack }: Props) {
                             return (
                               <div key={d} style={{
                                 width: 26, height: 26, borderRadius: 7,
-                                background: on ? C.primary : "rgba(255,255,255,0.08)",
+                                background: on ? C.primary : C.surface2,
                                 color: on ? "#fff" : C.textLight,
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 11, fontWeight: 800,
@@ -883,7 +871,7 @@ export default function Admin({ onBack }: Props) {
                   style={{
                     width: 42, height: 42, borderRadius: 10,
                     border: `1.5px solid ${addCenter.selectedDays.includes(day) ? C.primary : C.border}`,
-                    background: addCenter.selectedDays.includes(day) ? C.primary : "rgba(255,255,255,0.04)",
+                    background: addCenter.selectedDays.includes(day) ? C.primary : C.surface2,
                     color: addCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
                     fontSize: 14, fontWeight: 800,
                     cursor: "pointer", fontFamily: "inherit",
@@ -1065,7 +1053,7 @@ export default function Admin({ onBack }: Props) {
                     style={{
                       width: 42, height: 42, borderRadius: 10,
                       border: `1.5px solid ${editCenter.selectedDays.includes(day) ? C.primary : C.border}`,
-                      background: editCenter.selectedDays.includes(day) ? C.primary : "rgba(255,255,255,0.04)",
+                      background: editCenter.selectedDays.includes(day) ? C.primary : C.surface2,
                       color: editCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
                       fontSize: 14, fontWeight: 800,
                       cursor: "pointer", fontFamily: "inherit",
@@ -1191,13 +1179,13 @@ export default function Admin({ onBack }: Props) {
     "clock", "money", "file-text", "certificate",
   ];
   const GUIDE_COLORS: { color: string; bg: string; label: string }[] = [
-    { color: "#A855F7", bg: "rgba(168,85,247,0.15)", label: "بنفسجي" },
-    { color: "#F59E0B", bg: "rgba(245,158,11,0.15)", label: "برتقالي" },
-    { color: "#22C55E", bg: "rgba(34,197,94,0.15)", label: "أخضر" },
-    { color: "#06B6D4", bg: "rgba(6,182,212,0.15)", label: "سماوي" },
-    { color: "#EF4444", bg: "rgba(239,68,68,0.15)", label: "أحمر" },
-    { color: "#246BFD", bg: "rgba(36,107,253,0.15)", label: "أزرق" },
-    { color: "#F0F2F7", bg: "rgba(255,255,255,0.08)", label: "أسود" },
+    { color: "#7C3AED", bg: "#EDE9FE", label: "بنفسجي" },
+    { color: "#D97706", bg: "#FEF3C7", label: "برتقالي" },
+    { color: "#16A34A", bg: "#DCFCE7", label: "أخضر" },
+    { color: "#0891B2", bg: "#CFFAFE", label: "سماوي" },
+    { color: "#DC2626", bg: "#FEE2E2", label: "أحمر" },
+    { color: "#246BFD", bg: "#EEF4FF", label: "أزرق" },
+    { color: "#1A1D1F", bg: "#F3F4F6", label: "أسود" },
   ];
   type GuideType = "steps" | "documents" | "fees" | "conditions" | "faq";
   const GUIDE_TYPE_LABELS: Record<GuideType, string> = {
@@ -1251,7 +1239,7 @@ export default function Admin({ onBack }: Props) {
     },
     "default-faq": {
       title: "أسئلة شائعة",
-      icon: "chat-circle-question", iconColor: "#246BFD", iconBg: "rgba(36,107,253,0.15)", type: "faq", order: 5,
+      icon: "chat-circle-question", iconColor: "#246BFD", iconBg: "#EEF4FF", type: "faq", order: 5,
       items: [
         { text: "ماذا لو رسبت في الامتحان النظري؟", answer: "يمكنك إعادة التقديم بعد 24 ساعة، وتُسدَّد رسوم جديدة لكل محاولة." },
         { text: "هل يمكن تقديم الامتحان بدون رسالة SMS؟", answer: "لا. الرسالة شرط إلزامي، وهي تؤكد أن المدرسة سجّلت إتمام دروسك في نظام دائرة الترخيص." },
@@ -1712,6 +1700,70 @@ export default function Admin({ onBack }: Props) {
     );
   }
 
+  // ── REVIEWS ──────────────────────────────────────────────────
+  function ReviewsSection() {
+    const revEntries = Object.entries(reviews).sort((a, b) => (b[1].createdAt || "").localeCompare(a[1].createdAt || ""));
+    const avgStars = revEntries.length
+      ? (revEntries.reduce((sum, [, r]) => sum + (r.stars || 0), 0) / revEntries.length).toFixed(1)
+      : "0";
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle count={revEntries.length}>آراء الزوار</SectionTitle>
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: C.gold, lineHeight: 1 }}>{avgStars}<span style={{ fontSize: 14, marginRight: 2 }}>/5</span></div>
+            <div style={{ fontSize: 11, color: C.textSec, marginTop: 4, fontWeight: 700 }}>متوسط التقييم</div>
+          </div>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: C.primary, lineHeight: 1 }}>{revEntries.length}</div>
+            <div style={{ fontSize: 11, color: C.textSec, marginTop: 4, fontWeight: 700 }}>عدد الآراء</div>
+          </div>
+        </div>
+        {/* List */}
+        {revEntries.length === 0 ? (
+          <Empty icon="star" text="لا يوجد آراء بعد" />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {revEntries.map(([id, r]) => (
+              <div key={id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg, ${C.primary}, ${C.cyan})`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, flexShrink: 0 }}>
+                      {(r.name || "م").charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{r.name || "مجهول"}</div>
+                      <div style={{ fontSize: 11, color: C.textSec }}>{r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : "-"}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 2, flexShrink: 0, direction: "ltr" }}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <i key={i} className={`ph ph-star${i < (r.stars || 0) ? "-fill" : ""}`} style={{ fontSize: 14, color: i < (r.stars || 0) ? "#F59E0B" : "#D1D5DB" }} />
+                    ))}
+                  </div>
+                </div>
+                {r.comment && (
+                  <div style={{ background: C.surface2, borderRadius: 10, padding: "10px 12px", fontSize: 13, color: C.text, lineHeight: 1.7 }}>
+                    <i className="ph ph-quotes" style={{ color: C.textLight, fontSize: 16, display: "block", marginBottom: 4 }} />
+                    {r.comment}
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                  <button onClick={async () => { if (!confirm("حذف هذا الرأي؟")) return; setLoading(true); try { await db.ref("reviews/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
+                    <i className="ph ph-trash" /> حذف
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ── RENDER ──────────────────────────────────────────────────
   const renderView = (): React.ReactNode => {
     switch (view) {
@@ -1731,6 +1783,7 @@ export default function Admin({ onBack }: Props) {
             <Card icon="book-open-text" color={C.purple} colorBg={C.purple} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
             <Card icon="clipboard-text" color={C.pink} colorBg={C.pink} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
             <Card icon="layout" color={C.cyan} colorBg={C.cyan} title="إدارة الفوتر" desc="الراعي الرسمي، سوشيال ميديا، من نحن" onClick={() => { loadFooter(); setView("footer-admin"); }} />
+            <Card icon="star" color={C.gold} colorBg={C.gold} title="آراء الزوار" desc="سجل التقييمات والملاحظات" onClick={() => setView("reviews")} count={stats.reviews} />
           </div>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginTop: 20, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>البيانات الجغرافية</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1750,6 +1803,7 @@ export default function Admin({ onBack }: Props) {
       case "delete-list": return <DeleteSection />;
       case "guide-admin": return <GuideAdminSection />;
       case "footer-admin": return FooterAdminSection();
+      case "reviews": return <ReviewsSection />;
       default: return null;
     }
   };
@@ -1768,7 +1822,7 @@ export default function Admin({ onBack }: Props) {
       <Toast msg={toast} />
       {loading && (
         <div style={{
-          position: "fixed", inset: 0, background: "rgba(15,22,41,0.92)",
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 999,
         }}>
           <div style={{
