@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../lib/firebase";
 
 const DEFAULT_ABOUT = "منصة JO Driver هي دليلك الأول لاجتياز امتحان القيادة النظري في الأردن.";
+const SPONSOR_LINK = "https://wa.me/9620778244772?text=";
 
 /** Only show footer on these routes */
 const HIDE_FOOTER_PATHS = ["/exam", "/test", "/study"];
@@ -47,12 +48,32 @@ const SOCIAL_SVGS: Record<string, { label: string; icon: typeof IconFacebook; co
   x:         { label: "X",         icon: IconX,         color: "#0f172a" },
 };
 
-/* ── 3 sponsor placeholders (horizontal cards) ── */
+/* ── 3 sponsor placeholders ── */
 const SPONSORS = [
-  { name: "مركز السلام للتدريب", icon: "ph ph-steering-wheel" },
-  { name: "أكاديمية القيادة المتميزة", icon: "ph ph-car" },
-  { name: "معهد الأردن للسياقة", icon: "ph ph-road-horizon" },
+  "مركز السلام للتدريب",
+  "أكاديمية القيادة المتميزة",
+  "معهد الأردن للسياقة",
 ];
+
+/* ── Reusable right-aligned section header with accent line ── */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10,
+      marginBottom: 14,
+    }}>
+      <div style={{
+        fontSize: 12, fontWeight: 800, color: "#374151",
+        whiteSpace: "nowrap",
+      }}>
+        {children}
+      </div>
+      <div style={{
+        flex: 1, height: 1, background: "#E8EAED", borderRadius: 1,
+      }} />
+    </div>
+  );
+}
 
 export default function AppFooter() {
   const navigate = useNavigate();
@@ -106,50 +127,51 @@ export default function AppFooter() {
         </p>
       </div>
 
-      {/* ── Sponsors: 3 horizontal cards ── */}
+      {/* ── Sponsors ── */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{
-          fontSize: 12, fontWeight: 800, color: "#374151",
-          textAlign: "center", marginBottom: 12,
-        }}>
-          الرعاة
-        </div>
+        <SectionTitle>الرعاة</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {SPONSORS.map((s, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#fff",
-              border: "1px solid #E8EAED",
-              boxShadow: "0 1px 2px rgba(0,0,0,.03)",
-            }}>
+          {SPONSORS.map((name, i) => (
+            <a key={i} href={SPONSOR_LINK} target="_blank" rel="noopener noreferrer"
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "#fff",
+                border: "1px solid #E8EAED",
+                boxShadow: "0 1px 2px rgba(0,0,0,.03)",
+                textDecoration: "none",
+                transition: "transform .12s, box-shadow .12s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,.05)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,.03)"; }}
+            >
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
                 background: "linear-gradient(135deg, #246BFD, #4f86ff)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 18, color: "#fff", flexShrink: 0,
               }}>
-                <i className={s.icon} />
+                <i className="ph ph-steering-wheel" />
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
-                {s.name}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+                  {name}
+                </div>
+                <div style={{ fontSize: 11, color: "#246BFD", marginTop: 2, fontWeight: 600 }}>
+                  كن راعي رسمي لـ JO Driver
+                </div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
 
       {/* ── Social icons: "تواصل معنا" ── */}
       {activeSocials.length > 0 && (
-        <div style={{ marginBottom: 24, textAlign: "center" }}>
-          <div style={{
-            fontSize: 12, fontWeight: 800, color: "#374151",
-            marginBottom: 10,
-          }}>
-            تواصل معنا
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+        <div style={{ marginBottom: 24 }}>
+          <SectionTitle>تواصل معنا</SectionTitle>
+          <div style={{ display: "flex", gap: 10 }}>
             {activeSocials.map(([key, { label, icon: IconComp, color }]) => (
               <a key={key} href={social[key]} target="_blank" rel="noopener noreferrer"
                 aria-label={label}
