@@ -152,6 +152,12 @@ body {
 }
 .btn-outline:active { opacity: 0.75; }
 
+/* Success pop-in */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* Spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {

@@ -22,7 +22,7 @@ export default function PhoneAuthModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [anonymous, setAnonymous] = useState(false);
-  const [step, setStep] = useState<"login" | "checking" | "details">("login");
+  const [step, setStep] = useState<"login" | "checking" | "details" | "success">("login");
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
   const [googleUser, setGoogleUser] = useState<firebase.User | null>(null);
@@ -71,9 +71,12 @@ export default function PhoneAuthModal({
       }
 
       if (existingKey) {
-        // Already registered — just login
+        // Already registered — update email/photo then show success
+        await db.ref("users/" + existingKey).update({ email: user.email || "", photoURL: user.photoURL || "" });
         saveSession(existingName || user.displayName || "مستخدم", existingKey);
-        onSuccess(existingName || user.displayName || "مستخدم", existingKey);
+        setSaving(false);
+        setStep("success");
+        setTimeout(() => onSuccess(existingName || user.displayName || "مستخدم", existingKey), 1500);
       } else {
         // New user — ask for name + phone
         setGoogleUser(user);
@@ -124,11 +127,13 @@ export default function PhoneAuthModal({
         firebaseUid: user.uid,
       });
       saveSession(n, key);
-      onSuccess(n, key);
+      setSaving(false);
+      setStep("success");
+      setTimeout(() => onSuccess(n, key), 1500);
     } catch (error: any) {
       setErr(error?.message || "حدث خطأ أثناء الحفظ");
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   function handleAnonymous() {
@@ -150,7 +155,16 @@ export default function PhoneAuthModal({
           <p style={{ fontSize: 13, color: "#6B7280" }}>{subtitle || "سجّل بواسطة Google للمتابعة"}</p>
         </div>
 
-        {step === "checking" ? (
+        {step === "success" ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "20px 0" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#22C55E", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, animation: "popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275)" }}>
+              <i className="ph ph-check" />
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>تم تسجيل الدخول بنجاح</p>
+            <p style={{ fontSize: 13, color: "#6B7280" }}>جارٍ الانتقال...</p>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", border: "3px solid #E5E7EB", borderTopColor: "#246BFD", animation: "spin 0.8s linear infinite" }} />
+          </div>
+        ) : step === "checking" ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "20px 0" }}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid #E5E7EB", borderTopColor: "#246BFD", animation: "spin 0.8s linear infinite" }} />
             <p style={{ fontSize: 15, fontWeight: 700, color: "#374151" }}>جارٍ التحقق من البيانات...</p>
