@@ -1,4 +1,7 @@
+import { useState } from "react";
 import AppFooter from "../components/Footer";
+import Header from "../components/Header";
+import SideDrawer from "../components/SideDrawer";
 import type { FooterData } from "../types";
 
 interface Props {
@@ -18,31 +21,29 @@ const cards = [
 ];
 
 export default function Home({ name, onExam, onStudy, onCenters, onGuide, footerData }: Props) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const actions: Record<string, () => void> = { onExam, onStudy, onCenters, onGuide };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
 
+  function handleNavigate(screen: string) {
+    const map: Record<string, () => void> = {
+      "exam-rules": onExam,
+      "categories": onStudy,
+      "centers": onCenters,
+      "guide": onGuide,
+    };
+    map[screen]?.();
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#fff" }}>
-      {/* Top bar */}
-      <div style={{
-        padding: "16px 20px", borderBottom: "1px solid #E5E7EB",
-        display: "flex", alignItems: "center", gap: 12,
-        background: "#fff",
-      }}>
-        <div style={{
-          width: 46, height: 46, borderRadius: 14,
-          background: "#246BFD",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 24, color: "#fff", flexShrink: 0,
-        }}>
-          <i className="ph ph-car" />
-        </div>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>JO Driver</div>
-          <div style={{ fontSize: 12, color: "#6B7280" }}>منصتك للتحضير لاختبار القيادة الأردني</div>
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#F3F6FF" }}>
+      <Header onMenuOpen={() => setDrawerOpen(true)} />
+      <SideDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onNavigate={handleNavigate}
+      />
 
       <div style={{ padding: "20px 16px", flex: 1 }}>
         {/* Greeting */}
