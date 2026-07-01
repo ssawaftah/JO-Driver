@@ -76,6 +76,8 @@ function AppRoutes() {
   const [loadMsg, setLoadMsg] = useState("جارٍ التحميل...");
   const [showReg, setShowReg] = useState(false);
   const [userName, setUserName] = useState("");
+  const [pendingAction, setPendingAction] = useState<null | "test" | "exam">(null);
+  const [pendingCat, setPendingCat] = useState<string | null>(null);
 
   const [govs, setGovs] = useState<Record<string, Governorate>>({});
   const [areas, setAreas] = useState<Record<string, Area>>({});
@@ -133,6 +135,18 @@ function AppRoutes() {
     setUserName(name);
     saveSession(name, key);
     setShowReg(false);
+    // Resume pending action after registration
+    if (pendingAction === "test" && pendingCat) {
+      const cat = pendingCat;
+      setPendingAction(null); setPendingCat(null);
+      const qs = getCatQs(cat).sort(() => Math.random() - 0.5);
+      if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
+      setTestQs(qs);
+      navigate(`/test/${catId(cat)}`);
+    } else if (pendingAction === "exam") {
+      setPendingAction(null); setPendingCat(null);
+      navigate("/exam");
+    }
   }
 
   // ── centers ──
@@ -168,12 +182,21 @@ function AppRoutes() {
     navigate(`/study/${catId(cat)}`);
   }
 
-  function startTest(cat: string) {
-    if (!loadSession()) { setShowReg(true); return; }
+  function doStartTest(cat: string) {
     const qs = getCatQs(cat).sort(() => Math.random() - 0.5);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setTestQs(qs);
     navigate(`/test/${catId(cat)}`);
+  }
+
+  function startTest(cat: string) {
+    if (!loadSession()) {
+      setPendingAction("test");
+      setPendingCat(cat);
+      setShowReg(true);
+      return;
+    }
+    doStartTest(cat);
   }
 
   function handleResult(ok: number, total: number) {
@@ -197,7 +220,12 @@ function AppRoutes() {
   }
 
   function startExam() {
-    if (!loadSession()) { setShowReg(true); return; }
+    if (!loadSession()) {
+      setPendingAction("exam");
+      setPendingCat(null);
+      setShowReg(true);
+      return;
+    }
     navigate("/exam");
   }
 
