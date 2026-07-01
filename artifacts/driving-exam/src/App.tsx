@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { db, auth } from "./lib/firebase";
 import type { Screen, Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
 
-import RegisterScreen from "./screens/Register";
+import RegisterModal from "./components/RegisterModal";
 import HomeScreen from "./screens/Home";
 import CentersScreen from "./screens/Centers";
 import CategoriesScreen from "./screens/Categories";
@@ -57,10 +57,10 @@ function loadSession(): string | null {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("register");
+  const [screen, setScreen] = useState<Screen>("home");
   const [loading, setLoading] = useState(true);
   const [loadMsg, setLoadMsg] = useState("جارٍ التحميل...");
-
+  const [showReg, setShowReg] = useState(false);
   const [userName, setUserName] = useState("");
   const [govs, setGovs] = useState<Record<string, Governorate>>({});
   const [areas, setAreas] = useState<Record<string, Area>>({});
@@ -130,16 +130,10 @@ export default function App() {
     }
 
     const saved = loadSession();
-    if (saved) {
-      setUserName(saved);
-      setScreen("home");
-      setLoading(false);
-      preloadSharedData();
-      return;
-    }
-
-    setScreen("register");
+    if (saved) setUserName(saved);
+    setScreen("home");
     setLoading(false);
+    preloadSharedData();
     return;
   }, []);
 
@@ -150,8 +144,7 @@ export default function App() {
   function handleRegistered(name: string) {
     setUserName(name);
     saveSession(name);
-    go("home");
-    preloadSharedData();
+    setShowReg(false);
   }
 
   async function openCenters() {
@@ -205,6 +198,8 @@ export default function App() {
   }
 
   async function openExam() {
+    const saved = loadSession();
+    if (!saved) { setShowReg(true); return; }
     let allQs: Question[] = Object.values(questions);
     if (allQs.length === 0) {
       load("جارٍ تحميل أسئلة الامتحان...");
@@ -244,9 +239,6 @@ export default function App() {
 
   return (
     <div className="shell">
-      {screen === "register"   && (
-        <RegisterScreen onSuccess={handleRegistered} onLoad={load} onUnload={unload} />
-      )}
       {screen === "home"       && (
         <HomeScreen
           name={userName}
@@ -303,6 +295,11 @@ export default function App() {
           : <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
       )}
       {loading && <Loading msg={loadMsg} />}
+      <RegisterModal
+        open={showReg}
+        onClose={() => setShowReg(false)}
+        onSuccess={handleRegistered}
+      />
     </div>
   );
 }
