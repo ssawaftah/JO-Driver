@@ -12,17 +12,28 @@ function saveSession(name: string, key: string) {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name, key })); } catch {}
 }
 
+/* ── SVG Star ─────────────────────────────────────────────────── */
+function StarIcon({ filled, size = 32 }: { filled: boolean; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#F59E0B" : "none"} stroke="#F59E0B" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "all .15s" }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 /* ── Star Rating Input ──────────────────────────────────────────── */
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
   const displayValue = hover || value;
   return (
-    <div style={{ display: "flex", gap: 4, direction: "ltr", justifyContent: "center" }} onMouseLeave={() => setHover(0)}>
+    <div style={{ display: "flex", gap: 6, direction: "ltr", justifyContent: "center" }} onMouseLeave={() => setHover(0)}>
       {[1, 2, 3, 4, 5].map(n => (
-        <button key={n} type="button" onClick={() => { onChange(n); setHover(0); }} onMouseEnter={() => setHover(n)}
+        <button key={n} type="button"
+          onClick={() => onChange(n)}
+          onMouseEnter={() => setHover(n)}
+          onTouchStart={() => { setHover(n); }}
           style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontFamily: "inherit", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
-          <i className={`ph ${n <= displayValue ? "ph-star-fill" : "ph-star"}`}
-            style={{ fontSize: 32, color: n <= displayValue ? "#F59E0B" : "#D1D5DB", transition: "color .15s" }} />
+          <StarIcon filled={n <= displayValue} size={36} />
         </button>
       ))}
     </div>
@@ -33,7 +44,8 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
 function ReviewCard({ name, stars, comment, date }: { name: string; stars: number; comment: string; date: string }) {
   return (
     <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 14, padding: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+      {/* Name on right, stars on left */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, direction: "rtl" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #246BFD, #4f86ff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, flexShrink: 0 }}>
             {name.charAt(0)}
@@ -43,15 +55,14 @@ function ReviewCard({ name, stars, comment, date }: { name: string; stars: numbe
             <div style={{ fontSize: 11, color: "#9CA3AF" }}>{date}</div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 2, direction: "ltr" }}>
+        <div style={{ display: "flex", gap: 3, direction: "ltr" }}>
           {Array.from({ length: 5 }).map((_, i) => (
-            <i key={i} className={`ph ph-star${i < stars ? "-fill" : ""}`} style={{ fontSize: 13, color: i < stars ? "#F59E0B" : "#D1D5DB" }} />
+            <StarIcon key={i} filled={i < stars} size={16} />
           ))}
         </div>
       </div>
       {comment && (
-        <div style={{ background: "#F9FAFB", borderRadius: 10, padding: "10px 12px", fontSize: 13, color: "#374151", lineHeight: 1.7 }}>
-          <i className="ph ph-quotes" style={{ color: "#9CA3AF", fontSize: 16, display: "block", marginBottom: 4 }} />
+        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginTop: 4 }}>
           {comment}
         </div>
       )}
@@ -70,14 +81,20 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setErr("");
     const n = name.trim(), p = phone.trim();
-    if (!anonymous && !n) { setErr("الرجاء إدخال الاسم"); return; }
+    if (anonymous) {
+      // Anonymous: no registration needed, just publish as مجهول
+      saveSession("مجهول", "anon_" + Date.now());
+      onSuccess("مجهول", "anon_" + Date.now());
+      return;
+    }
+    if (!n) { setErr("الرجاء إدخال الاسم"); return; }
     if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صحيح (عشر أرقام)"); return; }
     setSaving(true);
     try {
       const key = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-      await db.ref("users/" + key).set({ name: anonymous ? "مجهول" : n, phone: p, registeredAt: new Date().toISOString() });
-      saveSession(anonymous ? "مجهول" : n, key);
-      onSuccess(anonymous ? "مجهول" : n, key);
+      await db.ref("users/" + key).set({ name: n, phone: p, registeredAt: new Date().toISOString() });
+      saveSession(n, key);
+      onSuccess(n, key);
     } catch { setSaving(false); setErr("حدث خطأ، حاول مرة أخرى"); }
   }
   return (
@@ -97,13 +114,15 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
               <input className="inp" type="text" placeholder="أدخل اسمك" value={name} onChange={e => setName(e.target.value)} />
             </div>
           )}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>رقم الهاتف <span style={{ color: "#9CA3AF", fontWeight: 400, fontSize: 11 }}>(لن يتم نشر الرقم علنياً)</span></label>
-            <input className="inp" type="tel" placeholder="07xxxxxxxx" value={phone} onChange={e => setPhone(e.target.value)} style={{ direction: "ltr", textAlign: "right" }} />
-          </div>
+          {!anonymous && (
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>رقم الهاتف <span style={{ color: "#9CA3AF", fontWeight: 400, fontSize: 11 }}>(لن يتم نشر الرقم علنياً)</span></label>
+              <input className="inp" type="tel" placeholder="07xxxxxxxx" value={phone} onChange={e => setPhone(e.target.value)} style={{ direction: "ltr", textAlign: "right" }} />
+            </div>
+          )}
           <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#6B7280" }}>
             <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#246BFD" }} />
-            التعليق كمجهول
+            التعليق كمجهول (بدون تسجيل)
           </label>
           {err && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 14px", color: "#DC2626", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
@@ -111,7 +130,7 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
             </div>
           )}
           <button type="submit" className="btn-primary" disabled={saving} style={{ marginTop: 2 }}>
-            <i className="ph ph-check" style={{ fontSize: 18 }} />{saving ? "جارٍ التسجيل..." : "تسجيل ونشر"}
+            <i className="ph ph-check" style={{ fontSize: 18 }} />{saving ? "جارٍ التسجيل..." : (anonymous ? "نشر كمجهول" : "تسجيل ونشر")}
           </button>
           <button type="button" onClick={onClose} style={{ width: "100%", height: 48, borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff", color: "#6B7280", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
             إلغاء
@@ -136,9 +155,9 @@ function SummaryBar({ avg, count }: { avg: number; count: number }) {
         <div style={{ fontSize: 11, opacity: 0.9 }}>تقييم</div>
       </div>
       <div style={{ width: 80, textAlign: "center" }}>
-        <div style={{ display: "flex", gap: 2, direction: "ltr", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: 3, direction: "ltr", justifyContent: "center" }}>
           {Array.from({ length: 5 }).map((_, i) => (
-            <i key={i} className={`ph ${i < Math.round(avg) ? "ph-star-fill" : "ph-star"}`} style={{ fontSize: 14, color: "#fff" }} />
+            <StarIcon key={i} filled={i < Math.round(avg)} size={16} />
           ))}
         </div>
         <div style={{ fontSize: 10, opacity: 0.8, marginTop: 4 }}>{pct.toFixed(0)}%</div>
@@ -196,11 +215,6 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div style={{ padding: "16px", flex: 1 }}>
-        {/* Back button */}
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, color: "#6B7280", fontSize: 14, fontWeight: 700, marginBottom: 12, padding: 0 }}>
-          <i className="ph ph-arrow-right" /> العودة للرئيسية
-        </button>
-
         {/* Title */}
         <div style={{ textAlign: "center", marginBottom: 18 }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, #F59E0B, #F97316)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 10px" }}>
