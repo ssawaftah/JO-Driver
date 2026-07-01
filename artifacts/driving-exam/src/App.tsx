@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import { db, auth } from "./lib/firebase";
 import type { Question, Governorate, Area, Center, GuideSection } from "./types";
 
-import RegisterModal from "./components/RegisterModal";
+import PhoneAuthModal from "./components/PhoneAuthModal";
 import HomeScreen from "./screens/Home";
 import CentersScreen from "./screens/Centers";
 import CategoriesScreen from "./screens/Categories";
@@ -169,6 +169,7 @@ function AppRoutes() {
   }
 
   function startTest(cat: string) {
+    if (!loadSession()) { setShowReg(true); return; }
     const qs = getCatQs(cat).sort(() => Math.random() - 0.5);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
     setTestQs(qs);
@@ -296,7 +297,7 @@ function AppRoutes() {
         } />
       </Routes>
       {loading && <Loading msg={loadMsg} />}
-      <RegisterModal open={showReg} onClose={() => setShowReg(false)} onSuccess={handleRegistered} />
+      <PhoneAuthModal open={showReg} onClose={() => setShowReg(false)} onSuccess={handleRegistered} title="سجّل بياناتك" subtitle="أدخل اسمك ورقم هاتفك لبدء الامتحان" />
     </div>
   );
 }

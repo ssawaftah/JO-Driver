@@ -3,13 +3,11 @@ import { db } from "../lib/firebase";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
 import SideDrawer from "../components/SideDrawer";
+import PhoneAuthModal from "../components/PhoneAuthModal";
 
 const SESSION_KEY = "dex_user";
 function loadSession(): { name: string; key: string } | null {
   try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
-}
-function saveSession(name: string, key: string) {
-  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name, key })); } catch {}
 }
 
 interface Props {
@@ -32,7 +30,7 @@ const extraCards = [
   { icon: "star", color: "#F59E0B", bg: "#FEF3C7", title: "سجل الزوار", desc: "قيّم تجربتك واطلاع رأيك", action: "onReviews" },
 ];
 
-/* ── Star Rating Input ──────────────────────────────────────────── */
+/* ── Star Rating Input ─────────────────────────────────── */
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
   const displayValue = hover || value;
@@ -49,7 +47,7 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
   );
 }
 
-/* ── Review Card ───────────────────────────────────────────────────────── */
+/* ── Review Card ─────────────────────────────────────────────── */
 function ReviewCard({ name, stars, comment, date }: { name: string; stars: number; comment: string; date: string }) {
   return (
     <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 14, padding: 14 }}>
@@ -75,69 +73,6 @@ function ReviewCard({ name, stars, comment, date }: { name: string; stars: numbe
           {comment}
         </div>
       )}
-    </div>
-  );
-}
-
-/* ── Register Modal for Review ─────────────────────────────────────────────── */
-function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: (name: string, key: string) => void }) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [anonymous, setAnonymous] = useState(false);
-  const [err, setErr] = useState("");
-  const [saving, setSaving] = useState(false);
-  if (!open) return null;
-  async function submit(e: React.FormEvent) {
-    e.preventDefault(); setErr("");
-    const n = name.trim(), p = phone.trim();
-    if (!anonymous && !n) { setErr("الرجاء إدخال الاسم"); return; }
-    if (p.length < 10) { setErr("الرجاء إدخال رقم هاتف صحيح (عشر أرقام)"); return; }
-    setSaving(true);
-    try {
-      const key = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-      await db.ref("users/" + key).set({ name: anonymous ? "مجهول" : n, phone: p, registeredAt: new Date().toISOString() });
-      saveSession(anonymous ? "مجهول" : n, key);
-      onSuccess(anonymous ? "مجهول" : n, key);
-    } catch { setSaving(false); setErr("حدث خطأ، حاول مرة أخرى"); }
-  }
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, direction: "rtl" }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: "24px", width: "100%", maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.25)", animation: "fadeUp 0.22s ease", animationFillMode: "both" }} onClick={e => e.stopPropagation()}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #246BFD, #4f86ff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 12px" }}>
-            <i className="ph ph-user-plus" />
-          </div>
-          <h2 style={{ fontSize: 18, fontWeight: 900, color: "#111827", marginBottom: 4 }}>تسجيل الدخول</h2>
-          <p style={{ fontSize: 13, color: "#6B7280" }}>سجّل بياناتك لنشر رأيك</p>
-        </div>
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {!anonymous && (
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>الاسم الكامل</label>
-              <input className="inp" type="text" placeholder="أدخل اسمك" value={name} onChange={e => setName(e.target.value)} />
-            </div>
-          )}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "block", color: "#374151" }}>رقم الهاتف <span style={{ color: "#9CA3AF", fontWeight: 400, fontSize: 11 }}>(لن يتم نشر الرقم علنياً)</span></label>
-            <input className="inp" type="tel" placeholder="07xxxxxxxx" value={phone} onChange={e => setPhone(e.target.value)} style={{ direction: "ltr", textAlign: "right" }} />
-          </div>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#6B7280" }}>
-            <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#246BFD" }} />
-            التعليق كمجهول
-          </label>
-          {err && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 14px", color: "#DC2626", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-              <i className="ph ph-warning-circle" style={{ fontSize: 16, flexShrink: 0 }} />{err}
-            </div>
-          )}
-          <button type="submit" className="btn-primary" disabled={saving} style={{ marginTop: 2 }}>
-            <i className="ph ph-check" style={{ fontSize: 18 }} />{saving ? "جارٍ التسجيل..." : "تسجيل ونشر"}
-          </button>
-          <button type="button" onClick={onClose} style={{ width: "100%", height: 48, borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff", color: "#6B7280", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            إلغاء
-          </button>
-        </form>
-      </div>
     </div>
   );
 }
@@ -276,6 +211,8 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, onRevi
         </div>
       </div>
       <AppFooter />
+
+      {/* Inline review form on home is simplified - just navigate to reviews page */}
     </div>
   );
 }
