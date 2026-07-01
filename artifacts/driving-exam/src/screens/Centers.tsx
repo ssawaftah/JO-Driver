@@ -650,7 +650,7 @@ export default function Centers({ govs, areas, centers }: Props) {
           )}
         </div>
 
-        <AppFooter initialData={null} />
+        <AppFooter />
       </div>
     </div>
   );

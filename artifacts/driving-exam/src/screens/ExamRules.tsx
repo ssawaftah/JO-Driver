@@ -93,7 +93,7 @@ export default function ExamRules({ onStart }: Props) {
           <i className="ph ph-play-circle" style={{ fontSize: 24 }} />
           بدء الاختبار
         </button>
-        <AppFooter initialData={null} />
+        <AppFooter />
       </div>
     </div>
   );

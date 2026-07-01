@@ -126,7 +126,7 @@ export default function Categories({ cats, qCounts, onStudy, onTest }: Props) {
         })}
 
         <div style={{ height: 20 }} />
-        <AppFooter initialData={null} />
+        <AppFooter />
       </div>
     </div>
   );

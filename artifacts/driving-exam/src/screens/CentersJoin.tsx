@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 import type { Governorate, Area } from "../types";
 
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
@@ -258,6 +259,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           {sending ? "جاري الإرسال..." : "إرسال الطلب"}
         </button>
       </div>
+      <AppFooter />
     </div>
   );
 }

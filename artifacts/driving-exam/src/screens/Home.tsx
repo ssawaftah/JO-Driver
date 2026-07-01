@@ -2,7 +2,6 @@ import { useState } from "react";
 import AppFooter from "../components/Footer";
 import Header from "../components/Header";
 import SideDrawer from "../components/SideDrawer";
-import type { FooterData } from "../types";
 
 interface Props {
   name: string;
@@ -10,7 +9,6 @@ interface Props {
   onStudy: () => void;
   onCenters: () => void;
   onGuide: () => void;
-  footerData: FooterData | null;
 }
 
 const cards = [
@@ -88,7 +86,7 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, footer
           ))}
         </div>
       </div>
-      <AppFooter initialData={footerData} />
+      <AppFooter />
     </div>
   );
 }

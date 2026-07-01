@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { db } from "../lib/firebase";
+import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 
 interface Props { onBack: () => void; }
 
@@ -1526,6 +1528,7 @@ export default function Admin({ onBack }: Props) {
   const [footerSponsors, setFooterSponsors] = useState<Record<string, any>>({});
   const [footerSocial, setFooterSocial] = useState<Record<string, string>>({});
   const [footerDefaultLink, setFooterDefaultLink] = useState("");
+  const [footerAbout, setFooterAbout] = useState("");
   const [sponsorImgUrl, setSponsorImgUrl] = useState("");
   const [sponsorLink, setSponsorLink] = useState("");
   const [socialKey, setSocialKey] = useState("facebook");
@@ -1539,14 +1542,16 @@ export default function Admin({ onBack }: Props) {
   ];
 
   async function loadFooter() {
-    const [spSnap, soSnap, dlSnap] = await Promise.all([
+    const [spSnap, soSnap, dlSnap, atSnap] = await Promise.all([
       db.ref("footer/sponsors").once("value"),
       db.ref("footer/social").once("value"),
       db.ref("footer/defaultSponsorLink").once("value"),
+      db.ref("footer/aboutText").once("value"),
     ]);
     setFooterSponsors(spSnap.val() || {});
     setFooterSocial(soSnap.val() || {});
     setFooterDefaultLink(dlSnap.val() || "");
+    setFooterAbout(atSnap.val() || "");
   }
 
   function FooterAdminSection() {
@@ -1609,6 +1614,37 @@ export default function Admin({ onBack }: Props) {
             } catch { showToast("حدث خطأ"); }
             setLoading(false);
           }}><i className="ph ph-floppy-disk" /> حفظ الرابط</Btn>
+        </div>
+
+        {/* ── About text ── */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ph ph-text-align-right" style={{ color: C.primary }} /> نص قسم "من نحن" في الفوتر
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.text }}>الوصف (اختياري)</label>
+            <textarea
+              value={footerAbout}
+              onChange={e => setFooterAbout(e.target.value)}
+              placeholder="منصة JO Driver هي دليلك الأول لاجتياز..."
+              rows={4}
+              style={{
+                width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+                background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+                resize: "vertical", lineHeight: 1.7,
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = C.primary}
+              onBlur={e => e.currentTarget.style.borderColor = C.border}
+            />
+          </div>
+          <Btn variant="primary" onClick={async () => {
+            setLoading(true);
+            try {
+              await db.ref("footer/aboutText").set(footerAbout.trim() || null);
+              showToast("تم الحفظ");
+            } catch { showToast("حدث خطأ"); }
+            setLoading(false);
+          }}><i className="ph ph-floppy-disk" /> حفظ الوصف</Btn>
         </div>
 
         {/* ── Sponsors ── */}
@@ -1703,7 +1739,7 @@ export default function Admin({ onBack }: Props) {
             <Card icon="book-open-text" color={C.purple} colorBg={C.purpleLight} title="دليل المستخدم" desc="إدارة أقسام الدليل" onClick={() => { resetGuideForm(); setGuideEditorOpen(false); setEditingGuideId(null); setView("guide-admin"); }} count={stats.guide} />
             <Card icon="clipboard-text" color={C.purple} colorBg={C.purpleLight} title="طلبات الانتساب" desc="مراجعة ونشر أو رفض" onClick={() => setView("requests")} count={stats.req} />
           </div>
-          <Card icon="layout" color="#0891B2" colorBg={C.cyanLight} title="إدارة الفوتر" desc="الراعي الرسمي، سوشيال ميديا" onClick={() => { loadFooter(); setView("footer-admin"); }} />
+          <Card icon="layout" color="#0891B2" colorBg={C.cyanLight} title="إدارة الفوتر" desc="الراعي الرسمي، سوشيال ميديا، من نحن" onClick={() => { loadFooter(); setView("footer-admin"); }} />
           <div style={{ fontSize: 12, fontWeight: 800, color: C.textSec, marginTop: 16, marginBottom: 10, padding: "0 4px" }}>البيانات الجغرافية</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
@@ -1727,31 +1763,16 @@ export default function Admin({ onBack }: Props) {
   };
 
   return (
-    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: C.bg, direction: "rtl" }}>
-      {/* Header */}
-      <div style={{
-        background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "12px 16px",
-        display: "flex", flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 0, boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-      }}>
-        <button onClick={onBack} style={{
-          width: 36, height: 36, borderRadius: 10, border: `1px solid ${C.border}`,
-          background: C.bg, display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", flexShrink: 0,
-        }}><i className="ph ph-sign-out" style={{ fontSize: 18, color: C.red }} /></button>
-        <div style={{ flex: 1, textAlign: "right" }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>لوحة التحكم</div>
-          <div style={{ fontSize: 11, color: C.textLight, marginTop: 1 }}>JO Driver — إدارة المنصة</div>
-        </div>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, flexShrink: 0 }}>
-          <i className="ph ph-shield-check" />
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: C.bg, direction: "rtl" }}>
+      <Header />
 
       {/* Body */}
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>
         {renderView()}
         <div style={{ height: 20 }} />
       </div>
+
+      <AppFooter />
 
       {/* Toast & Loading */}
       <Toast msg={toast} />

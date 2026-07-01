@@ -143,7 +143,7 @@ export default function ExamResult({ ok, wrong, total, skipped, onRetry, onHome 
           العودة للرئيسية
         </button>
       </div>
-      <AppFooter initialData={null} />
+      <AppFooter />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import { db, auth } from "./lib/firebase";
-import type { Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
+import type { Question, Governorate, Area, Center, GuideSection } from "./types";
 
 import RegisterModal from "./components/RegisterModal";
 import HomeScreen from "./screens/Home";
@@ -82,19 +82,10 @@ function AppRoutes() {
 
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
-  const [footerData, setFooterData] = useState<FooterData | null>(null);
   const [guideSections, setGuideSections] = useState<GuideSection[] | null>(null);
 
   async function preloadSharedData() {
-    const [spSnap, soSnap, dlSnap, gSnap] = await Promise.all([
-      db.ref("footer/sponsors").once("value"),
-      db.ref("footer/social").once("value"),
-      db.ref("footer/defaultSponsorLink").once("value"),
-      db.ref("guide/sections").once("value"),
-    ]);
-    const spVal = spSnap.val() || {};
-    const sponsors = Object.entries(spVal).map(([id, v]: [string, any]) => ({ id, ...v }));
-    setFooterData({ sponsors, social: soSnap.val() || {}, defaultSponsorLink: dlSnap.val() || "" });
+    const gSnap = await db.ref("guide/sections").once("value");
     const gsVal = gSnap.val() || {};
     if (Object.keys(gsVal).length > 0) {
       setGuideSections(Object.entries(gsVal).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
@@ -220,7 +211,6 @@ function AppRoutes() {
             onStudy={openCategories}
             onCenters={openCenters}
             onGuide={() => navigate("/guide")}
-            footerData={footerData}
           />
         } />
         <Route path="/centers" element={

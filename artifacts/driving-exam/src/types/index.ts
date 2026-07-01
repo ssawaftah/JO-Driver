@@ -24,6 +24,7 @@ export interface FooterData {
   sponsors: FooterSponsor[];
   social: Record<string, string>;
   defaultSponsorLink: string;
+  aboutText?: string;
 }
 
 export interface GuideSection {

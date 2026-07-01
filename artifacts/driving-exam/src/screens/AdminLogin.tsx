@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { auth } from "../lib/firebase";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 
 interface Props {
   onLogin: () => void;
@@ -88,6 +89,7 @@ export default function AdminLogin({ onLogin }: Props) {
         </button>
       </form>
       </div>
+      <AppFooter />
     </div>
   );
 }

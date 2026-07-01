@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import Header from "../components/Header";
+import AppFooter from "../components/Footer";
 import type { GuideSection, GuideSectionType, GuideSectionItem } from "../types";
 
 interface Props { initialSections?: GuideSection[] | null; }
@@ -318,6 +319,7 @@ export default function GuideScreen({ initialSections }: Props) {
           </div>
         )}
       </div>
+      <AppFooter />
     </div>
   );
 }
