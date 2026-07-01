@@ -176,8 +176,6 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, onRevi
             </button>
           ))}
 
-          <div style={{ height: 6 }} />
-
           {extraCards.map(c => (
             <button
               key={c.title}

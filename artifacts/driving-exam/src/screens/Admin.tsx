@@ -234,6 +234,10 @@ export default function Admin({ onBack }: Props) {
   const [selectedUser, setSelectedUser] = useState<{ id: string; data: any } | null>(null);
   const [userSearch, setUserSearch] = useState("");
   const [userSort, setUserSort] = useState<"newest" | "tests" | "score">("newest");
+  const [editUser, setEditUser] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editEmail, setEditEmail] = useState("");
 
   function UsersSection() {
     let entries = Object.entries(users);
@@ -268,8 +272,9 @@ export default function Admin({ onBack }: Props) {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 17, fontWeight: 900, color: C.text }}>{u.name || u.firstName || "مستخدم"} {u.lastName || ""}</div>
                 <div style={{ fontSize: 12, color: C.textSec, marginTop: 3, display: "flex", alignItems: "center", gap: 6 }}>
-                  <i className="ph ph-phone" /> {u.phone || selectedUser.id}
+                  <i className="ph ph-phone" /> {u.phone || "-"}
                 </div>
+                {u.email && <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}><i className="ph ph-envelope" /> {u.email}</div>}
                 {u.governorate && <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}><i className="ph ph-map-pin" /> {u.governorate}</div>}
               </div>
               <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 20, background: tests > 0 ? C.greenLight : C.surface2, color: tests > 0 ? C.green : C.textSec, whiteSpace: "nowrap", border: `1px solid ${tests > 0 ? C.green : C.border}` }}>{tests > 0 ? "نشط" : "جديد"}</span>
@@ -310,13 +315,50 @@ export default function Admin({ onBack }: Props) {
                 </div>
               </div>
             )}
-            <div style={{ display: "flex", gap: 8 }}>
-              <Btn variant="danger" style={{ flex: 1 }} onClick={async () => {
-                if (!confirm("حذف المستخدم؟")) return;
-                setLoading(true); try { await db.ref("users/" + selectedUser.id).remove(); showToast("تم الحذف"); await loadAll(); setUsersView("list"); }
-                catch { showToast("حدث خطأ"); } setLoading(false);
-              }}><i className="ph ph-trash" /> حذف</Btn>
-            </div>
+            {/* Edit / Delete */}
+            {!editUser ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <Btn variant="outline" style={{ flex: 1 }} onClick={() => { setEditName(u.name || ""); setEditPhone(u.phone || ""); setEditEmail(u.email || ""); setEditUser(true); }}>
+                  <i className="ph ph-pencil" /> تعديل
+                </Btn>
+                <Btn variant="danger" style={{ flex: 1 }} onClick={async () => {
+                  if (!confirm("حذف المستخدم؟")) return;
+                  setLoading(true); try { await db.ref("users/" + selectedUser.id).remove(); showToast("تم الحذف"); await loadAll(); setUsersView("list"); }
+                  catch { showToast("حدث خطأ"); } setLoading(false);
+                }}><i className="ph ph-trash" /> حذف</Btn>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: C.textSec, marginBottom: 4 }}>تعديل بيانات المستخدم</div>
+                <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="الاسم" style={{
+                  width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+                  background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
+                }} />
+                <input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="رقم الهاتف" style={{
+                  width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+                  background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none", direction: "ltr", textAlign: "right",
+                }} />
+                <input value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="البريد الإلكتروني" style={{
+                  width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
+                  background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none", direction: "ltr", textAlign: "right",
+                }} />
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  <Btn variant="primary" style={{ flex: 1 }} onClick={async () => {
+                    setLoading(true);
+                    try {
+                      await db.ref("users/" + selectedUser.id).update({
+                        name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim()
+                      });
+                      showToast("تم التحديث");
+                      await loadAll();
+                      setEditUser(false);
+                    } catch { showToast("حدث خطأ"); }
+                    setLoading(false);
+                  }}><i className="ph ph-check" /> حفظ</Btn>
+                  <Btn variant="ghost" style={{ flex: 1 }} onClick={() => setEditUser(false)}>إلغاء</Btn>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       );
