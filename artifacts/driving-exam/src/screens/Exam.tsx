@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Question } from "../types";
 import Header from "../components/Header";
-import AppFooter from "../components/Footer";
 
 interface Props {
   allQuestions: Question[];
@@ -307,7 +306,6 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
           {isLast ? "إنهاء الاختبار" : "تأكيد والتالي"}
         </button>
       </div>
-      <AppFooter />
     </div>
   );
 }

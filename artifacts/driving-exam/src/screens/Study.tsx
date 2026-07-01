@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Question } from "../types";
 import Header from "../components/Header";
-import AppFooter from "../components/Footer";
 
 interface Props {
   qs: Question[];
@@ -158,7 +157,6 @@ export default function Study({ qs, cat, onBack }: Props) {
             </button>
           )}
       </div>
-      <AppFooter />
     </div>
   );
 }
