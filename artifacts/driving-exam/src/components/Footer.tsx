@@ -50,9 +50,9 @@ const SOCIAL_SVGS: Record<string, { label: string; icon: typeof IconFacebook; co
 
 /* ── 3 sponsor placeholders ── */
 const SPONSORS = [
-  "مركز السلام للتدريب",
-  "أكاديمية القيادة المتميزة",
-  "معهد الأردن للسياقة",
+  "كن راعي رسمي لـ JO Driver",
+  "كن راعي رسمي لـ JO Driver",
+  "كن راعي رسمي لـ JO Driver",
 ];
 
 /* ── Reusable right-aligned section header with accent line ── */
@@ -157,9 +157,6 @@ export default function AppFooter() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
                   {name}
-                </div>
-                <div style={{ fontSize: 11, color: "#246BFD", marginTop: 2, fontWeight: 600 }}>
-                  كن راعي رسمي لـ JO Driver
                 </div>
               </div>
             </a>
