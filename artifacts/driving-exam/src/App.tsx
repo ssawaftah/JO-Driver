@@ -55,11 +55,14 @@ function matchCat(fbCat: string): string {
   return CATS.find(c => normAr(c) === norm) ?? fbCat;
 }
 
-function saveSession(name: string) {
-  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name })); } catch {}
+function saveSession(name: string, key: string) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name, key })); } catch {}
 }
-function loadSession(): string | null {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "")?.name || null; } catch { return null; }
+function loadSession(): { name: string; key: string } | null {
+  try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
+}
+function getUserKey(): string | null {
+  return loadSession()?.key || null;
 }
 
 /* =================================================================
@@ -115,7 +118,7 @@ function AppRoutes() {
       setLoading(false);
     } else {
       const saved = loadSession();
-      if (saved) setUserName(saved);
+      if (saved) setUserName(saved.name);
       setLoading(false);
       preloadSharedData();
     }
@@ -125,9 +128,9 @@ function AppRoutes() {
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }
   function unload() { setLoading(false); }
 
-  function handleRegistered(name: string) {
+  function handleRegistered(name: string, key: string) {
     setUserName(name);
-    saveSession(name);
+    saveSession(name, key);
     setShowReg(false);
   }
 
@@ -173,6 +176,7 @@ function AppRoutes() {
 
   function handleResult(ok: number, total: number) {
     setResultOk(ok); setResultTotal(total);
+    saveResult("test", ok, total);
     navigate("/result");
   }
 
@@ -197,8 +201,32 @@ function AppRoutes() {
 
   const handleExamFinish = useCallback((ok: number, wrong: number, total: number, skipped: number) => {
     setExamOk(ok); setExamWrong(wrong); setExamTotal(total); setExamSkipped(skipped);
+    saveResult("exam", ok, total);
     navigate("/exam-result");
   }, [navigate]);
+
+  async function saveResult(type: "test" | "exam", ok: number, total: number) {
+    const key = getUserKey();
+    if (!key) return;
+    const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
+    const snap = await db.ref("users/" + key).once("value");
+    const u = snap.val() || {};
+    const prevTests = u.testsTaken || 0;
+    const prevBest = u.bestScore || 0;
+    const prevAvg = u.averageScore || 0;
+    const newTests = prevTests + 1;
+    const newBest = Math.max(prevBest, pct);
+    const newAvg = Math.round(((prevAvg * prevTests) + pct) / newTests);
+    await db.ref("users/" + key).update({
+      testsTaken: newTests,
+      bestScore: newBest,
+      averageScore: newAvg,
+      lastActiveAt: new Date().toISOString(),
+    });
+    await db.ref("users/" + key + "/results").push({
+      type, ok, total, pct, at: new Date().toISOString(),
+    });
+  }
 
   // ── question counts ──
   const qCounts: Record<string, number> = {};

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { db } from "../lib/firebase";
 
 interface Props {
-  onSuccess: (name: string) => void;
+  onSuccess: (name: string, key: string) => void;
   onLoad: (msg: string) => void;
   onUnload: () => void;
 }
@@ -36,7 +36,7 @@ export default function Register({ onSuccess, onLoad, onUnload }: Props) {
         registeredAt: new Date().toISOString(),
       });
       onUnload();
-      onSuccess(n);
+      onSuccess(n, key);
     } catch {
       onUnload();
       setErr("حدث خطأ، حاول مرة أخرى");

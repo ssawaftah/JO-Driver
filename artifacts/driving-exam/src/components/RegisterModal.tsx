@@ -4,7 +4,7 @@ import { db } from "../lib/firebase";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSuccess: (name: string) => void;
+  onSuccess: (name: string, key: string) => void;
 }
 
 export default function RegisterModal({ open, onClose, onSuccess }: Props) {
@@ -30,7 +30,7 @@ export default function RegisterModal({ open, onClose, onSuccess }: Props) {
         phone: p,
         registeredAt: new Date().toISOString(),
       });
-      onSuccess(n);
+      onSuccess(n, key);
     } catch {
       setSaving(false);
       setErr("حدث خطأ، حاول مرة أخرى");
