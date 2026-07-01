@@ -12,26 +12,6 @@ function saveSession(name: string, key: string) {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name, key })); } catch {}
 }
 
-interface Props {
-  name: string;
-  onExam: () => void;
-  onStudy: () => void;
-  onCenters: () => void;
-  onGuide: () => void;
-  onReviews: () => void;
-}
-
-const cards = [
-  { icon: "pencil-line",        color: "#16A34A", bg: "#DCFCE7", title: "الامتحان النظري",      desc: "محاكاة واقعية لاختبار القيادة",              badge: null, action: "onExam"    },
-  { icon: "book-open",          color: "#2563EB", bg: "#DBEAFE", title: "دراسة الأسئلة",        desc: "مراجعة الأسئلة حسب الأقسام",                badge: null, action: "onStudy"   },
-  { icon: "map-pin",            color: "#D97706", bg: "#FEF3C7", title: "مراكز تدريب القيادة", desc: "ابحث عن أقرب مركز تدريب معتمد",             badge: null, action: "onCenters" },
-  { icon: "book-open-text",     color: "#7C3AED", bg: "#EDE9FE", title: "دليل الامتحان النظري",  desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة",     badge: null, action: "onGuide"   },
-];
-
-const extraCards = [
-  { icon: "star", color: "#F59E0B", bg: "#FEF3C7", title: "سجل الزوار", desc: "قيّم تجربتك واطلاع رأيك", action: "onReviews" },
-];
-
 /* ── Star Rating Input ──────────────────────────────────────────── */
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
@@ -42,14 +22,14 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
         <button key={n} type="button" onClick={() => { onChange(n); setHover(0); }} onMouseEnter={() => setHover(n)}
           style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontFamily: "inherit", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
           <i className={`ph ${n <= displayValue ? "ph-star-fill" : "ph-star"}`}
-            style={{ fontSize: 28, color: n <= displayValue ? "#F59E0B" : "#D1D5DB", transition: "color .15s" }} />
+            style={{ fontSize: 32, color: n <= displayValue ? "#F59E0B" : "#D1D5DB", transition: "color .15s" }} />
         </button>
       ))}
     </div>
   );
 }
 
-/* ── Review Card ───────────────────────────────────────────────────────── */
+/* ── Review Card ─────────────────────────────────────────────────── */
 function ReviewCard({ name, stars, comment, date }: { name: string; stars: number; comment: string; date: string }) {
   return (
     <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 14, padding: 14 }}>
@@ -79,7 +59,7 @@ function ReviewCard({ name, stars, comment, date }: { name: string; stars: numbe
   );
 }
 
-/* ── Register Modal for Review ─────────────────────────────────────────────── */
+/* ── Register Modal for Review ─────────────────────────────────── */
 function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: (name: string, key: string) => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -142,25 +122,51 @@ function ReviewRegModal({ open, onClose, onSuccess }: { open: boolean; onClose: 
   );
 }
 
-export default function Home({ name, onExam, onStudy, onCenters, onGuide, onReviews }: Props) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const actions: Record<string, () => void> = { onExam, onStudy, onCenters, onGuide, onReviews };
-  const hour = new Date().getHours();
-  const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
+/* ── Summary Bar ─────────────────────────────────────────────────── */
+function SummaryBar({ avg, count }: { avg: number; count: number }) {
+  const pct = count > 0 ? (avg / 5) * 100 : 0;
+  return (
+    <div style={{ background: "linear-gradient(135deg, #F59E0B, #F97316)", borderRadius: 16, padding: "18px 20px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div>
+        <div style={{ fontSize: 28, fontWeight: 900 }}>{avg.toFixed(1)}</div>
+        <div style={{ fontSize: 12, opacity: 0.9 }}>متوسط التقييم</div>
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 22, fontWeight: 900 }}>{count}</div>
+        <div style={{ fontSize: 11, opacity: 0.9 }}>تقييم</div>
+      </div>
+      <div style={{ width: 80, textAlign: "center" }}>
+        <div style={{ display: "flex", gap: 2, direction: "ltr", justifyContent: "center" }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <i key={i} className={`ph ${i < Math.round(avg) ? "ph-star-fill" : "ph-star"}`} style={{ fontSize: 14, color: "#fff" }} />
+          ))}
+        </div>
+        <div style={{ fontSize: 10, opacity: 0.8, marginTop: 4 }}>{pct.toFixed(0)}%</div>
+      </div>
+    </div>
+  );
+}
 
-  // Review states
+/* ── Reviews Screen ─────────────────────────────────────────────── */
+export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewMsg, setReviewMsg] = useState("");
   const [showReg, setShowReg] = useState(false);
   const [reviewsList, setReviewsList] = useState<{ id: string; name: string; stars: number; comment: string; createdAt: string }[]>([]);
+  const [avgStars, setAvgStars] = useState(0);
 
   useEffect(() => {
     db.ref("reviews").once("value").then(snap => {
       const val = snap.val() || {};
       const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
       setReviewsList(arr);
+      if (arr.length > 0) {
+        const avg = arr.reduce((s, r) => s + (r.stars || 0), 0) / arr.length;
+        setAvgStars(avg);
+      }
     }).catch(() => {});
   }, []);
 
@@ -176,6 +182,10 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, onRevi
       const val = snap.val() || {};
       const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
       setReviewsList(arr);
+      if (arr.length > 0) {
+        const avg = arr.reduce((s, r) => s + (r.stars || 0), 0) / arr.length;
+        setAvgStars(avg);
+      }
     } catch { setReviewMsg("حدث خطأ أثناء النشر"); }
     setReviewSaving(false);
   }
@@ -185,97 +195,84 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, onRevi
       <Header onMenuOpen={() => setDrawerOpen(true)} />
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <div style={{ padding: "20px 16px", flex: 1 }}>
-        {/* Greeting */}
-        <div style={{
-          background: "linear-gradient(135deg, #246BFD 0%, #4f86ff 100%)",
-          borderRadius: 20, padding: "20px", marginBottom: 20, color: "#fff",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
+      <div style={{ padding: "16px", flex: 1 }}>
+        {/* Back button */}
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, color: "#6B7280", fontSize: 14, fontWeight: 700, marginBottom: 12, padding: 0 }}>
+          <i className="ph ph-arrow-right" /> العودة للرئيسية
+        </button>
+
+        {/* Title */}
+        <div style={{ textAlign: "center", marginBottom: 18 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, #F59E0B, #F97316)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 10px" }}>
+            <i className="ph ph-star" />
+          </div>
+          <h1 style={{ fontSize: 20, fontWeight: 900, color: "#111827", margin: 0 }}>سجل الزوار</h1>
+          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>شاركنا تجربتك وقيّم خدماتنا</p>
+        </div>
+
+        {/* Summary */}
+        <SummaryBar avg={avgStars} count={reviewsList.length} />
+
+        {/* Review Form */}
+        <div style={{ background: "#fff", border: "1.5px solid #F0F1F3", borderRadius: 16, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#111827", marginBottom: 12, textAlign: "center" }}>أضف تقييمك</div>
+
+          <div style={{ marginBottom: 12 }}>
+            <StarInput value={reviewStars} onChange={setReviewStars} />
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <textarea
+              value={reviewComment}
+              onChange={e => setReviewComment(e.target.value)}
+              placeholder="اكتب رأيك هنا..."
+              rows={3}
+              style={{
+                width: "100%", padding: "12px 14px", border: "1.5px solid #E5E7EB", borderRadius: 12,
+                background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#111827", outline: "none", resize: "vertical",
+                transition: "border-color .15s",
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = "#246BFD"}
+              onBlur={e => e.currentTarget.style.borderColor = "#E5E7EB"}
+            />
+          </div>
+
+          <button
+            onClick={submitReview}
+            disabled={reviewSaving}
+            style={{
+              width: "100%", padding: "12px", borderRadius: 12, border: "none",
+              background: "#246BFD", color: "#fff", fontSize: 14, fontWeight: 800,
+              cursor: reviewSaving ? "not-allowed" : "pointer", opacity: reviewSaving ? 0.6 : 1,
+              fontFamily: "inherit", transition: "all .15s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}
+          >
+            <i className="ph ph-paper-plane-right" style={{ fontSize: 16 }} />
+            {reviewSaving ? "جارٍ النشر..." : "نشر الرأي"}
+          </button>
+
+          {reviewMsg && (
+            <div style={{ marginTop: 10, textAlign: "center", fontSize: 12, fontWeight: 700, color: reviewMsg.includes("شكراً") ? "#16A34A" : "#DC2626", padding: "8px 12px", borderRadius: 10, background: reviewMsg.includes("شكراً") ? "#DCFCE7" : "#FEE2E2" }}>
+              {reviewMsg}
+            </div>
+          )}
+        </div>
+
+        {/* Reviews list */}
+        {reviewsList.length > 0 && (
           <div>
-            <p style={{ fontSize: 13, opacity: 0.85, marginBottom: 4 }}>{greet}،</p>
-            <h1 style={{ fontSize: 20, fontWeight: 900, margin: 0 }}>{name || "مرحباً بك!"}</h1>
-            <p style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>جاهز لامتحان القيادة النظري في الأردن؟</p>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#9CA3AF", marginBottom: 10, textAlign: "center" }}>آخر التقييمات</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {reviewsList.map(r => (
+                <ReviewCard key={r.id} name={r.name} stars={r.stars} comment={r.comment} date={r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : "-"} />
+              ))}
+            </div>
           </div>
-          <div style={{ fontSize: 48, opacity: 0.25 }}>
-            <i className="ph ph-student" />
-          </div>
-        </div>
-
-        {/* Cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {cards.map(c => (
-            <button
-              key={c.title}
-              onClick={actions[c.action]}
-              style={{
-                background: "#fff", border: "1.5px solid #E5E7EB",
-                borderRadius: 16, padding: "16px",
-                display: "flex", alignItems: "center", gap: 14,
-                cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-                width: "100%", transition: "border-color 0.15s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = "#246BFD")}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = "#E5E7EB")}
-            >
-              <div style={{
-                width: 52, height: 52, borderRadius: 16, flexShrink: 0,
-                background: c.bg, color: c.color,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
-              }}>
-                <i className={`ph ph-${c.icon}`} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{c.title}</span>
-                  {c.badge && (
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, padding: "2px 8px",
-                      borderRadius: 20, background: "#FEF3C7", color: "#92400E",
-                    }}>{c.badge}</span>
-                  )}
-                </div>
-                <p style={{ fontSize: 13, color: "#6B7280" }}>{c.desc}</p>
-              </div>
-              <i className="ph ph-caret-left" style={{ fontSize: 18, color: "#D1D5DB", flexShrink: 0 }} />
-            </button>
-          ))}
-
-          <div style={{ height: 6 }} />
-
-          {extraCards.map(c => (
-            <button
-              key={c.title}
-              onClick={actions[c.action]}
-              style={{
-                background: "#fff", border: "1.5px solid #E5E7EB",
-                borderRadius: 16, padding: "16px",
-                display: "flex", alignItems: "center", gap: 14,
-                cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-                width: "100%", transition: "border-color 0.15s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = "#F59E0B")}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = "#E5E7EB")}
-            >
-              <div style={{
-                width: 52, height: 52, borderRadius: 16, flexShrink: 0,
-                background: c.bg, color: c.color,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
-              }}>
-                <i className={`ph ph-${c.icon}`} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{c.title}</span>
-                </div>
-                <p style={{ fontSize: 13, color: "#6B7280" }}>{c.desc}</p>
-              </div>
-              <i className="ph ph-caret-left" style={{ fontSize: 18, color: "#D1D5DB", flexShrink: 0 }} />
-            </button>
-          ))}
-        </div>
+        )}
       </div>
       <AppFooter />
+
+      <ReviewRegModal open={showReg} onClose={() => setShowReg(false)} onSuccess={(name, key) => { setShowReg(false); submitReview(); }} />
     </div>
   );
 }

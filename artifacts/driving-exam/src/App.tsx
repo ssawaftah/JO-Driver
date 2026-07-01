@@ -15,6 +15,7 @@ import ExamRulesScreen from "./screens/ExamRules";
 import ExamScreen from "./screens/Exam";
 import ExamResultScreen from "./screens/ExamResult";
 import GuideScreen from "./screens/Faq";
+import ReviewsScreen from "./screens/Reviews";
 import AdminLoginScreen from "./screens/AdminLogin";
 import AdminScreen from "./screens/Admin";
 import CentersJoinScreen from "./screens/CentersJoin";
@@ -248,6 +249,7 @@ function AppRoutes() {
             onStudy={openCategories}
             onCenters={openCenters}
             onGuide={() => navigate("/guide")}
+            onReviews={() => navigate("/reviews")}
           />
         } />
         <Route path="/centers" element={
@@ -280,6 +282,9 @@ function AppRoutes() {
         } />
         <Route path="/guide" element={
           <GuideScreen initialSections={guideSections} />
+        } />
+        <Route path="/reviews" element={
+          <ReviewsScreen onBack={() => navigate("/")} />
         } />
         <Route path="/admin-login" element={
           <AdminLoginScreen onLogin={handleAdminLogin} />
