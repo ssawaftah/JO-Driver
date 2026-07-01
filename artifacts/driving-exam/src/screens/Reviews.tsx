@@ -191,7 +191,8 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
     if (reviewStars === 0) { setReviewMsg("اختر تقييماً بالنجوم"); return; }
     const session = loadSession();
 
-    if (!session) { setShowReg(true); return; }
+    // If no session or anonymous session, show registration modal
+    if (!session || session.key.startsWith("anon_")) { setShowReg(true); return; }
 
     setReviewSaving(true); setReviewMsg("");
     try {
@@ -252,7 +253,7 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
           {session && !session.key.startsWith("anon_") && (
             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#6B7280", marginBottom: 12 }}>
               <input type="checkbox" checked={postAsAnonymous} onChange={e => setPostAsAnonymous(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#246BFD" }} />
-              التعليق كمجهول (بدل من {session.name || "اسمك"})
+              التعليق كمجهول
             </label>
           )}
 
@@ -291,7 +292,29 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
       </div>
       <AppFooter />
 
-      <ReviewRegModal open={showReg} onClose={() => setShowReg(false)} onSuccess={(name, key) => { setShowReg(false); submitReview(); }} />
+      <ReviewRegModal open={showReg} onClose={() => setShowReg(false)} onSuccess={(name, key) => {
+        setShowReg(false);
+        if (key.startsWith("anon_")) {
+          // Anonymous user: publish directly without re-checking session
+          if (reviewStars === 0) return;
+          setReviewSaving(true);
+          db.ref("reviews").push({ name: "مجهول", stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() })
+            .then(() => {
+              setReviewStars(0); setReviewComment("");
+              setReviewMsg("شكراً! تم نشر رأيك بنجاح");
+              return db.ref("reviews").once("value");
+            })
+            .then(snap => {
+              const val = snap.val() || {};
+              const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+              setReviewsList(arr);
+            })
+            .catch(() => setReviewMsg("حدث خطأ أثناء النشر"))
+            .finally(() => setReviewSaving(false));
+        } else {
+          submitReview();
+        }
+      }} />
     </div>
   );
 }
