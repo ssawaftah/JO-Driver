@@ -191,24 +191,8 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
     if (reviewStars === 0) { setReviewMsg("اختر تقييماً بالنجوم"); return; }
     const session = loadSession();
 
-    // No session at all → show registration
-    if (!session) { setShowReg(true); return; }
-
-    // Anonymous session → publish directly as anonymous
-    if (session.key.startsWith("anon_")) {
-      setReviewSaving(true); setReviewMsg("");
-      try {
-        await db.ref("reviews").push({ name: "مجهول", stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() });
-        setReviewStars(0); setReviewComment("");
-        setReviewMsg("شكراً! تم نشر رأيك بنجاح");
-        const snap = await db.ref("reviews").once("value");
-        const val = snap.val() || {};
-        const arr = Object.entries(val).map(([id, r]: [string, any]) => ({ id, ...r })).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-        setReviewsList(arr);
-      } catch { setReviewMsg("حدث خطأ أثناء النشر"); }
-      setReviewSaving(false);
-      return;
-    }
+    // No session or anonymous session → show registration every time
+    if (!session || session.key.startsWith("anon_")) { setShowReg(true); return; }
 
     // Registered user → verify key exists in DB
     setReviewSaving(true); setReviewMsg("");
