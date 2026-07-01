@@ -26,24 +26,10 @@ export default function Home({ name, onExam, onStudy, onCenters, onGuide, footer
   const hour = new Date().getHours();
   const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
 
-  function handleNavigate(screen: string) {
-    const map: Record<string, () => void> = {
-      "exam-rules": onExam,
-      "categories": onStudy,
-      "centers": onCenters,
-      "guide": onGuide,
-    };
-    map[screen]?.();
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "#F3F6FF" }}>
       <Header onMenuOpen={() => setDrawerOpen(true)} />
-      <SideDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onNavigate={handleNavigate}
-      />
+      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div style={{ padding: "20px 16px", flex: 1 }}>
         {/* Greeting */}

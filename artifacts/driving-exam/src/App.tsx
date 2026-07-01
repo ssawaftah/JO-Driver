@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import { db, auth } from "./lib/firebase";
-import type { Screen, Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
+import type { Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
 
 import RegisterModal from "./components/RegisterModal";
 import HomeScreen from "./screens/Home";
@@ -39,7 +40,6 @@ function normAr(s: string): string {
     .trim();
 }
 
-/** Find the display category that best matches a Firebase category string */
 function matchCat(fbCat: string): string {
   const norm = normAr(fbCat);
   return CATS.find(c => normAr(c) === norm) ?? fbCat;
@@ -49,31 +49,30 @@ function saveSession(name: string) {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name })); } catch {}
 }
 function loadSession(): string | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw)?.name || null;
-  } catch { return null; }
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "")?.name || null; } catch { return null; }
 }
 
-export default function App() {
-  const [screen, setScreen] = useState<Screen>("home");
+/* =================================================================
+   Shared data provider — keeps everything in App, passed to routes
+   ================================================================= */
+
+function AppRoutes() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [loadMsg, setLoadMsg] = useState("جارٍ التحميل...");
   const [showReg, setShowReg] = useState(false);
   const [userName, setUserName] = useState("");
+
   const [govs, setGovs] = useState<Record<string, Governorate>>({});
   const [areas, setAreas] = useState<Record<string, Area>>({});
   const [centers, setCenters] = useState<Record<string, Center>>({});
   const [questions, setQuestions] = useState<Record<string, Question>>({});
 
-  const [studyCat, setStudyCat] = useState("");
   const [studyQs, setStudyQs] = useState<Question[]>([]);
   const [testQs, setTestQs] = useState<Question[]>([]);
   const [resultOk, setResultOk] = useState(0);
   const [resultTotal, setResultTotal] = useState(0);
 
-  // Exam state
   const [examQs, setExamQs] = useState<Question[]>([]);
   const [examOk, setExamOk] = useState(0);
   const [examWrong, setExamWrong] = useState(0);
@@ -82,7 +81,6 @@ export default function App() {
 
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
-  // ── Shared preloaded data ──────────────────────────────────
   const [footerData, setFooterData] = useState<FooterData | null>(null);
   const [guideSections, setGuideSections] = useState<GuideSection[] | null>(null);
 
@@ -95,51 +93,36 @@ export default function App() {
     ]);
     const spVal = spSnap.val() || {};
     const sponsors = Object.entries(spVal).map(([id, v]: [string, any]) => ({ id, ...v }));
-    setFooterData({
-      sponsors,
-      social: soSnap.val() || {},
-      defaultSponsorLink: dlSnap.val() || "",
-    });
+    setFooterData({ sponsors, social: soSnap.val() || {}, defaultSponsorLink: dlSnap.val() || "" });
     const gsVal = gSnap.val() || {};
     if (Object.keys(gsVal).length > 0) {
-      const arr = Object.entries(gsVal)
-        .map(([id, s]: [string, any]) => ({ id, ...s }))
-        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
-      setGuideSections(arr as GuideSection[]);
+      setGuideSections(Object.entries(gsVal).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
     }
   }
 
-  // ── On mount: restore session + check #admin hash + Firebase auth state ──
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
     if (window.location.hash === "#admin") {
       const unsub = auth.onAuthStateChanged(user => {
-        if (user) {
-          setAdminLoggedIn(true);
-          setScreen("admin");
-        } else {
-          setScreen("admin-login");
-        }
+        if (user) { setAdminLoggedIn(true); navigate("/admin"); }
+        else { navigate("/admin-login"); }
         setLoading(false);
       });
-      return () => unsub();
-    }
-    if (window.location.hash === "#guide") {
-      setScreen("guide");
+      cleanup = () => unsub();
+    } else if (window.location.hash === "#guide") {
+      navigate("/guide");
       setLoading(false);
-      return;
+    } else {
+      const saved = loadSession();
+      if (saved) setUserName(saved);
+      setLoading(false);
+      preloadSharedData();
     }
-
-    const saved = loadSession();
-    if (saved) setUserName(saved);
-    setScreen("home");
-    setLoading(false);
-    preloadSharedData();
-    return;
+    return cleanup;
   }, []);
 
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }
   function unload() { setLoading(false); }
-  function go(s: Screen) { setScreen(s); }
 
   function handleRegistered(name: string) {
     setUserName(name);
@@ -147,22 +130,18 @@ export default function App() {
     setShowReg(false);
   }
 
+  // ── centers ──
   async function openCenters() {
     if (Object.keys(govs).length === 0) {
       load("جارٍ تحميل المراكز...");
-      const [g, a, c] = await Promise.all([
-        db.ref("governorates").once("value"),
-        db.ref("areas").once("value"),
-        db.ref("centers").once("value"),
-      ]);
-      setGovs(g.val() || {});
-      setAreas(a.val() || {});
-      setCenters(c.val() || {});
+      const [g, a, c] = await Promise.all([db.ref("governorates").once("value"), db.ref("areas").once("value"), db.ref("centers").once("value")]);
+      setGovs(g.val() || {}); setAreas(a.val() || {}); setCenters(c.val() || {});
       unload();
     }
-    go("centers");
+    navigate("/centers");
   }
 
+  // ── questions ──
   async function openCategories() {
     if (Object.keys(questions).length === 0) {
       load("جارٍ تحميل الأسئلة...");
@@ -170,135 +149,134 @@ export default function App() {
       setQuestions(snap.val() || {});
       unload();
     }
-    go("categories");
+    navigate("/categories");
+  }
+
+  function getCatQs(cat: string) {
+    return Object.values(questions).filter(q => matchCat(q.category) === cat);
   }
 
   function startStudy(cat: string) {
-    const qs = Object.values(questions).filter(q => matchCat(q.category) === cat);
+    const qs = getCatQs(cat);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
-    setStudyCat(cat);
     setStudyQs(qs);
-    go("study");
+    navigate(`/study/${encodeURIComponent(cat)}`);
   }
 
   function startTest(cat: string) {
-    const qs = Object.values(questions)
-      .filter(q => matchCat(q.category) === cat)
-      .sort(() => Math.random() - 0.5);
+    const qs = getCatQs(cat).sort(() => Math.random() - 0.5);
     if (!qs.length) { alert("لا توجد أسئلة في هذا القسم بعد."); return; }
-    setStudyCat(cat);
     setTestQs(qs);
-    go("test");
+    navigate(`/test/${encodeURIComponent(cat)}`);
   }
 
   function handleResult(ok: number, total: number) {
-    setResultOk(ok);
-    setResultTotal(total);
-    go("result");
+    setResultOk(ok); setResultTotal(total);
+    navigate("/result");
   }
 
+  // ── exam ──
   async function openExam() {
     let allQs: Question[] = Object.values(questions);
     if (allQs.length === 0) {
       load("جارٍ تحميل أسئلة الامتحان...");
       const snap = await db.ref("questions").once("value");
       const data = snap.val() || {};
-      setQuestions(data);
-      allQs = Object.values(data) as Question[];
+      setQuestions(data); allQs = Object.values(data) as Question[];
       unload();
     }
     setExamQs(allQs);
-    go("exam-rules");
+    navigate("/exam-rules");
   }
 
   function startExam() {
     if (!loadSession()) { setShowReg(true); return; }
-    go("exam");
+    navigate("/exam");
   }
 
-  function handleExamFinish(ok: number, wrong: number, total: number, skipped: number) {
-    setExamOk(ok);
-    setExamWrong(wrong);
-    setExamTotal(total);
-    setExamSkipped(skipped);
-    go("exam-result");
-  }
+  const handleExamFinish = useCallback((ok: number, wrong: number, total: number, skipped: number) => {
+    setExamOk(ok); setExamWrong(wrong); setExamTotal(total); setExamSkipped(skipped);
+    navigate("/exam-result");
+  }, [navigate]);
 
-  function retryExam() {
-    go("exam-rules");
-  }
-
+  // ── question counts ──
   const qCounts: Record<string, number> = {};
   for (const q of Object.values(questions)) {
-    if (q.category) {
-      const display = matchCat(q.category);
-      qCounts[display] = (qCounts[display] || 0) + 1;
-    }
+    if (q.category) { const d = matchCat(q.category); qCounts[d] = (qCounts[d] || 0) + 1; }
   }
+
+  // ── admin ──
+  function handleAdminLogin() { setAdminLoggedIn(true); navigate("/admin"); }
+  function handleAdminLogout() { auth.signOut(); setAdminLoggedIn(false); navigate("/"); }
 
   return (
     <div className="shell">
-      {screen === "home"       && (
-        <HomeScreen
-          name={userName}
-          onExam={openExam}
-          onStudy={openCategories}
-          onCenters={openCenters}
-          onGuide={() => go("guide")}
-          footerData={footerData}
-        />
-      )}
-      {screen === "centers"    && (
-        <CentersScreen govs={govs} areas={areas} centers={centers} onBack={() => go("home")} />
-      )}
-      {screen === "categories" && (
-        <CategoriesScreen
-          cats={CATS} qCounts={qCounts}
-          onBack={() => go("home")}
-          onStudy={startStudy}
-          onTest={startTest}
-        />
-      )}
-      {screen === "study"      && (
-        <StudyScreen qs={studyQs} cat={studyCat} onBack={() => go("categories")} />
-      )}
-      {screen === "test"       && (
-        <TestScreen qs={testQs} cat={studyCat} onBack={() => go("categories")} onFinish={handleResult} />
-      )}
-      {screen === "result"     && (
-        <ResultScreen
-          ok={resultOk} total={resultTotal}
-          onBack={() => go("categories")}
-          onRetry={() => startTest(studyCat)}
-        />
-      )}
-      {screen === "exam-rules" && (
-        <ExamRulesScreen onStart={startExam} onBack={() => go("home")} />
-      )}
-      {screen === "exam" && examQs.length > 0 && (
-        <ExamScreen allQuestions={examQs} onFinish={handleExamFinish} onBack={() => go("exam-rules")} />
-      )}
-      {screen === "exam-result" && (
-        <ExamResultScreen
-          ok={examOk} wrong={examWrong} total={examTotal} skipped={examSkipped}
-          onRetry={retryExam} onHome={() => go("home")}
-        />
-      )}
-      {screen === "guide" && <GuideScreen onBack={() => go("home")} initialSections={guideSections} />}
-      {screen === "admin-login" && (
-        <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
-      )}
-      {screen === "admin" && (
-        adminLoggedIn
-          ? <AdminScreen onBack={() => { auth.signOut(); setAdminLoggedIn(false); go("home"); }} />
-          : <AdminLoginScreen onLogin={() => { setAdminLoggedIn(true); setScreen("admin"); }} />
-      )}
+      <Routes>
+        <Route path="/" element={
+          <HomeScreen
+            name={userName}
+            onExam={openExam}
+            onStudy={openCategories}
+            onCenters={openCenters}
+            onGuide={() => navigate("/guide")}
+            footerData={footerData}
+          />
+        } />
+        <Route path="/centers" element={
+          <CentersScreen govs={govs} areas={areas} centers={centers} onBack={() => navigate("/")} />
+        } />
+        <Route path="/categories" element={
+          <CategoriesScreen cats={CATS} qCounts={qCounts} onBack={() => navigate("/")} onStudy={startStudy} onTest={startTest} />
+        } />
+        <Route path="/study/:cat" element={
+          <StudyScreenWrapper qs={studyQs} onBack={() => navigate("/categories")} />
+        } />
+        <Route path="/test/:cat" element={
+          <TestScreenWrapper qs={testQs} onBack={() => navigate("/categories")} onFinish={handleResult} />
+        } />
+        <Route path="/result" element={
+          <ResultScreen ok={resultOk} total={resultTotal} onBack={() => navigate("/categories")} onRetry={() => startTest(studyQs[0]?.category || "")} />
+        } />
+        <Route path="/exam-rules" element={
+          <ExamRulesScreen onStart={startExam} onBack={() => navigate("/")} />
+        } />
+        <Route path="/exam" element={
+          examQs.length > 0 ? <ExamScreen allQuestions={examQs} onFinish={handleExamFinish} onBack={() => navigate("/exam-rules")} />
+            : <ExamRulesScreen onStart={startExam} onBack={() => navigate("/")} />
+        } />
+        <Route path="/exam-result" element={
+          <ExamResultScreen ok={examOk} wrong={examWrong} total={examTotal} skipped={examSkipped} onRetry={() => navigate("/exam-rules")} onHome={() => navigate("/")} />
+        } />
+        <Route path="/guide" element={
+          <GuideScreen onBack={() => navigate("/")} initialSections={guideSections} />
+        } />
+        <Route path="/admin-login" element={
+          <AdminLoginScreen onLogin={handleAdminLogin} />
+        } />
+        <Route path="/admin" element={
+          adminLoggedIn
+            ? <AdminScreen onBack={handleAdminLogout} />
+            : <AdminLoginScreen onLogin={handleAdminLogin} />
+        } />
+      </Routes>
       {loading && <Loading msg={loadMsg} />}
-      <RegisterModal
-        open={showReg}
-        onClose={() => setShowReg(false)}
-        onSuccess={handleRegistered}
-      />
+      <RegisterModal open={showReg} onClose={() => setShowReg(false)} onSuccess={handleRegistered} />
     </div>
   );
 }
+
+/* ── Wrappers that read :cat param and pass it to inner screens ── */
+
+function StudyScreenWrapper({ qs, onBack }: { qs: Question[]; onBack: () => void }) {
+  const { cat } = useParams<{ cat: string }>();
+  const catName = decodeURIComponent(cat || "");
+  return <StudyScreen qs={qs} cat={catName} onBack={onBack} />;
+}
+
+function TestScreenWrapper({ qs, onBack, onFinish }: { qs: Question[]; onBack: () => void; onFinish: (ok: number, total: number) => void }) {
+  const { cat } = useParams<{ cat: string }>();
+  const catName = decodeURIComponent(cat || "");
+  return <TestScreen qs={qs} cat={catName} onBack={onBack} onFinish={onFinish} />;
+}
+
+export default function App() { return <AppRoutes />; }
