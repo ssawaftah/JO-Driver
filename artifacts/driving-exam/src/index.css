@@ -47,19 +47,26 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  align-items: center;
   background: var(--bg);
 }
 
 .shell {
   width: 100%;
-  max-width: 430px;
   min-height: 100dvh;
   background: #fff;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
+}
+
+/* Responsive: on desktop center content with comfortable max-width */
+@media (min-width: 768px) {
+  .shell {
+    max-width: 720px;
+    margin: 0 auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.06);
+  }
 }
 
 /* Scrollable screen content */
