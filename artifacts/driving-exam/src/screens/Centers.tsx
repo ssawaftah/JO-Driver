@@ -551,26 +551,19 @@ export default function Centers({ govs, areas, centers }: Props) {
 
       <Header />
 
-      {/* ── Local header content ── */}
-      <div style={{
-        background: "#fff",
-        borderBottom: "1.5px solid #F0F1F3",
-        flexShrink: 0,
-      }}>
-        {/* Top bar */}
-        <div style={{
-          padding: "14px 16px",
-        }}>
-          <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>مراكز التدريب</h1>
-            <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 1 }}>
-              {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد`}
-            </p>
-          </div>
+      {/* ── Everything scrolls together ── */}
+      <div ref={listRef} style={{ flex: 1, overflowY: "auto" }}>
+
+        {/* Local header */}
+        <div style={{ background: "#fff", borderBottom: "1.5px solid #F0F1F3", padding: "14px 16px" }}>
+          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>مراكز التدريب</h1>
+          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 1 }}>
+            {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد`}
+          </p>
         </div>
 
         {/* Search */}
-        <div style={{ padding: "0 16px 12px", position: "relative" }}>
+        <div style={{ padding: "12px 16px", position: "relative", background: "#fff" }}>
           <i className="ph ph-magnifying-glass" style={{
             position: "absolute", right: 30, top: "50%",
             transform: "translateY(-50%)",
@@ -581,7 +574,7 @@ export default function Centers({ govs, areas, centers }: Props) {
             placeholder="ابحث عن مركز..."
             value={q}
             onChange={e => setQ(e.target.value)}
-            style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12 }}
+            style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, width: "100%" }}
           />
         </div>
 
@@ -589,6 +582,7 @@ export default function Centers({ govs, areas, centers }: Props) {
         <div style={{
           display: "flex", gap: 7, overflowX: "auto",
           padding: "0 16px 12px", scrollbarWidth: "none",
+          background: "#fff",
         }}>
           {[{ id: null as string | null, name: "الكل" }, ...govList].map(g => {
             const sel = govId === g.id;
@@ -608,11 +602,12 @@ export default function Centers({ govs, areas, centers }: Props) {
           })}
         </div>
 
-        {/* Area chips — only when a gov is selected and has areas */}
+        {/* Area chips */}
         {govAreas.length > 0 && (
           <div style={{
             display: "flex", gap: 6, overflowX: "auto",
             padding: "0 16px 12px", scrollbarWidth: "none",
+            background: "#fff",
           }}>
             {[{ id: null as string | null, name: "كل المناطق" }, ...govAreas].map(a => {
               const sel = areaId === a.id;
@@ -632,35 +627,31 @@ export default function Centers({ govs, areas, centers }: Props) {
             })}
           </div>
         )}
-      </div>
 
-      {/* ── Centers list (scrollable) ── */}
-      <div
-        ref={listRef}
-        style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "14px 14px", display: "flex", flexDirection: "column", gap: 10 }}
-      >
-        {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "64px 0", color: "#9CA3AF" }}>
-            <i className="ph ph-map-pin-simple-slash" style={{ fontSize: 48, display: "block", marginBottom: 12, color: "#D1D5DB" }} />
-            <p style={{ fontSize: 15, fontWeight: 700, color: "#374151", marginBottom: 6 }}>لا توجد مراكز</p>
-            <p style={{ fontSize: 13 }}>جرّب تغيير المحافظة أو كلمة البحث</p>
-          </div>
-        ) : (
-          filtered.map((c) => (
-            <CenterCard
-              key={c.id}
-              c={c}
-              govName={govId ? govName : (
-                c.governorateId ? (govs[c.governorateId]?.name || "") :
-                c.areas?.[0] ? (govs[areas[c.areas[0].id]?.governorateId]?.name || "") : ""
-              )}
-            />
-          ))
-        )}
-      </div>
+        {/* Centers list */}
+        <div style={{ padding: "14px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "64px 0", color: "#9CA3AF" }}>
+              <i className="ph ph-map-pin-simple-slash" style={{ fontSize: 48, display: "block", marginBottom: 12, color: "#D1D5DB" }} />
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#374151", marginBottom: 6 }}>لا توجد مراكز</p>
+              <p style={{ fontSize: 13 }}>جرّب تغيير المحافظة أو كلمة البحث</p>
+            </div>
+          ) : (
+            filtered.map((c) => (
+              <CenterCard
+                key={c.id}
+                c={c}
+                govName={govId ? govName : (
+                  c.governorateId ? (govs[c.governorateId]?.name || "") :
+                  c.areas?.[0] ? (govs[areas[c.areas[0].id]?.governorateId]?.name || "") : ""
+                )}
+              />
+            ))
+          )}
+        </div>
 
-      {/* Footer sits below scrollable area */}
-      <AppFooter initialData={null} />
+        <AppFooter initialData={null} />
+      </div>
     </div>
   );
 }
