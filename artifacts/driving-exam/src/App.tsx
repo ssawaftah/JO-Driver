@@ -198,8 +198,6 @@ export default function App() {
   }
 
   async function openExam() {
-    const saved = loadSession();
-    if (!saved) { setShowReg(true); return; }
     let allQs: Question[] = Object.values(questions);
     if (allQs.length === 0) {
       load("جارٍ تحميل أسئلة الامتحان...");
@@ -214,6 +212,7 @@ export default function App() {
   }
 
   function startExam() {
+    if (!loadSession()) { setShowReg(true); return; }
     go("exam");
   }
 
