@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../lib/firebase";
 import firebase from "firebase/compat/app";
 
@@ -26,17 +26,28 @@ export default function PhoneAuthModal({
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
   const [googleUser, setGoogleUser] = useState<firebase.User | null>(null);
+  const savingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!open) {
       setName(""); setPhone(""); setAnonymous(false);
       setStep("login"); setErr(""); setSaving(false);
       setGoogleUser(null);
+      if (savingTimerRef.current) {
+        clearTimeout(savingTimerRef.current);
+        savingTimerRef.current = null;
+      }
     }
   }, [open]);
 
   async function signInWithGoogle() {
     setErr(""); setSaving(true);
+    // Safety timeout: if popup hangs silently, reset button after 10 seconds
+    savingTimerRef.current = setTimeout(() => {
+      setSaving(false);
+      savingTimerRef.current = null;
+    }, 10000);
+
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope("email");
@@ -77,8 +88,13 @@ export default function PhoneAuthModal({
       else if (code.includes("operation-not-allowed")) userMsg = "تسجيل الدخول بواسطة Google غير مفعل. اذهب إلى Authentication > Sign-in method وفعّل 'Google'.";
       else if (error?.message) userMsg = error.message;
       setErr(userMsg);
+    } finally {
+      if (savingTimerRef.current) {
+        clearTimeout(savingTimerRef.current);
+        savingTimerRef.current = null;
+      }
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   async function saveDetails(e: React.FormEvent) {
