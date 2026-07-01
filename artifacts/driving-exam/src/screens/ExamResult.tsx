@@ -1,5 +1,13 @@
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
+import ReviewModal from "../components/ReviewModal";
+import { db } from "../lib/firebase";
+
+const SESSION_KEY = "dex_user";
+function loadSession(): { name: string; key: string } | null {
+  try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
+}
 
 interface Props {
   ok: number;
@@ -11,8 +19,22 @@ interface Props {
 }
 
 export default function ExamResult({ ok, wrong, total, skipped, onRetry, onHome }: Props) {
+  const [showReview, setShowReview] = useState(false);
   const passed = wrong <= 9 && ok >= 51;
   const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
+
+  useEffect(() => {
+    const session = loadSession();
+    if (!session) return;
+    db.ref("reviews").once("value").then(snap => {
+      const val = snap.val() || {};
+      const already = Object.values(val).some((r: any) => r.reviewerKey === session.key);
+      if (!already) {
+        const timer = setTimeout(() => setShowReview(true), 800);
+        return () => clearTimeout(timer);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Circle SVG
   const r = 52, circ = 2 * Math.PI * r;
@@ -144,6 +166,14 @@ export default function ExamResult({ ok, wrong, total, skipped, onRetry, onHome 
         </button>
       </div>
       <AppFooter />
+
+      <ReviewModal
+        open={showReview}
+        onClose={() => setShowReview(false)}
+        context="exam"
+        title="قيّم تجربة الامتحان"
+        subtitle="كيف كان الامتحان النظري ؟"
+      />
     </div>
   );
 }

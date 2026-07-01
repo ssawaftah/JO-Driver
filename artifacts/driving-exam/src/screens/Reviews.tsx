@@ -117,7 +117,7 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
       }
       // User exists → publish
       const displayName = postAsAnonymous ? "مجهول" : session.name;
-      await db.ref("reviews").push({ name: displayName, stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() });
+      await db.ref("reviews").push({ name: displayName, stars: reviewStars, comment: reviewComment.trim(), reviewerKey: session.key, createdAt: new Date().toISOString() });
       setReviewStars(0); setReviewComment(""); setPostAsAnonymous(false);
       setReviewMsg("شكراً! تم نشر رأيك بنجاح");
       const snap = await db.ref("reviews").once("value");
@@ -220,7 +220,7 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
           if (key.startsWith("anon_")) {
             if (reviewStars === 0) return;
             setReviewSaving(true);
-            db.ref("reviews").push({ name: "مجهول", stars: reviewStars, comment: reviewComment.trim(), createdAt: new Date().toISOString() })
+            db.ref("reviews").push({ name: "مجهول", stars: reviewStars, comment: reviewComment.trim(), reviewerKey: key, createdAt: new Date().toISOString() })
               .then(() => {
                 setReviewStars(0); setReviewComment("");
                 setReviewMsg("شكراً! تم نشر رأيك بنجاح");

@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Question } from "../types";
 import Header from "../components/Header";
+import ReviewModal from "../components/ReviewModal";
+import { db } from "../lib/firebase";
+
+const SESSION_KEY = "dex_user";
+function loadSession(): { name: string; key: string } | null {
+  try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
+}
 
 interface Props {
   qs: Question[];
@@ -10,6 +17,7 @@ interface Props {
 
 export default function Study({ qs, cat, onBack }: Props) {
   const [idx, setIdx] = useState(0);
+  const [showReview, setShowReview] = useState(false);
   const q = qs[idx];
   const total = qs.length;
   const pct = Math.round(((idx + 1) / total) * 100);
@@ -144,7 +152,18 @@ export default function Study({ qs, cat, onBack }: Props) {
             </button>
           ) : (
             <button
-              onClick={onBack}
+              onClick={async () => {
+                const session = loadSession();
+                if (session) {
+                  try {
+                    const snap = await db.ref("reviews").once("value");
+                    const val = snap.val() || {};
+                    const already = Object.values(val).some((r: any) => r.reviewerKey === session.key);
+                    if (!already) { setShowReview(true); return; }
+                  } catch {}
+                }
+                onBack();
+              }}
               style={{
                 flex: 1, height: 48, borderRadius: 13, border: "none",
                 background: "#16A34A", color: "#fff",
@@ -157,6 +176,14 @@ export default function Study({ qs, cat, onBack }: Props) {
             </button>
           )}
       </div>
+
+      <ReviewModal
+        open={showReview}
+        onClose={() => { setShowReview(false); onBack(); }}
+        context="test"
+        title="قيّم تجربة المراجعة"
+        subtitle="كيف كانت تجربة المراجعة معنا؟"
+      />
     </div>
   );
 }

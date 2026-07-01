@@ -1,5 +1,13 @@
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
+import ReviewModal from "../components/ReviewModal";
+import { db } from "../lib/firebase";
+
+const SESSION_KEY = "dex_user";
+function loadSession(): { name: string; key: string } | null {
+  try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
+}
 
 interface Props {
   ok: number;
@@ -9,9 +17,23 @@ interface Props {
 }
 
 export default function Result({ ok, total, onBack, onRetry }: Props) {
+  const [showReview, setShowReview] = useState(false);
   const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
   const passed = pct >= 70;
   const wrong = total - ok;
+
+  useEffect(() => {
+    const session = loadSession();
+    if (!session) return;
+    db.ref("reviews").once("value").then(snap => {
+      const val = snap.val() || {};
+      const already = Object.values(val).some((r: any) => r.reviewerKey === session.key);
+      if (!already) {
+        const timer = setTimeout(() => setShowReview(true), 800);
+        return () => clearTimeout(timer);
+      }
+    }).catch(() => {});
+  }, []);
 
   const grade =
     pct >= 90 ? "ممتاز 🌟" :
@@ -109,6 +131,14 @@ export default function Result({ ok, total, onBack, onRetry }: Props) {
         </button>
       </div>
       <AppFooter />
+
+      <ReviewModal
+        open={showReview}
+        onClose={() => setShowReview(false)}
+        context="test"
+        title="قيّم تجربة الاختبار"
+        subtitle="كيف كان الاختبار ؟"
+      />
     </div>
   );
 }
