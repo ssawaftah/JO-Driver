@@ -29,3 +29,27 @@ id = "zPBVPJfo8QNMeUE5tbGzO"
 uri = "file://screenshots/admin-menu-v2.jpg"
 type = "image"
 title = "لوحة التحكم الرئيسية - التصميم المحسن"
+
+[[outputs]]
+id = "zrEYOPEi1QmT2j6ny_SPQ"
+uri = "file://attached_assets/screenshots/66532e2b-4df6-4fe5-a9f5-3d6cc128ad5b-00-1bxbctzwe2svm_sisko_replit_dev_mockup_preview_admin-dashboard_Current.png"
+type = "image"
+title = "1. Current (Original)"
+
+[[outputs]]
+id = "wImPyH5cR7tlcLZULF3HI"
+uri = "file://attached_assets/screenshots/66532e2b-4df6-4fe5-a9f5-3d6cc128ad5b-00-1bxbctzwe2svm_sisko_replit_dev_mockup_preview_admin-dashboard_Bold.png"
+type = "image"
+title = "2. Bold — Dark High Contrast"
+
+[[outputs]]
+id = "VHIFN4TIXxivJSk4w-ymZ"
+uri = "file://attached_assets/screenshots/66532e2b-4df6-4fe5-a9f5-3d6cc128ad5b-00-1bxbctzwe2svm_sisko_replit_dev_mockup_preview_admin-dashboard_Modern.png"
+type = "image"
+title = "3. Modern — Clean Light"
+
+[[outputs]]
+id = "ZfGmhNa_hvVgdaqLGPaGx"
+uri = "file://attached_assets/screenshots/66532e2b-4df6-4fe5-a9f5-3d6cc128ad5b-00-1bxbctzwe2svm_sisko_replit_dev_mockup_preview_admin-dashboard_Dark.png"
+type = "image"
+title = "4. Dark — Sleek Neon"
