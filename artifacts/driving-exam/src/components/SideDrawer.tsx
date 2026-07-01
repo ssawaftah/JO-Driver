@@ -9,7 +9,7 @@ const links = [
   { icon: "pencil-line",   color: "#16A34A", path: "/exam-rules",  label: "الامتحان النظري"     },
   { icon: "book-open",     color: "#2563EB", path: "/categories",  label: "دراسة الأسئلة"        },
   { icon: "map-pin",       color: "#D97706", path: "/centers",     label: "مراكز التدريب"         },
-  { icon: "book-open-text", color: "#7C3AED", path: "/guide",       label: "دليل الامتحان النظري" },
+  { icon: "book-open-text", color: "#7C3AED", path: "/guide",       label: "دليل الطالب" },
 ];
 
 export default function SideDrawer({ open, onClose }: Props) {

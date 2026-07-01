@@ -11,7 +11,7 @@ const FEATURES = [
   { icon: "exam",           title: "امتحان نظري كامل",      desc: "60 سؤال · 60 دقيقة · نفس معايير دائرة الترخيص" },
   { icon: "books",          title: "دراسة حسب الأقسام",     desc: "مراجعة موضوع بموضوع مع شرح تفصيلي لكل إجابة"   },
   { icon: "map-pin-simple", title: "مراكز التدريب",         desc: "ابحث عن أقرب مركز معتمد حسب المحافظة والمنطقة"  },
-  { icon: "book-open-text",  title: "دليل الامتحان النظري",   desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة"         },
+  { icon: "book-open-text",  title: "دليل الطالب",   desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة"         },
 ];
 
 export default function Register({ onSuccess, onLoad, onUnload }: Props) {
