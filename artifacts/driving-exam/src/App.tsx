@@ -17,6 +17,7 @@ import ExamResultScreen from "./screens/ExamResult";
 import GuideScreen from "./screens/Faq";
 import AdminLoginScreen from "./screens/AdminLogin";
 import AdminScreen from "./screens/Admin";
+import CentersJoinScreen from "./screens/CentersJoin";
 
 const CATS = [
   "قواعد السير والمرور",
@@ -224,6 +225,9 @@ function AppRoutes() {
         } />
         <Route path="/centers" element={
           <CentersScreen govs={govs} areas={areas} centers={centers} />
+        } />
+        <Route path="/centers/join" element={
+          <CentersJoinScreen govs={govs} areas={areas} />
         } />
         <Route path="/categories" element={
           <CategoriesScreen cats={CATS} qCounts={qCounts} onStudy={startStudy} onTest={startTest} />

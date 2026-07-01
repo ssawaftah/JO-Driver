@@ -8,6 +8,7 @@ export default function Header({ onMenuOpen }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/" || location.pathname === "";
+  const isCenters = location.pathname === "/centers";
 
   return (
     <header style={{
@@ -15,7 +16,8 @@ export default function Header({ onMenuOpen }: Props) {
       background: "#fff",
       borderBottom: "1px solid #E5E7EB",
       padding: "12px 16px",
-      display: "flex", alignItems: "center", gap: 12,
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      gap: 12,
     }}>
       {/* Left group: button + logo (always side-by-side) */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -63,6 +65,24 @@ export default function Header({ onMenuOpen }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Join button — only on /centers */}
+      {isCenters && (
+        <button
+          onClick={() => navigate("/centers/join")}
+          style={{
+            padding: "8px 14px", borderRadius: 10,
+            background: "#246BFD", color: "#fff",
+            fontSize: 12, fontWeight: 800,
+            border: "none", cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 5,
+            flexShrink: 0,
+          }}
+        >
+          <i className="ph ph-plus" />
+          انضمام
+        </button>
+      )}
     </header>
   );
 }

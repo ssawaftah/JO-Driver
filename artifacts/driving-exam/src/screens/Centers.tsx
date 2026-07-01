@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Governorate, Area, Center } from "../types";
 import AppFooter from "../components/Footer";
 import Header from "../components/Header";
@@ -192,7 +193,7 @@ export function JoinRequestForm({ govs, areas, onClose }: {
   const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
   const [mapLink, setMapLink] = useState("");
   const [rating, setRating] = useState("0");
-  const [startHour, setStartHour] = useState("8:00");
+  const [startHour, setStartHour] = useState("08:00");
   const [endHour, setEndHour] = useState("16:00");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -489,7 +490,6 @@ export default function Centers({ govs, areas, centers }: Props) {
   const [govId, setGovId] = useState<string | null>(null);
   const [areaId, setAreaId] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [showJoinForm, setShowJoinForm] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   const govList = useMemo(() =>
@@ -546,10 +546,6 @@ export default function Centers({ govs, areas, centers }: Props) {
 
   const totalCenters = Object.keys(centers).length;
 
-  if (showJoinForm) {
-    return <JoinRequestForm govs={govs} areas={areas} onClose={() => setShowJoinForm(false)} />;
-  }
-
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#F9FAFB" }}>
 
@@ -571,20 +567,6 @@ export default function Centers({ govs, areas, centers }: Props) {
               {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد`}
             </p>
           </div>
-          <button
-            onClick={() => setShowJoinForm(true)}
-            style={{
-              padding: "8px 14px", borderRadius: 10,
-              background: "#246BFD", color: "#fff",
-              fontSize: 12, fontWeight: 800,
-              border: "none", cursor: "pointer", fontFamily: "inherit",
-              display: "flex", alignItems: "center", gap: 5,
-              flexShrink: 0,
-            }}
-          >
-            <i className="ph ph-plus" />
-            انضمام
-          </button>
         </div>
 
         {/* Search */}
@@ -652,7 +634,7 @@ export default function Centers({ govs, areas, centers }: Props) {
         )}
       </div>
 
-      {/* ── Centers list ── */}
+      {/* ── Centers list (scrollable) ── */}
       <div
         ref={listRef}
         style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "14px 14px", display: "flex", flexDirection: "column", gap: 10 }}
@@ -675,8 +657,10 @@ export default function Centers({ govs, areas, centers }: Props) {
             />
           ))
         )}
-        <AppFooter initialData={null} />
       </div>
+
+      {/* Footer sits below scrollable area */}
+      <AppFooter initialData={null} />
     </div>
   );
 }
