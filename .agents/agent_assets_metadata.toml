@@ -6,6 +6,18 @@ uri = "file://attached_assets/generated_images/a_professional_open_graph_288d.pn
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "iZST32Q9Xwzq3fskGrE6h"
+uri = "file://artifacts/driving-exam/public/opengraph-new.png"
+type = "image"
+title = "jo-driver-og-banner"
+
+[[generated]]
+id = "uIe8kIjA6sbfokgh7JJam"
+uri = "file://artifacts/driving-exam/public/opengraph-final.png"
+type = "image"
+title = "jo-driver-og-final"
+
 [[outputs]]
 id = "dmtCMdI4mM99crSmiH2S8"
 uri = "file://screenshots/admin-dashboard-menu.jpg"
