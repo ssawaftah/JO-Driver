@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { db } from "../lib/firebase";
-import { getTelegramUser } from "../lib/telegram";
 
 interface Props {
   onSuccess: (name: string) => void;
@@ -16,8 +15,7 @@ const FEATURES = [
 ];
 
 export default function Register({ onSuccess, onLoad, onUnload }: Props) {
-  const tgUser = getTelegramUser();
-  const [name, setName] = useState(tgUser?.first_name || "");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [err, setErr] = useState("");
 
@@ -30,15 +28,11 @@ export default function Register({ onSuccess, onLoad, onUnload }: Props) {
 
     onLoad("جارً التسجيل...");
     try {
-      const key = tgUser?.id
-        ? String(tgUser.id)
-        : "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+      const key = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 
       await db.ref("users/" + key).set({
         name: n,
         phone: p,
-        username: tgUser?.username || "",
-        userId: tgUser?.id || null,
         registeredAt: new Date().toISOString(),
       });
       onUnload();

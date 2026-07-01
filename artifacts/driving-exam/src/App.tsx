@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { db, auth } from "./lib/firebase";
-import { initTelegram, getTelegramUser } from "./lib/telegram";
 import type { Screen, Question, Governorate, Area, Center, FooterData, GuideSection } from "./types";
 
 import RegisterScreen from "./screens/Register";
@@ -112,8 +111,6 @@ export default function App() {
 
   // ── On mount: restore session + check #admin hash + Firebase auth state ──
   useEffect(() => {
-    initTelegram();
-
     if (window.location.hash === "#admin") {
       const unsub = auth.onAuthStateChanged(user => {
         if (user) {
@@ -141,26 +138,8 @@ export default function App() {
       return;
     }
 
-    const tgUser = getTelegramUser();
-    if (tgUser?.id) {
-      db.ref("users/" + tgUser.id).once("value")
-        .then(snap => {
-          if (snap.exists()) {
-            const name = snap.val().name || tgUser.first_name || "";
-            setUserName(name);
-            saveSession(name);
-            setScreen("home");
-            preloadSharedData();
-          } else {
-            setScreen("register");
-          }
-        })
-        .catch(() => setScreen("register"))
-        .finally(() => setLoading(false));
-    } else {
-      setScreen("register");
-      setLoading(false);
-    }
+    setScreen("register");
+    setLoading(false);
     return;
   }, []);
 
