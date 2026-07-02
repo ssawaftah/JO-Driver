@@ -155,12 +155,32 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  /* Load govs/areas if not provided via props (e.g. direct link to /centers/join) */
+  const [loadedGovs, setLoadedGovs] = useState<Record<string, Governorate>>({});
+  const [loadedAreas, setLoadedAreas] = useState<Record<string, Area>>({});
+  const [loadingData, setLoadingData] = useState(false);
+
+  const activeGovs = useMemo(() => (Object.keys(govs).length ? govs : loadedGovs), [govs, loadedGovs]);
+  const activeAreas = useMemo(() => (Object.keys(areas).length ? areas : loadedAreas), [areas, loadedAreas]);
+
+  useEffect(() => {
+    if (Object.keys(govs).length > 0 && Object.keys(areas).length > 0) return;
+    setLoadingData(true);
+    Promise.all([
+      db.ref("governorates").once("value"),
+      db.ref("areas").once("value"),
+    ]).then(([gSnap, aSnap]) => {
+      setLoadedGovs(gSnap.val() || {});
+      setLoadedAreas(aSnap.val() || {});
+    }).finally(() => setLoadingData(false));
+  }, [govs, areas]);
+
   /* Merge prop areas + newly created local areas */
-  const allAreas = useMemo(() => ({ ...areas, ...localAreas }), [areas, localAreas]);
+  const allAreas = useMemo(() => ({ ...activeAreas, ...localAreas }), [activeAreas, localAreas]);
 
   const govList = useMemo(() =>
-    Object.entries(govs).map(([id, g]) => ({ id, ...g })).sort((a, b) => a.name.localeCompare(b.name, "ar")),
-    [govs]
+    Object.entries(activeGovs).map(([id, g]) => ({ id, ...g })).sort((a, b) => a.name.localeCompare(b.name, "ar")),
+    [activeGovs]
   );
 
   const govAreas = useMemo(() =>
@@ -360,8 +380,8 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           )}
 
           <div style={{ marginTop: 14 }}>
-            <Field label="اسم المركز" value={name} onChange={setName} placeholder="أدخل اسم المركز أو اجلبه من الرابط" />
-            <Field label="العنوان" value={address} onChange={setAddress} placeholder="المنطقة، الشارع، المبنى..." />
+            <Field label="اسم المركز" value={name} onChange={setName} placeholder={fetchDone ? "أدخل اسم المركز أو اجلبه من الرابط" : "عطّل لحين جلب البيانات — الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
+            <Field label="العنوان" value={address} onChange={setAddress} placeholder={fetchDone ? "المنطقة، الشارع، المبنى..." : "عطّل لحين جلب البيانات — الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
           </div>
 
           {step === 1 && (
@@ -568,7 +588,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
             </div>
 
             <div style={{ fontSize: 13, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
-              سيتم حفظ المنطقة تلقائياً في قاعدة البيانات وارتباطها بمحافظة <b>{govs[govId]?.name || "المحافظة المختارة"}</b>.
+              سيتم حفظ المنطقة تلقائياً في قاعدة البيانات وارتباطها بمحافظة <b>{activeGovs[govId]?.name || "المحافظة المختارة"}</b>.
             </div>
 
             <input
