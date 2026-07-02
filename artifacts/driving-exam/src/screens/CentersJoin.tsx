@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { db } from "../lib/firebase";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
 import type { Governorate, Area } from "../types";
@@ -53,6 +54,76 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
   );
 }
 
+/* Horizontal scrollable area chip list */
+function AreaChipList({
+  areas,
+  selectedIds,
+  onToggle,
+  onAddClick,
+}: {
+  areas: { id: string; name: string }[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  onAddClick: () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div>
+      <div
+        ref={scrollRef}
+        style={{
+          display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6,
+          scrollbarWidth: "thin", scrollbarColor: "#CBD5E1 transparent",
+        }}
+      >
+        {areas.map(a => {
+          const selected = selectedIds.includes(a.id);
+          return (
+            <button
+              key={a.id}
+              onClick={() => onToggle(a.id)}
+              style={{
+                flexShrink: 0,
+                padding: "8px 14px", borderRadius: 12,
+                border: `1.5px solid ${selected ? P : "#E5E7EB"}`,
+                background: selected ? PL : "#F9FAFB",
+                color: selected ? P : "#475569",
+                fontSize: 13, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit",
+                display: "flex", alignItems: "center", gap: 6,
+                transition: "all 0.15s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <i className={`ph ${selected ? "ph-check-circle" : "ph-circle"}`} style={{ fontSize: 16 }} />
+              {a.name}
+            </button>
+          );
+        })}
+        {/* Add-area chip */}
+        <button
+          onClick={onAddClick}
+          style={{
+            flexShrink: 0,
+            padding: "8px 14px", borderRadius: 12,
+            border: `1.5px dashed #9CA3AF`,
+            background: "#F9FAFB",
+            color: "#6B7280",
+            fontSize: 13, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 6,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <i className="ph ph-plus-circle" style={{ fontSize: 16, color: P }} />
+          إضافة منطقة
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CentersJoinScreen({ govs, areas }: Props) {
   const navigate = useNavigate();
 
@@ -74,19 +145,30 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
   const [rating, setRating] = useState("");
   const [reviewCount, setReviewCount] = useState("");
 
+  /* Add-area modal state */
+  const [showAddArea, setShowAddArea] = useState(false);
+  const [newAreaName, setNewAreaName] = useState("");
+  const [savingArea, setSavingArea] = useState(false);
+  const [areaError, setAreaError] = useState("");
+  const [localAreas, setLocalAreas] = useState<Record<string, Area>>({});
+
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  /* Merge prop areas + newly created local areas */
+  const allAreas = useMemo(() => ({ ...areas, ...localAreas }), [areas, localAreas]);
 
   const govList = useMemo(() =>
     Object.entries(govs).map(([id, g]) => ({ id, ...g })).sort((a, b) => a.name.localeCompare(b.name, "ar")),
     [govs]
   );
+
   const govAreas = useMemo(() =>
     govId
-      ? Object.entries(areas).filter(([, a]) => a.governorateId === govId)
+      ? Object.entries(allAreas).filter(([, a]) => a.governorateId === govId)
           .map(([id, a]) => ({ id, ...a })).sort((a, b) => a.name.localeCompare(b.name, "ar"))
       : [],
-    [areas, govId]
+    [allAreas, govId]
   );
 
   function toggleArea(id: string) {
@@ -103,20 +185,14 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
     setFetching(true);
     setFetchError("");
     setFetchDone(false);
-
     try {
       const res = await fetch("/api/places/lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
-      const data = await res.json() as {
-        name?: string; address?: string; error?: string;
-      };
-      if (!res.ok) {
-        setFetchError(data.error || "حدث خطأ أثناء جلب البيانات");
-        return;
-      }
+      const data = await res.json() as { name?: string; address?: string; error?: string };
+      if (!res.ok) { setFetchError(data.error || "حدث خطأ أثناء جلب البيانات"); return; }
       if (data.name) setName(data.name);
       if (data.address) setAddress(data.address);
       setFetchDone(true);
@@ -125,6 +201,27 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
     } finally {
       setFetching(false);
     }
+  }
+
+  async function saveNewArea() {
+    if (!newAreaName.trim()) { setAreaError("أدخل اسم المنطقة"); return; }
+    if (!govId) { setAreaError("اختر المحافظة أولاً"); return; }
+    setSavingArea(true); setAreaError("");
+    try {
+      const ref = db.ref("areas").push();
+      await ref.set({
+        name: newAreaName.trim(),
+        governorateId: govId,
+      });
+      const id = ref.key!;
+      setLocalAreas(prev => ({ ...prev, [id]: { id, name: newAreaName.trim(), governorateId: govId } }));
+      setSelectedAreaIds(prev => [...prev, id]);
+      setNewAreaName("");
+      setShowAddArea(false);
+    } catch {
+      setAreaError("حدث خطأ أثناء الحفظ. حاول مجدداً.");
+    }
+    setSavingArea(false);
   }
 
   async function submit() {
@@ -138,11 +235,10 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
 
     const firstOpen = schedule.find(d => !d.closed);
     const workingHours = firstOpen ? `${firstOpen.from} – ${firstOpen.to}` : "";
-    const areaObjs = selectedAreaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+    const areaObjs = selectedAreaIds.map(id => ({ id, name: allAreas[id]?.name || "" }));
 
     setSending(true);
     try {
-      const { db } = await import("../lib/firebase");
       await db.ref("centerRequests").push({
         name: name.trim(),
         address: address.trim() || null,
@@ -165,6 +261,14 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
     }
     setSending(false);
   }
+
+  /* Focus new-area input when modal opens */
+  const addAreaInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (showAddArea && addAreaInputRef.current) {
+      setTimeout(() => addAreaInputRef.current?.focus(), 50);
+    }
+  }, [showAddArea]);
 
   if (sent) {
     return (
@@ -210,10 +314,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
               onChange={e => setMapLink(e.target.value)}
               onPaste={e => {
                 const pasted = e.clipboardData.getData("text");
-                if (isGoogleMapsUrl(pasted)) setTimeout(() => {
-                  setMapLink(pasted);
-                  fetchFromMaps();
-                }, 80);
+                if (isGoogleMapsUrl(pasted)) setTimeout(() => { setMapLink(pasted); fetchFromMaps(); }, 80);
               }}
               placeholder="https://maps.google.com/maps/place/..."
               style={{
@@ -241,7 +342,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
               ) : (
                 <i className="ph ph-magnifying-glass" />
               )}
-              {fetching ? "جاري الجلب..." : "جلب البيانات"}
+              {fetching ? "جارٍ الجلب..." : "جلب البيانات"}
             </button>
           </div>
 
@@ -258,7 +359,6 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
             </div>
           )}
 
-          {/* Name + Address always visible in step 1 */}
           <div style={{ marginTop: 14 }}>
             <Field label="اسم المركز" value={name} onChange={setName} placeholder="أدخل اسم المركز أو اجلبه من الرابط" />
             <Field label="العنوان" value={address} onChange={setAddress} placeholder="المنطقة، الشارع، المبنى..." />
@@ -293,12 +393,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
               <Field label="رقم الهاتف" value={phone} onChange={setPhone} placeholder="07XXXXXXXX" type="tel" />
               <Field label="رقم الواتساب" value={samePhone ? phone : whatsapp} onChange={v => { if (!samePhone) setWhatsapp(v); }} placeholder="07XXXXXXXX" type="tel" readOnly={samePhone} />
               <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -6, cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#374151" }}>
-                <input
-                  type="checkbox"
-                  checked={samePhone}
-                  onChange={e => { setSamePhone(e.target.checked); if (e.target.checked) setWhatsapp(""); }}
-                  style={{ width: 16, height: 16, accentColor: P }}
-                />
+                <input type="checkbox" checked={samePhone} onChange={e => { setSamePhone(e.target.checked); if (e.target.checked) setWhatsapp(""); }} style={{ width: 16, height: 16, accentColor: P }} />
                 استخدام نفس رقم الهاتف
               </label>
             </div>
@@ -310,7 +405,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
                 <label style={{ fontSize: 12, fontWeight: 700, color: "#374151", display: "block", marginBottom: 6 }}>المحافظة</label>
                 <select
                   value={govId}
-                  onChange={e => { setGovId(e.target.value); setSelectedAreaIds([]); }}
+                  onChange={e => { setGovId(e.target.value); setSelectedAreaIds([]); setShowAddArea(false); }}
                   style={{
                     width: "100%", padding: "11px 14px", borderRadius: 10,
                     border: "1.5px solid #E5E7EB", background: "#F9FAFB",
@@ -322,27 +417,34 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
                 </select>
               </div>
 
-              {govAreas.length > 0 && (
+              {govId && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: "#374151", display: "block", marginBottom: 6 }}>المناطق المخدّمة</label>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {govAreas.map(a => (
-                      <button
-                        key={a.id}
-                        onClick={() => toggleArea(a.id)}
-                        style={{
-                          padding: "6px 12px", borderRadius: 10,
-                          border: `1.5px solid ${selectedAreaIds.includes(a.id) ? P : "#E5E7EB"}`,
-                          background: selectedAreaIds.includes(a.id) ? PL : "#F9FAFB",
-                          color: selectedAreaIds.includes(a.id) ? P : "#6B7280",
-                          fontSize: 12, fontWeight: 700,
-                          cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                        }}
-                      >
-                        <i className={`ph ph-${selectedAreaIds.includes(a.id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
-                        {a.name}
-                      </button>
-                    ))}
+                  <label style={{ fontSize: 12, fontWeight: 700, color: "#374151", display: "block", marginBottom: 8 }}>المناطق المخدّمة</label>
+                  <AreaChipList
+                    areas={govAreas}
+                    selectedIds={selectedAreaIds}
+                    onToggle={toggleArea}
+                    onAddClick={() => setShowAddArea(true)}
+                  />
+
+                  {/* "Didn't find area?" helper row */}
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "flex-start",
+                    gap: 8, marginTop: 10,
+                  }}>
+                    <span style={{ fontSize: 12, color: "#94A3B8" }}>لم تجد المنطقة المطلوبة؟</span>
+                    <button
+                      onClick={() => setShowAddArea(true)}
+                      style={{
+                        fontSize: 12, fontWeight: 800, color: P,
+                        background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4,
+                        padding: 0,
+                      }}
+                    >
+                      <i className="ph ph-plus-circle" style={{ fontSize: 14 }} />
+                      أضف منطقة
+                    </button>
                   </div>
                 </div>
               )}
@@ -376,42 +478,15 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
                           </span>
                         </td>
                         <td style={{ padding: "8px 4px", textAlign: "center" }}>
-                          <input
-                            type="time"
-                            value={schedule[i].from}
-                            onChange={e => updateDay(i, { from: e.target.value })}
-                            disabled={schedule[i].closed}
-                            style={{
-                              padding: "5px 6px", borderRadius: 8, fontSize: 12,
-                              border: "1.5px solid #E5E7EB", fontFamily: "inherit",
-                              background: schedule[i].closed ? "#F3F4F6" : "#F9FAFB",
-                              color: schedule[i].closed ? "#9CA3AF" : "#374151",
-                              width: 80,
-                            }}
-                          />
+                          <input type="time" value={schedule[i].from} onChange={e => updateDay(i, { from: e.target.value })} disabled={schedule[i].closed}
+                            style={{ padding: "5px 6px", borderRadius: 8, fontSize: 12, border: "1.5px solid #E5E7EB", fontFamily: "inherit", background: schedule[i].closed ? "#F3F4F6" : "#F9FAFB", color: schedule[i].closed ? "#9CA3AF" : "#374151", width: 80 }} />
                         </td>
                         <td style={{ padding: "8px 4px", textAlign: "center" }}>
-                          <input
-                            type="time"
-                            value={schedule[i].to}
-                            onChange={e => updateDay(i, { to: e.target.value })}
-                            disabled={schedule[i].closed}
-                            style={{
-                              padding: "5px 6px", borderRadius: 8, fontSize: 12,
-                              border: "1.5px solid #E5E7EB", fontFamily: "inherit",
-                              background: schedule[i].closed ? "#F3F4F6" : "#F9FAFB",
-                              color: schedule[i].closed ? "#9CA3AF" : "#374151",
-                              width: 80,
-                            }}
-                          />
+                          <input type="time" value={schedule[i].to} onChange={e => updateDay(i, { to: e.target.value })} disabled={schedule[i].closed}
+                            style={{ padding: "5px 6px", borderRadius: 8, fontSize: 12, border: "1.5px solid #E5E7EB", fontFamily: "inherit", background: schedule[i].closed ? "#F3F4F6" : "#F9FAFB", color: schedule[i].closed ? "#9CA3AF" : "#374151", width: 80 }} />
                         </td>
                         <td style={{ padding: "8px 4px", textAlign: "center" }}>
-                          <input
-                            type="checkbox"
-                            checked={schedule[i].closed}
-                            onChange={e => updateDay(i, { closed: e.target.checked })}
-                            style={{ width: 18, height: 18, accentColor: "#DC2626", cursor: "pointer" }}
-                          />
+                          <input type="checkbox" checked={schedule[i].closed} onChange={e => updateDay(i, { closed: e.target.checked })} style={{ width: 18, height: 18, accentColor: "#DC2626", cursor: "pointer" }} />
                         </td>
                       </tr>
                     ))}
@@ -455,13 +530,104 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
               }}
             >
               <i className="ph ph-paper-plane-right" style={{ fontSize: 18 }} />
-              {sending ? "جاري الإرسال..." : "إرسال الطلب"}
+              {sending ? "جارٍ الإرسال..." : "إرسال الطلب"}
             </button>
           </>
         )}
 
         <AppFooter />
       </div>
+
+      {/* ── Add Area Modal ── */}
+      {showAddArea && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 200,
+          background: "rgba(15,23,42,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 16,
+        }} onClick={e => { if (e.target === e.currentTarget) setShowAddArea(false); }}>
+          <div style={{
+            background: "#fff", borderRadius: 20,
+            width: "100%", maxWidth: 420,
+            padding: 24,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#0F172A" }}>إضافة منطقة جديدة</div>
+              <button
+                onClick={() => setShowAddArea(false)}
+                style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  border: "1.5px solid #E2E8F0", background: "#F8FAFC",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                <i className="ph ph-x" style={{ fontSize: 16, color: "#64748B" }} />
+              </button>
+            </div>
+
+            <div style={{ fontSize: 13, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
+              سيتم حفظ المنطقة تلقائياً في قاعدة البيانات وارتباطها بمحافظة <b>{govs[govId]?.name || "المحافظة المختارة"}</b>.
+            </div>
+
+            <input
+              ref={addAreaInputRef}
+              value={newAreaName}
+              onChange={e => { setNewAreaName(e.target.value); setAreaError(""); }}
+              onKeyDown={e => { if (e.key === "Enter") saveNewArea(); }}
+              placeholder="أدخل اسم المنطقة..."
+              style={{
+                width: "100%", padding: "12px 14px", borderRadius: 12,
+                border: `1.5px solid ${areaError ? "#DC2626" : "#E5E7EB"}`,
+                background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#0F172A",
+                outline: "none", boxSizing: "border-box",
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = P; }}
+              onBlur={e => { e.currentTarget.style.borderColor = areaError ? "#DC2626" : "#E5E7EB"; }}
+            />
+            {areaError && (
+              <div style={{ fontSize: 12, color: "#DC2626", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                <i className="ph ph-warning-circle" style={{ fontSize: 13 }} />
+                {areaError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+              <button
+                onClick={() => setShowAddArea(false)}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 12,
+                  border: "1.5px solid #E2E8F0", background: "#F8FAFC",
+                  color: "#64748B", fontSize: 14, fontWeight: 800,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={saveNewArea}
+                disabled={savingArea}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 12,
+                  border: "none", background: P,
+                  color: "#fff", fontSize: 14, fontWeight: 800,
+                  cursor: savingArea ? "wait" : "pointer", fontFamily: "inherit",
+                  opacity: savingArea ? 0.7 : 1,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}
+              >
+                {savingArea ? (
+                  <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                ) : (
+                  <i className="ph ph-floppy-disk" />
+                )}
+                {savingArea ? "جارٍ الحفظ..." : "حفظ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
