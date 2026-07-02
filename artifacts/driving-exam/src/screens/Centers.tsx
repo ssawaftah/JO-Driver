@@ -1018,8 +1018,8 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
           </div>
         )}
 
-        {/* Location permission banner — appears under area chips when governorate is selected */}
-        {govId && locPermission !== "granted" && (
+        {/* Location permission banner — appears under area chips */}
+        {locPermission !== "granted" && (
           <div style={{
             margin: "0 16px 12px",
             padding: "12px 14px",
