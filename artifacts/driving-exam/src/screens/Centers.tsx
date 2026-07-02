@@ -229,10 +229,8 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
       style={{
         background: "#fff",
         borderRadius: 16,
-        border: isPromoted ? "2px solid #FBBF24" : "1.5px solid #F0F1F3",
-        boxShadow: isPromoted
-          ? "0 2px 8px rgba(251,191,36,0.12)"
-          : "0 1px 3px rgba(0,0,0,0.04)",
+        border: "1.5px solid #F0F1F3",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         padding: "14px 16px",
         cursor: onClick ? "pointer" : "default",
         position: "relative",
@@ -260,7 +258,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
             fontSize: 15, fontWeight: 900,
             color: "#111827", lineHeight: 1.4,
             marginBottom: 6,
-            paddingTop: isPromoted ? 12 : 0,
+            paddingTop: isPromoted ? 18 : 0,
           }}>
             {c.name}
           </div>

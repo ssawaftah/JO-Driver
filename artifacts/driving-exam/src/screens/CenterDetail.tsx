@@ -255,10 +255,8 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
         {/* Header card */}
         <div style={{
           background: "#fff", borderRadius: 16,
-          border: isPromoted ? "2px solid #FBBF24" : "1.5px solid #E2E8F0",
-          boxShadow: isPromoted
-            ? "0 2px 8px rgba(251,191,36,0.12)"
-            : "0 1px 3px rgba(0,0,0,0.04)",
+          border: "1.5px solid #E2E8F0",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
           padding: 20, marginBottom: 16, position: "relative",
         }}>
           {isPromoted && (
@@ -274,7 +272,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
             </div>
           )}
 
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: isPromoted ? 12 : 0 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: isPromoted ? 18 : 0 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#0F172A", marginBottom: 8 }}>{center.name}</div>
               {/* Status + location */}
