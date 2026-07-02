@@ -782,6 +782,9 @@ export default function Admin({ onBack }: Props) {
   const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
   const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[], promoted: false });
+  const [addMapsFetching, setAddMapsFetching] = useState(false);
+  const [addRatingFromMaps, setAddRatingFromMaps] = useState<number | null>(null);
+  const [addFetchError, setAddFetchError] = useState("");
 
   useEffect(() => {
     if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
@@ -839,21 +842,142 @@ export default function Admin({ onBack }: Props) {
     }
     function resetAddCenter() {
       setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [], promoted: false });
+      setAddRatingFromMaps(null);
+      setAddFetchError("");
+    }
+
+    function isMapsUrl(url: string) {
+      return /google\.(com|jo)\/maps|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url);
+    }
+
+    async function fetchFromMaps(url: string) {
+      if (!url.trim()) return;
+      setAddMapsFetching(true);
+      setAddFetchError("");
+      try {
+        const res = await fetch("/api/places/lookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json() as {
+          name?: string; address?: string; phone?: string;
+          rating?: number | null; startHour?: string; endHour?: string;
+          workingDays?: string[]; error?: string;
+        };
+        if (!res.ok) { setAddFetchError(data.error || "حدث خطأ"); return; }
+        setAddCenter(s => ({
+          ...s,
+          name: data.name || s.name,
+          address: data.address || s.address,
+          phone: data.phone || s.phone,
+          startHour: data.startHour || s.startHour,
+          endHour: data.endHour || s.endHour,
+          selectedDays: data.workingDays?.length ? data.workingDays : s.selectedDays,
+          rating: data.rating !== null && data.rating !== undefined ? String(data.rating) : s.rating,
+        }));
+        if (data.rating !== null && data.rating !== undefined) setAddRatingFromMaps(data.rating);
+      } catch {
+        setAddFetchError("تعذر الاتصال بالخادم");
+      } finally {
+        setAddMapsFetching(false);
+      }
     }
 
     return (
       <div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+        {/* Loading modal */}
+        {addMapsFetching && (
+          <div style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
+            zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{
+              background: C.surface, borderRadius: 20, padding: "36px 44px",
+              textAlign: "center", display: "flex", flexDirection: "column",
+              alignItems: "center", gap: 14,
+              boxShadow: "0 24px 64px rgba(0,0,0,0.35)", minWidth: 230,
+            }}>
+              <div style={{
+                width: 52, height: 52, border: `4px solid ${C.primaryLight}`,
+                borderTopColor: C.primary, borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }} />
+              <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>جارٍ جلب المعلومات...</div>
+              <div style={{ fontSize: 12, color: C.textSec, display: "flex", alignItems: "center", gap: 4 }}>
+                <i className="ph ph-map-pin" style={{ color: C.primary }} />
+                من Google Maps
+              </div>
+            </div>
+          </div>
+        )}
+
         <BackBtn onClick={() => setView("menu")} />
         <SectionTitle>إضافة مركز تدريب</SectionTitle>
+
+        {/* Google Maps URL — FIRST */}
+        <div style={{ background: C.surface, border: `2px solid ${C.primary}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: `0 0 0 4px ${C.primaryLight}` }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="ph ph-map-pin" style={{ fontSize: 14 }} />
+            رابط المركز على Google Maps
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: C.primary, padding: "2px 7px", borderRadius: 20 }}>ملء تلقائي ✨</span>
+          </div>
+          <div style={{ fontSize: 11, color: C.textSec, marginBottom: 10 }}>الصق رابط المركز من Google Maps وسيتم ملء البيانات تلقائياً</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <input
+              type="url"
+              value={addCenter.mapLink}
+              onChange={e => setAddCenter(s => ({ ...s, mapLink: e.target.value }))}
+              onPaste={e => {
+                const pasted = e.clipboardData.getData("text");
+                if (isMapsUrl(pasted)) setTimeout(() => fetchFromMaps(pasted), 80);
+              }}
+              placeholder="https://maps.google.com/maps/place/..."
+              style={{
+                flex: 1, padding: "10px 14px", borderRadius: 10,
+                border: `1.5px solid ${C.border}`, background: C.bg,
+                fontSize: 13, fontFamily: "inherit", color: C.text,
+                outline: "none", direction: "ltr", textAlign: "right",
+              }}
+            />
+            {addCenter.mapLink.trim() && (
+              <button
+                onClick={() => fetchFromMaps(addCenter.mapLink)}
+                style={{
+                  padding: "10px 14px", borderRadius: 10,
+                  background: C.primary, color: "#fff", border: "none",
+                  cursor: "pointer", fontSize: 13, fontWeight: 800,
+                  fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <i className="ph ph-magnifying-glass" /> جلب
+              </button>
+            )}
+          </div>
+          {addFetchError && (
+            <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#DC2626", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <i className="ph ph-warning-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }} />
+              {addFetchError}
+            </div>
+          )}
+          {addRatingFromMaps !== null && !addMapsFetching && (
+            <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#F0FDF4", color: "#16A34A", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+              <i className="ph ph-check-circle" style={{ fontSize: 14 }} />
+              تم ملء البيانات تلقائياً — يمكنك تعديلها
+            </div>
+          )}
+        </div>
 
         {/* Basic info */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
           <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز التدريبي" />
-          <Input label="العنوان" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="العنوان التفصيلي" />
+          <Input label="العنوان التفصيلي" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="المنطقة، الشارع، المبنى..." />
           <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" type="tel" />
           <Input label="رقم الواتساب" value={addCenter.whatsapp} onChange={v => setAddCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
-          <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps URL (اختياري)" />
           <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
             <input type="checkbox" checked={addCenter.promoted} onChange={e => setAddCenter(s => ({ ...s, promoted: e.target.checked }))} />
             <i className="ph-fill ph-crown" style={{ color: C.gold }} />
@@ -893,7 +1017,24 @@ export default function Admin({ onBack }: Props) {
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
 
-          <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+          {addRatingFromMaps !== null ? (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>
+                التقييم
+                <span style={{ fontSize: 11, color: C.textLight, fontWeight: 500, marginRight: 6 }}>— من Google Maps (غير قابل للتعديل)</span>
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 2 }}>
+                  {[1,2,3,4,5].map(i => (
+                    <i key={i} className="ph-fill ph-star" style={{ fontSize: 22, color: i <= Math.round(addRatingFromMaps) ? C.gold : C.border }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: 16, fontWeight: 900, color: C.gold }}>{addRatingFromMaps.toFixed(1)}</span>
+              </div>
+            </div>
+          ) : (
+            <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+          )}
 
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
             <div style={{ flex: 1 }}>
