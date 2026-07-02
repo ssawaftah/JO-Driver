@@ -725,6 +725,8 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
   /* User location for nearest sorting */
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locPermission, setLocPermission] = useState<"idle" | "granted" | "denied" | "unavailable">("idle");
+  const [resolvedCoords, setResolvedCoords] = useState<Record<string, { lat: number; lng: number }>>({});
+  const resolvedPendingRef = useRef<Set<string>>(new Set());
 
   function requestLocation() {
     if (!navigator.geolocation) { setLocPermission("unavailable"); return; }
@@ -738,6 +740,47 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
+
+  /* Batch-resolve short map URLs when switching to nearest */
+  useEffect(() => {
+    if (sort !== "nearest" || !userLocation) return;
+
+    const urlsToResolve = new Set<string>();
+    for (const c of Object.values(centers)) {
+      if (
+        c.mapLink &&
+        (c.lat == null || c.lng == null) &&
+        !resolvedCoords[c.mapLink] &&
+        !resolvedPendingRef.current.has(c.mapLink) &&
+        !extractCoords(c.mapLink)
+      ) {
+        urlsToResolve.add(c.mapLink);
+      }
+    }
+    if (urlsToResolve.size === 0) return;
+
+    for (const u of urlsToResolve) resolvedPendingRef.current.add(u);
+
+    fetch("/api/places/batch-resolve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls: Array.from(urlsToResolve) }),
+    })
+      .then(r => r.json())
+      .then((data: { results: Record<string, { lat: number; lng: number } | null> }) => {
+        const newResolved: Record<string, { lat: number; lng: number }> = {};
+        for (const [url, coords] of Object.entries(data.results || {})) {
+          if (coords) newResolved[url] = coords;
+          resolvedPendingRef.current.delete(url);
+        }
+        if (Object.keys(newResolved).length > 0) {
+          setResolvedCoords(prev => ({ ...prev, ...newResolved }));
+        }
+      })
+      .catch(() => {
+        for (const u of urlsToResolve) resolvedPendingRef.current.delete(u);
+      });
+  }, [sort, userLocation, centers]);
 
   /* Lookup map: publicId -> firebaseKey */
   const publicIdMap = useMemo(() => {
@@ -815,7 +858,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
         if (c.lat != null && c.lng != null) {
           d = haversineKm(userLocation.lat, userLocation.lng, c.lat, c.lng);
         } else {
-          const coords = extractCoords(c.mapLink);
+          const coords = extractCoords(c.mapLink) || (c.mapLink ? resolvedCoords[c.mapLink] : undefined);
           if (coords) d = haversineKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
         }
         (c as any)._dist = d;
@@ -837,7 +880,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       return (b.rating ?? 0) - (a.rating ?? 0);
     });
     return list;
-  }, [centers, areas, govId, areaId, q, sort, userLocation]);
+  }, [centers, areas, govId, areaId, q, sort, userLocation, resolvedCoords]);
 
   const govName = govId ? (govs[govId]?.name || "") : "";
 

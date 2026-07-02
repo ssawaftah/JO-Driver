@@ -84,6 +84,35 @@ async function getAddressFromCoords(lat: number, lng: number): Promise<string | 
   }
 }
 
+/* ── Batch-resolve short Google Maps URLs → lat/lng ──────── */
+placesRouter.post("/places/batch-resolve", async (req: Request, res: Response) => {
+  const { urls } = req.body as { urls?: string[] };
+  if (!Array.isArray(urls) || urls.length === 0) {
+    return res.status(400).json({ error: "يرجى إرسال قائمة روابط" });
+  }
+
+  const results: Record<string, { lat: number; lng: number } | null> = {};
+
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const resolved = await resolveUrl(url.trim());
+        const parsed = parseGoogleMapsUrl(resolved);
+        if (parsed.lat != null && parsed.lng != null) {
+          results[url] = { lat: parsed.lat, lng: parsed.lng };
+        } else {
+          const ftid = extractFtidCoords(resolved);
+          results[url] = ftid ?? null;
+        }
+      } catch {
+        results[url] = null;
+      }
+    })
+  );
+
+  return res.json({ results });
+});
+
 placesRouter.post("/places/lookup", async (req: Request, res: Response) => {
   const { url } = req.body as { url?: string };
 
