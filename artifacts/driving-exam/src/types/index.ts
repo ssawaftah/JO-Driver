@@ -59,8 +59,10 @@ export interface Center {
   whatsapp?: string;
   mapLink?: string;
   rating?: number;
+  reviewCount?: number;
   workingDays?: string[];
   workingHours?: string;
+  schedule?: { closed: boolean; from: string; to: string }[];
   governorateId?: string;
   areaId?: string;
   areas?: { id: string; name: string }[];

@@ -781,10 +781,14 @@ export default function Admin({ onBack }: Props) {
   const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
   const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
-  const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[], promoted: false });
+  type DaySchedule = { closed: boolean; from: string; to: string };
+  const DEFAULT_SCHEDULE: DaySchedule[] = ALL_DAYS_FULL.map((_, i) => ({ closed: i === 6, from: "08:00", to: "16:00" }));
+  const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "", reviewCount: "", promoted: false, samePhone: false });
+  const [addSchedule, setAddSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
+  const [addCenterStep, setAddCenterStep] = useState<1|2>(1);
   const [addMapsFetching, setAddMapsFetching] = useState(false);
-  const [addRatingFromMaps, setAddRatingFromMaps] = useState<number | null>(null);
   const [addFetchError, setAddFetchError] = useState("");
+  const [addFetchDone, setAddFetchDone] = useState(false);
 
   useEffect(() => {
     if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
@@ -834,16 +838,15 @@ export default function Admin({ onBack }: Props) {
         areaIds: s.areaIds.includes(id) ? s.areaIds.filter(x => x !== id) : [...s.areaIds, id]
       }));
     }
-    function toggleDay(day: string) {
-      setAddCenter(s => ({
-        ...s,
-        selectedDays: s.selectedDays.includes(day) ? s.selectedDays.filter(x => x !== day) : [...s.selectedDays, day]
-      }));
+    function updateDay(i: number, patch: Partial<{closed: boolean; from: string; to: string}>) {
+      setAddSchedule(s => s.map((d, idx) => idx === i ? { ...d, ...patch } : d));
     }
     function resetAddCenter() {
-      setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [], promoted: false });
-      setAddRatingFromMaps(null);
+      setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", whatsapp: "", mapLink: "", rating: "", reviewCount: "", promoted: false, samePhone: false });
+      setAddSchedule(DEFAULT_SCHEDULE);
+      setAddCenterStep(1);
       setAddFetchError("");
+      setAddFetchDone(false);
     }
 
     function isMapsUrl(url: string) {
@@ -854,29 +857,21 @@ export default function Admin({ onBack }: Props) {
       if (!url.trim()) return;
       setAddMapsFetching(true);
       setAddFetchError("");
+      setAddFetchDone(false);
       try {
         const res = await fetch("/api/places/lookup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url }),
         });
-        const data = await res.json() as {
-          name?: string; address?: string; phone?: string;
-          rating?: number | null; startHour?: string; endHour?: string;
-          workingDays?: string[]; error?: string;
-        };
+        const data = await res.json() as { name?: string; address?: string; error?: string; };
         if (!res.ok) { setAddFetchError(data.error || "حدث خطأ"); return; }
         setAddCenter(s => ({
           ...s,
           name: data.name || s.name,
           address: data.address || s.address,
-          phone: data.phone || s.phone,
-          startHour: data.startHour || s.startHour,
-          endHour: data.endHour || s.endHour,
-          selectedDays: data.workingDays?.length ? data.workingDays : s.selectedDays,
-          rating: data.rating !== null && data.rating !== undefined ? String(data.rating) : s.rating,
         }));
-        if (data.rating !== null && data.rating !== undefined) setAddRatingFromMaps(data.rating);
+        setAddFetchDone(true);
       } catch {
         setAddFetchError("تعذر الاتصال بالخادم");
       } finally {
@@ -884,48 +879,24 @@ export default function Admin({ onBack }: Props) {
       }
     }
 
+    const workingDays = ALL_DAYS_FULL.filter((_, i) => !addSchedule[i].closed);
+    const firstOpen = addSchedule.find(d => !d.closed);
+    const workingHours = firstOpen ? `${firstOpen.from} – ${firstOpen.to}` : "";
+
     return (
       <div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
-        {/* Loading modal */}
-        {addMapsFetching && (
-          <div style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-            zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <div style={{
-              background: C.surface, borderRadius: 20, padding: "36px 44px",
-              textAlign: "center", display: "flex", flexDirection: "column",
-              alignItems: "center", gap: 14,
-              boxShadow: "0 24px 64px rgba(0,0,0,0.35)", minWidth: 230,
-            }}>
-              <div style={{
-                width: 52, height: 52, border: `4px solid ${C.primaryLight}`,
-                borderTopColor: C.primary, borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }} />
-              <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>جارٍ جلب المعلومات...</div>
-              <div style={{ fontSize: 12, color: C.textSec, display: "flex", alignItems: "center", gap: 4 }}>
-                <i className="ph ph-map-pin" style={{ color: C.primary }} />
-                من Google Maps
-              </div>
-            </div>
-          </div>
-        )}
-
-        <BackBtn onClick={() => setView("menu")} />
+        <BackBtn onClick={() => { resetAddCenter(); setView("menu"); }} />
         <SectionTitle>إضافة مركز تدريب</SectionTitle>
 
-        {/* Google Maps URL — FIRST */}
+        {/* STEP 1 — URL + Name + Address */}
         <div style={{ background: C.surface, border: `2px solid ${C.primary}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: `0 0 0 4px ${C.primaryLight}` }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
             <i className="ph ph-map-pin" style={{ fontSize: 14 }} />
             رابط المركز على Google Maps
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: C.primary, padding: "2px 7px", borderRadius: 20 }}>ملء تلقائي ✨</span>
           </div>
-          <div style={{ fontSize: 11, color: C.textSec, marginBottom: 10 }}>الصق رابط المركز من Google Maps وسيتم ملء البيانات تلقائياً</div>
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <div style={{ fontSize: 11, color: C.textSec, marginBottom: 10 }}>الصق رابط المركز لجلب الاسم والعنوان تلقائياً</div>
+          <div style={{ display: "flex", gap: 8 }}>
             <input
               type="url"
               value={addCenter.mapLink}
@@ -942,20 +913,23 @@ export default function Admin({ onBack }: Props) {
                 outline: "none", direction: "ltr", textAlign: "right",
               }}
             />
-            {addCenter.mapLink.trim() && (
-              <button
-                onClick={() => fetchFromMaps(addCenter.mapLink)}
-                style={{
-                  padding: "10px 14px", borderRadius: 10,
-                  background: C.primary, color: "#fff", border: "none",
-                  cursor: "pointer", fontSize: 13, fontWeight: 800,
-                  fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <i className="ph ph-magnifying-glass" /> جلب
-              </button>
-            )}
+            <button
+              onClick={() => fetchFromMaps(addCenter.mapLink)}
+              disabled={addMapsFetching || !addCenter.mapLink.trim()}
+              style={{
+                padding: "10px 14px", borderRadius: 10,
+                background: addMapsFetching || !addCenter.mapLink.trim() ? C.textLight : C.primary,
+                color: "#fff", border: "none",
+                cursor: addMapsFetching || !addCenter.mapLink.trim() ? "default" : "pointer",
+                fontSize: 13, fontWeight: 800, fontFamily: "inherit",
+                display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap",
+              }}
+            >
+              {addMapsFetching
+                ? <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                : <i className="ph ph-magnifying-glass" />}
+              {addMapsFetching ? "جاري..." : "جلب البيانات"}
+            </button>
           </div>
           {addFetchError && (
             <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#DC2626", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6 }}>
@@ -963,140 +937,166 @@ export default function Admin({ onBack }: Props) {
               {addFetchError}
             </div>
           )}
-          {addRatingFromMaps !== null && !addMapsFetching && (
+          {addFetchDone && (
             <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#F0FDF4", color: "#16A34A", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
               <i className="ph ph-check-circle" style={{ fontSize: 14 }} />
-              تم ملء البيانات تلقائياً — يمكنك تعديلها
+              تم جلب البيانات — يمكنك التعديل
             </div>
+          )}
+          <div style={{ marginTop: 14 }}>
+            <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز التدريبي" />
+            <Input label="العنوان التفصيلي" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="المنطقة، الشارع، المبنى..." />
+          </div>
+          {addCenterStep === 1 && (
+            <Btn variant="primary" style={{ marginTop: 4 }} onClick={() => {
+              if (!addCenter.name.trim()) { showToast("أدخل اسم المركز أولاً"); return; }
+              setAddCenterStep(2);
+            }}>
+              استمرار <i className="ph ph-arrow-left" />
+            </Btn>
           )}
         </div>
 
-        {/* Basic info */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
-          <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز التدريبي" />
-          <Input label="العنوان التفصيلي" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="المنطقة، الشارع، المبنى..." />
-          <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" type="tel" />
-          <Input label="رقم الواتساب" value={addCenter.whatsapp} onChange={v => setAddCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
-          <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
-            <input type="checkbox" checked={addCenter.promoted} onChange={e => setAddCenter(s => ({ ...s, promoted: e.target.checked }))} />
-            <i className="ph-fill ph-crown" style={{ color: C.gold }} />
-            مركز مميز (يظهر في أعلى القائمة)
-          </label>
-        </div>
-
-        {/* Location */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
-          <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
-          {govAreas.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {govAreas.map(([id, a]) => (
-                  <button key={id} onClick={() => toggleArea(id)}
-                    style={{
-                      padding: "6px 12px", borderRadius: 10,
-                      border: `1.5px solid ${addCenter.areaIds.includes(id) ? C.primary : C.border}`,
-                      background: addCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
-                      color: addCenter.areaIds.includes(id) ? C.primary : C.textSec,
-                      fontSize: 12, fontWeight: 700,
-                      cursor: "pointer", fontFamily: "inherit",
-                      transition: "all 0.15s",
-                    }}>
-                    <i className={`ph ph-${addCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
-                    {a.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Working hours */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
-
-          {addRatingFromMaps !== null ? (
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>
-                التقييم
-                <span style={{ fontSize: 11, color: C.textLight, fontWeight: 500, marginRight: 6 }}>— من Google Maps (غير قابل للتعديل)</span>
+        {/* STEP 2 — Full details */}
+        {addCenterStep === 2 && (
+          <>
+            {/* Contact */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>معلومات التواصل</div>
+              <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" type="tel" />
+              <Input label="رقم الواتساب" value={addCenter.samePhone ? addCenter.phone : addCenter.whatsapp} onChange={v => { if (!addCenter.samePhone) setAddCenter(s => ({ ...s, whatsapp: v })); }} placeholder="07XXXXXXXX (اختياري)" type="tel" />
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -6, marginBottom: 10, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
+                <input type="checkbox" checked={addCenter.samePhone} onChange={e => setAddCenter(s => ({ ...s, samePhone: e.target.checked, whatsapp: "" }))} style={{ width: 16, height: 16, accentColor: C.primary }} />
+                استخدام نفس رقم الهاتف
               </label>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 2 }}>
-                  {[1,2,3,4,5].map(i => (
-                    <i key={i} className="ph-fill ph-star" style={{ fontSize: 22, color: i <= Math.round(addRatingFromMaps) ? C.gold : C.border }} />
-                  ))}
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
+                <input type="checkbox" checked={addCenter.promoted} onChange={e => setAddCenter(s => ({ ...s, promoted: e.target.checked }))} />
+                <i className="ph-fill ph-crown" style={{ color: C.gold }} />
+                مركز مميز (يظهر في أعلى القائمة)
+              </label>
+            </div>
+
+            {/* Location */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
+              <Select label="المحافظة" value={addCenter.gov} onChange={v => setAddCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
+              {govAreas.length > 0 && (
+                <div style={{ marginTop: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {govAreas.map(([id, a]) => (
+                      <button key={id} onClick={() => toggleArea(id)}
+                        style={{
+                          padding: "6px 12px", borderRadius: 10,
+                          border: `1.5px solid ${addCenter.areaIds.includes(id) ? C.primary : C.border}`,
+                          background: addCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
+                          color: addCenter.areaIds.includes(id) ? C.primary : C.textSec,
+                          fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+                        }}>
+                        <i className={`ph ph-${addCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
+                        {a.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <span style={{ fontSize: 16, fontWeight: 900, color: C.gold }}>{addRatingFromMaps.toFixed(1)}</span>
+              )}
+            </div>
+
+            {/* Working Hours Table */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 12, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات الدوام</div>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                      <th style={{ textAlign: "right", padding: "6px 4px", fontWeight: 700, color: C.textSec, fontSize: 11 }}>اليوم</th>
+                      <th style={{ textAlign: "center", padding: "6px 4px", fontWeight: 700, color: C.textSec, fontSize: 11 }}>من</th>
+                      <th style={{ textAlign: "center", padding: "6px 4px", fontWeight: 700, color: C.textSec, fontSize: 11 }}>إلى</th>
+                      <th style={{ textAlign: "center", padding: "6px 4px", fontWeight: 700, color: C.red, fontSize: 11 }}>مغلق</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ALL_DAYS_FULL.map((day, i) => (
+                      <tr key={day} style={{ borderBottom: `1px solid ${C.surface2}`, background: addSchedule[i].closed ? C.surface2 : C.surface }}>
+                        <td style={{ padding: "8px 4px", fontWeight: 700, color: addSchedule[i].closed ? C.textLight : C.text }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                            <span style={{
+                              width: 24, height: 24, borderRadius: 6, fontSize: 11, fontWeight: 800,
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              background: addSchedule[i].closed ? C.border : C.primaryLight,
+                              color: addSchedule[i].closed ? C.textLight : C.primary,
+                            }}>{ALL_DAYS_SHORT[i]}</span>
+                            <span style={{ fontSize: 12 }}>{day}</span>
+                          </span>
+                        </td>
+                        <td style={{ padding: "8px 4px", textAlign: "center" }}>
+                          <input type="time" value={addSchedule[i].from} onChange={e => updateDay(i, { from: e.target.value })} disabled={addSchedule[i].closed}
+                            style={{ padding: "5px 6px", borderRadius: 8, fontSize: 12, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: addSchedule[i].closed ? C.surface2 : C.bg, color: addSchedule[i].closed ? C.textLight : C.text, width: 80 }}
+                          />
+                        </td>
+                        <td style={{ padding: "8px 4px", textAlign: "center" }}>
+                          <input type="time" value={addSchedule[i].to} onChange={e => updateDay(i, { to: e.target.value })} disabled={addSchedule[i].closed}
+                            style={{ padding: "5px 6px", borderRadius: 8, fontSize: 12, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: addSchedule[i].closed ? C.surface2 : C.bg, color: addSchedule[i].closed ? C.textLight : C.text, width: 80 }}
+                          />
+                        </td>
+                        <td style={{ padding: "8px 4px", textAlign: "center" }}>
+                          <input type="checkbox" checked={addSchedule[i].closed} onChange={e => updateDay(i, { closed: e.target.checked })} style={{ width: 18, height: 18, accentColor: C.red, cursor: "pointer" }} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          ) : (
-            <Input label="التقييم (0–5)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
-          )}
 
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>من</label>
-              <input type="time" value={addCenter.startHour}
-                onChange={e => setAddCenter(s => ({ ...s, startHour: e.target.value }))}
-                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
-              />
+            {/* Rating */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>تقييم Google Maps</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <Input label="التقييم (مثال: 4.8)" value={addCenter.rating} onChange={v => setAddCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" placeholder="4.8" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Input label="عدد المقيّمين (مثال: 173)" value={addCenter.reviewCount} onChange={v => setAddCenter(s => ({ ...s, reviewCount: v }))} type="number" min="0" placeholder="173" />
+                </div>
+              </div>
+              {addCenter.rating && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: -4 }}>
+                  {[1,2,3,4,5].map(i => (
+                    <i key={i} className="ph-fill ph-star" style={{ fontSize: 20, color: i <= Math.round(parseFloat(addCenter.rating)||0) ? C.gold : C.border }} />
+                  ))}
+                  <span style={{ fontSize: 14, fontWeight: 800, color: C.gold }}>{parseFloat(addCenter.rating).toFixed(1)}</span>
+                  {addCenter.reviewCount && <span style={{ fontSize: 12, color: C.textSec }}>({addCenter.reviewCount} تقييم)</span>}
+                </div>
+              )}
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>إلى</label>
-              <input type="time" value={addCenter.endHour}
-                onChange={e => setAddCenter(s => ({ ...s, endHour: e.target.value }))}
-                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
-              />
-            </div>
-          </div>
 
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 8 }}>أيام الدوام</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {ALL_DAYS_FULL.map((day, i) => (
-                <button key={day} onClick={() => toggleDay(day)}
-                  style={{
-                    width: 42, height: 42, borderRadius: 10,
-                    border: `1.5px solid ${addCenter.selectedDays.includes(day) ? C.primary : C.border}`,
-                    background: addCenter.selectedDays.includes(day) ? C.primary : C.surface2,
-                    color: addCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
-                    fontSize: 14, fontWeight: 800,
-                    cursor: "pointer", fontFamily: "inherit",
-                    transition: "all 0.15s",
-                  }}>
-                  {ALL_DAYS_SHORT[i]}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Save */}
-        <Btn variant="primary" onClick={async () => {
-          if (!addCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
-          if (addCenter.phone.trim() && !/^07\d{8}$/.test(addCenter.phone.trim())) { showToast("رقم الهاتف غير صالح"); return; }
-          if (addCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
-          if (addCenter.selectedDays.length === 0) { showToast("اختر يوم دوام واحد على الأقل"); return; }
-          const areaObjs = addCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
-          setLoading(true); try { await db.ref("centers").push({
-            name: addCenter.name.trim(),
-            governorateId: addCenter.gov,
-            areaId: addCenter.areaIds[0],
-            areas: areaObjs,
-            address: addCenter.address.trim() || null,
-            phone: addCenter.phone.trim() || null,
-            whatsapp: addCenter.whatsapp.trim() || null,
-            mapLink: addCenter.mapLink.trim() || null,
-            rating: parseFloat(addCenter.rating) || 0,
-            workingHours: `${addCenter.startHour.trim()} – ${addCenter.endHour.trim()}`,
-            workingDays: addCenter.selectedDays,
-            promoted: addCenter.promoted || false,
-            createdAt: new Date().toISOString(),
-          }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
-        }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
+            {/* Save */}
+            <Btn variant="primary" onClick={async () => {
+              if (!addCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
+              if (addCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
+              if (workingDays.length === 0) { showToast("حدد يوم دوام واحد على الأقل"); return; }
+              const areaObjs = addCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+              setLoading(true); try { await db.ref("centers").push({
+                name: addCenter.name.trim(),
+                governorateId: addCenter.gov,
+                areaId: addCenter.areaIds[0],
+                areas: areaObjs,
+                address: addCenter.address.trim() || null,
+                phone: addCenter.phone.trim() || null,
+                whatsapp: addCenter.samePhone ? (addCenter.phone.trim() || null) : (addCenter.whatsapp.trim() || null),
+                mapLink: addCenter.mapLink.trim() || null,
+                rating: parseFloat(addCenter.rating) || 0,
+                reviewCount: parseInt(addCenter.reviewCount) || 0,
+                workingHours,
+                workingDays,
+                schedule: addSchedule,
+                promoted: addCenter.promoted || false,
+                createdAt: new Date().toISOString(),
+              }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
+            }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
+          </>
+        )}
       </div>
     );
   }
