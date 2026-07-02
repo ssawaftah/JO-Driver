@@ -212,12 +212,12 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
         body: JSON.stringify({ url }),
       });
       const data = await res.json() as { name?: string; address?: string; error?: string };
-      if (!res.ok) { setFetchError(data.error || "حدث خطأ أثناء جلب البيانات"); return; }
+      if (!res.ok) { setFetchError("fetch"); return; }
       if (data.name) setName(data.name);
       if (data.address) setAddress(data.address);
       setFetchDone(true);
     } catch {
-      setFetchError("تعذر الاتصال بالخادم. حاول مجدداً.");
+      setFetchError("fetch");
     } finally {
       setFetching(false);
     }
@@ -367,9 +367,14 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           </div>
 
           {fetchError && (
-            <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#DC2626", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6 }}>
-              <i className="ph ph-warning-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }} />
-              {fetchError}
+            <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#374151", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6, lineHeight: 1.7 }}>
+              <i className="ph ph-warning-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1, color: "#DC2626" }} />
+              <span>
+                تعذر قراءة الرابط. تأكد من نسخه من صفحة المركز في Google Maps. وفي حال استمرت المشكلة{" "}
+                <a href="https://wa.me/962778244772" target="_blank" rel="noopener noreferrer" style={{ color: "#246BFD", fontWeight: 800, textDecoration: "none" }}>
+                  تواصل معنا
+                </a>
+              </span>
             </div>
           )}
           {fetchDone && (
@@ -380,7 +385,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           )}
 
           <div style={{ marginTop: 14 }}>
-            <Field label="اسم المركز" value={name} onChange={setName} placeholder={fetchDone ? "أدخل اسم المركز أو اجلبه من الرابط" : "الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
+            <Field label="اسم المركز" value={name} onChange={setName} placeholder={fetchDone ? "أدخل اسم المركز أو اجلبه من الرابط" : "الصق رابط Google Maps أولاًيhttps://wa.me/9620778244772?text="} readOnly={!fetchDone} />
             <Field label="العنوان" value={address} onChange={setAddress} placeholder={fetchDone ? "المنطقة، الشارع، المبنى..." : "الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
           </div>
 
