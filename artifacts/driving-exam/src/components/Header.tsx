@@ -4,11 +4,32 @@ interface Props {
   onMenuOpen?: () => void;
 }
 
+/* Fallback parent route for each path when no internal history exists */
+function getParentRoute(path: string): string {
+  if (path.startsWith("/centers/") && path !== "/centers/join") return "/centers";
+  if (path === "/centers/join") return "/centers";
+  if (path.startsWith("/study/")) return "/categories";
+  if (path.startsWith("/test/")) return "/categories";
+  if (path === "/result") return "/categories";
+  if (path === "/exam-rules") return "/";
+  if (path === "/exam") return "/exam-rules";
+  if (path === "/exam-result") return "/";
+  if (path === "/guide") return "/";
+  if (path === "/reviews") return "/";
+  if (path === "/admin-login") return "/";
+  if (path === "/admin") return "/admin-login";
+  return "/";
+}
+
 export default function Header({ onMenuOpen }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/" || location.pathname === "";
   const isCenters = location.pathname === "/centers";
+
+  function goBack() {
+    navigate(getParentRoute(location.pathname));
+  }
 
   return (
     <header style={{
@@ -36,7 +57,7 @@ export default function Header({ onMenuOpen }: Props) {
           </button>
         ) : (
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             style={{
               width: 40, height: 40, borderRadius: 12,
               border: "1.5px solid #E5E7EB", background: "#F9FAFB",
