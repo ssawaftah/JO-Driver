@@ -37,8 +37,9 @@ export default function Header({ onMenuOpen }: Props) {
         ) : (
           <button
             onClick={() => {
-              const fromInternal = document.referrer && document.referrer.startsWith(window.location.origin);
-              if (fromInternal) navigate(-1);
+              const state = window.history.state;
+              const canGoBack = state && typeof state.idx === "number" && state.idx > 0;
+              if (canGoBack) navigate(-1);
               else navigate("/");
             }}
             style={{
