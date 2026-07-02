@@ -992,8 +992,34 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
           })}
         </div>
 
-        {/* Location permission banner — only for users who haven't shared location */}
-        {locPermission !== "granted" && (
+        {/* Area chips */}
+        {govAreas.length > 0 && (
+          <div style={{
+            display: "flex", gap: 6, overflowX: "auto",
+            padding: "0 16px 12px", scrollbarWidth: "none",
+            background: "#fff",
+          }}>
+            {[{ id: null as string | null, name: "كل المناطق" }, ...govAreas].map(a => {
+              const sel = areaId === a.id;
+              return (
+                <button key={a.id ?? "all-areas"} onClick={() => setAreaId(a.id)} style={{
+                  flexShrink: 0, padding: "5px 13px", borderRadius: 100,
+                  border: `1.5px solid ${sel ? "#0891B2" : "#E5E7EB"}`,
+                  background: sel ? "#0891B2" : "#F9FAFB",
+                  color: sel ? "#fff" : "#6B7280",
+                  fontSize: 12, fontWeight: 700,
+                  cursor: "pointer", fontFamily: "inherit",
+                  transition: "all 0.15s",
+                }}>
+                  {a.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Location permission banner — appears under area chips when governorate is selected */}
+        {govId && locPermission !== "granted" && (
           <div style={{
             margin: "0 16px 12px",
             padding: "12px 14px",
@@ -1031,32 +1057,6 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
               <i className="ph ph-crosshair" style={{ fontSize: 14, marginLeft: 4 }} />
               تحديد موقعي
             </button>
-          </div>
-        )}
-
-        {/* Area chips */}
-        {govAreas.length > 0 && (
-          <div style={{
-            display: "flex", gap: 6, overflowX: "auto",
-            padding: "0 16px 12px", scrollbarWidth: "none",
-            background: "#fff",
-          }}>
-            {[{ id: null as string | null, name: "كل المناطق" }, ...govAreas].map(a => {
-              const sel = areaId === a.id;
-              return (
-                <button key={a.id ?? "all-areas"} onClick={() => setAreaId(a.id)} style={{
-                  flexShrink: 0, padding: "5px 13px", borderRadius: 100,
-                  border: `1.5px solid ${sel ? "#0891B2" : "#E5E7EB"}`,
-                  background: sel ? "#0891B2" : "#F9FAFB",
-                  color: sel ? "#fff" : "#6B7280",
-                  fontSize: 12, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit",
-                  transition: "all 0.15s",
-                }}>
-                  {a.name}
-                </button>
-              );
-            })}
           </div>
         )}
 
