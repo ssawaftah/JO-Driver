@@ -97,19 +97,27 @@ async function scrapeGoogleMaps(url: string): Promise<ScrapedData> {
     if (closeM && !result.endHour) result.endHour = closeM[1];
   }
 
-  // --- Jordan phone patterns anywhere in HTML — pick most frequent ---
-  // Note: numbers are embedded in longer strings, so we use simple regex then pick by frequency
-  const allPhones = [
-    ...[...html.matchAll(/\+962\s?7\d{8}/g)].map(m => normalizeJordanPhone(m[0])),
-    ...[...html.matchAll(/07\d{8}/g)].map(m => m[0]),
-  ].filter(p => p.length === 10 && /^07\d{8}$/.test(p));
+  // --- Phone: ONLY from structured contexts to avoid false positives ---
+  // 1. tel: href links (most reliable)
+  const telLink = html.match(/href=["']tel:([+\d\s\-()]+)["']/i);
+  if (telLink) {
+    result.phone = normalizeJordanPhone(telLink[1]);
+  }
 
-  if (allPhones.length) {
-    // Count frequency; the main listing phone usually appears most often
-    const freq = new Map<string, number>();
-    for (const p of allPhones) freq.set(p, (freq.get(p) ?? 0) + 1);
-    const [topPhone] = [...freq.entries()].sort((a, b) => b[1] - a[1]);
-    result.phone = topPhone[0];
+  // 2. JSON key-value pairs  e.g. "phone":"07..." or ["phone","07..."]
+  if (!result.phone) {
+    const jsonPhone = html.match(
+      /["\[](?:phone|telephone|formatted_phone_number|phoneNumber|contact_phone)["\],\s:]+["']?(\+?962[\d\s\-]{8,12}|0[67]\d{7,9})["']?/i,
+    );
+    if (jsonPhone) result.phone = normalizeJordanPhone(jsonPhone[1]);
+  }
+
+  // 3. Visible text context: phone icon or label immediately before a number
+  if (!result.phone) {
+    const textCtx = html.match(
+      /(?:هاتف|phone|tel|اتصل|call)[^0-9+]{0,30}(\+?962[\d\s\-]{8,12}|07\d{8})/i,
+    );
+    if (textCtx) result.phone = normalizeJordanPhone(textCtx[1]);
   }
 
   // --- JSON-LD structured data ---
