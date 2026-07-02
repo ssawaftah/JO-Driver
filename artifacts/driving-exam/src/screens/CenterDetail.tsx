@@ -38,7 +38,6 @@ function useAutoLoadCenters(govsProp: Record<string, Governorate>, areasProp: Re
   return { govs, areas, centers, dataLoading };
 }
 
-/* Ensure every center has a publicId (auto-increment). Computes locally only. */
 function ensurePublicIds(centers: Record<string, Center>) {
   const entries = Object.entries(centers);
   let maxPublicId = 0;
@@ -58,7 +57,7 @@ function ensurePublicIds(centers: Record<string, Center>) {
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
 const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
-/* ── Helpers copied from Centers.tsx ────────────────────────────── */
+/* ── Helpers ───────────────────────────────────────── */
 function getOpenStatus(
   schedule?: { closed: boolean; from: string; to: string }[],
   workingDays?: string[],
@@ -70,10 +69,7 @@ function getOpenStatus(
   let fromStr: string | null = null, toStr: string | null = null, isClosed = false;
   if (schedule && schedule.length === 7) {
     const todayIdx = ALL_DAYS_FULL.indexOf(todayName);
-    if (todayIdx >= 0) {
-      const s = schedule[todayIdx];
-      isClosed = s.closed; fromStr = s.from; toStr = s.to;
-    }
+    if (todayIdx >= 0) { const s = schedule[todayIdx]; isClosed = s.closed; fromStr = s.from; toStr = s.to; }
   }
   if (!fromStr && workingHours) {
     const m = workingHours.match(/(\d{1,2}:\d{2})/g);
@@ -154,21 +150,63 @@ function StarInput({ value, onChange }: { value: number; onChange: (n: number) =
   return (
     <div style={{ display: "flex", gap: 4, direction: "ltr" as const }}>
       {[1,2,3,4,5].map(n => (
-        <button
-          key={n}
-          onClick={() => onChange(n)}
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
-        >
-          <i
-            className={n <= value ? "ph-fill ph-star" : "ph ph-star"}
-            style={{ fontSize: 28, color: n <= value ? "#F59E0B" : "#D1D5DB" }}
-          />
+        <button key={n} onClick={() => onChange(n)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
+          <i className={n <= value ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 28, color: n <= value ? "#F59E0B" : "#D1D5DB" }} />
         </button>
       ))}
     </div>
   );
 }
 
+/* ── Avatar placeholder ───────────────────────────────────── */
+function CenterAvatar({ name, size = 96 }: { name: string; size?: number }) {
+  const initial = name.charAt(0) || "م";
+  const colors = ["#2563EB", "#0891B2", "#7C3AED", "#DB2777", "#DC2626", "#EA580C", "#16A34A"];
+  const bg = colors[(name.length + name.charCodeAt(0)) % colors.length];
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: `linear-gradient(135deg, ${bg}, ${bg}cc)`,
+      border: "3px solid #fff",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.4, fontWeight: 900, color: "#fff",
+      flexShrink: 0,
+    }}>
+      {initial}
+    </div>
+  );
+}
+
+/* ── Action pill button ───────────────────────────────────── */
+function ActionPill({
+  icon, label, href, onClick, color, bg, borderColor,
+}: {
+  icon: string; label: string; href?: string; onClick?: () => void;
+  color: string; bg: string; borderColor: string;
+}) {
+  const style: React.CSSProperties = {
+    flex: 1, height: 48, borderRadius: 14,
+    border: `1.5px solid ${borderColor}`,
+    background: bg, color,
+    fontSize: 13, fontWeight: 800,
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+    textDecoration: "none",
+    cursor: onClick ? "pointer" : undefined,
+    fontFamily: "inherit",
+    transition: "transform 0.1s",
+  };
+  const content = (
+    <>
+      <i className={`ph ${icon}`} style={{ fontSize: 20 }} />
+      <span>{label}</span>
+    </>
+  );
+  if (href) return <a href={href} target="_blank" rel="noreferrer" style={style}>{content}</a>;
+  return <button onClick={onClick} style={style}>{content}</button>;
+}
+
+/* ── Main component ───────────────────────────────────────── */
 export default function CenterDetail({ govs: govsProp, areas: areasProp, centers: centersProp }: Props) {
   const { govs, areas, centers, dataLoading } = useAutoLoadCenters(govsProp, areasProp, centersProp);
   const { id } = useParams<{ id: string }>();
@@ -181,7 +219,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   const [sendingReview, setSendingReview] = useState(false);
   const [toast, setToast] = useState("");
 
-  /* Lookup by publicId if the param is numeric, otherwise by firebase key */
+  /* Lookup by publicId if numeric, else by firebase key */
   const resolvedId = useMemo(() => {
     if (!id) return null;
     if (/^\d+$/.test(id)) {
@@ -243,7 +281,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
     const url = `${window.location.origin}/centers/${centerPublicId}`;
     const text = `مركز تدريب القيادة — ${center?.name}`;
     if (navigator.share) {
-      navigator.share({ title: text, url });
+      navigator.share({ title: text, url }).catch(() => {});
     } else {
       navigator.clipboard.writeText(url);
       setToast("تم نسخ الرابط");
@@ -275,182 +313,215 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
 
   const activeDays = center.workingDays || [];
   const cleanPhone = (center.phone || "").replace(/[^0-9+]/g, "");
-  const cleanWhatsapp = (center.whatsapp || center.phone || "").replace(/[^0-9+]/g, "");
+  const cleanWhatsapp = (center.whatsapp || center.phone || "").replace(/[^0-9+]/g, "").replace(/^\+/, "");
   const isPromoted = !!center.promoted;
   const status = getOpenStatus(center.schedule, activeDays, center.workingHours);
+  const description = (center as any).description || "مركز تدريب معتمد لتعليم قيادة السيارات في الأردن";
 
   return (
     <div style={{ minHeight: "100dvh", background: "#FAFBFC", direction: "rtl" }}>
       <Header />
 
-      <div style={{ padding: "16px 14px", maxWidth: 720, margin: "0 auto" }}>
-        {/* Header card */}
+      <div style={{ padding: "0 14px 24px", maxWidth: 720, margin: "0 auto" }}>
+        {/* ── Hero card ── */}
         <div style={{
-          background: "#fff", borderRadius: 16,
+          background: "#fff", borderRadius: 20,
           border: "1.5px solid #E2E8F0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          padding: 20, marginBottom: 16, position: "relative",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          margin: "16px 0 14px", overflow: "hidden",
+          position: "relative",
         }}>
+          {/* Promoted badge */}
           {isPromoted && (
             <div style={{
-              position: "absolute", top: -1, left: 14,
+              position: "absolute", top: 0, left: 16,
               background: "#FBBF24", color: "#78350F",
               fontSize: 10, fontWeight: 900,
-              padding: "2px 8px", borderRadius: "0 0 6px 6px",
-              display: "flex", alignItems: "center", gap: 3,
+              padding: "3px 10px", borderRadius: "0 0 8px 8px",
+              display: "flex", alignItems: "center", gap: 4,
+              zIndex: 2,
             }}>
-              <i className="ph-fill ph-crown" style={{ fontSize: 10 }} />
+              <i className="ph-fill ph-crown" style={{ fontSize: 11 }} />
               مميز
             </div>
           )}
 
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: isPromoted ? 18 : 0 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#0F172A", marginBottom: 8 }}>{center.name}</div>
-              {/* Status + location */}
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
-                <div style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  background: status.bg, color: status.color,
-                  fontSize: 11, fontWeight: 800,
-                  padding: "3px 10px", borderRadius: 20,
-                }}>
-                  <i className={`ph ${status.icon}`} style={{ fontSize: 12 }} />
-                  {status.label}
-                </div>
-                {govName && (
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                    background: "#F3F4F6", color: "#6B7280",
-                    display: "inline-flex", alignItems: "center", gap: 4,
-                  }}>
-                    <i className="ph ph-map-trifold" style={{ fontSize: 12 }} /> {govName}
-                  </span>
-                )}
-                {center.areas?.map(a => (
-                  <span key={a.id} style={{
-                    fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                    background: "#EFF6FF", color: "#2563EB",
-                  }}>{a.name}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{ flexShrink: 0 }}>
+          {/* Top gradient banner */}
+          <div style={{
+            height: 90,
+            background: "linear-gradient(135deg, #2563EB 0%, #0891B2 100%)",
+            position: "relative",
+          }} />
+
+          {/* Avatar + name + rating */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: -48, padding: "0 20px 16px", position: "relative" }}>
+            <CenterAvatar name={center.name} size={96} />
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#0F172A", marginTop: 12, textAlign: "center" }}>{center.name}</div>
+            <div style={{ marginTop: 6 }}>
               <GoogleStars rating={center.rating} reviewCount={center.reviewCount} />
             </div>
           </div>
+
+          {/* Description */}
+          <div style={{ padding: "0 20px 16px", textAlign: "center" }}>
+            <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, maxWidth: 460, margin: "0 auto" }}>
+              {description}
+            </div>
+          </div>
+
+          {/* Status row */}
+          <div style={{ padding: "0 20px 16px", display: "flex", justifyContent: "center" }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: status.bg, color: status.color,
+              fontSize: 12, fontWeight: 800,
+              padding: "5px 14px", borderRadius: 100,
+            }}>
+              <i className={`ph ${status.icon}`} style={{ fontSize: 14 }} />
+              {status.label}
+            </div>
+          </div>
+
+          {/* Location row */}
+          <div style={{ padding: "0 20px 20px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
+            {govName && (
+              <span style={{
+                fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 100,
+                background: "#F3F4F6", color: "#6B7280",
+                display: "inline-flex", alignItems: "center", gap: 4,
+              }}>
+                <i className="ph ph-map-trifold" style={{ fontSize: 12 }} /> {govName}
+              </span>
+            )}
+            {center.areas?.map(a => (
+              <span key={a.id} style={{
+                fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 100,
+                background: "#EFF6FF", color: "#2563EB",
+              }}>{a.name}</span>
+            ))}
+          </div>
         </div>
 
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {/* ── Action pills ── */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
           {center.phone && (
-            <a href={`tel:${cleanPhone}`} style={{
-              flex: 1, height: 44, borderRadius: 12, border: "1.5px solid #E2E8F0",
-              background: "#F8FAFC", color: "#374151", fontSize: 13, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              textDecoration: "none",
-            }}>
-              <i className="ph ph-phone" style={{ fontSize: 18, color: "#2563EB" }} />
-              اتصال
-            </a>
+            <ActionPill
+              icon="ph-phone" label="اتصال"
+              href={`tel:${cleanPhone}`}
+              color="#2563EB" bg="#F0F9FF" borderColor="#BFDBFE"
+            />
           )}
           {cleanWhatsapp && (
-            <a href={`https://wa.me/${cleanWhatsapp.replace(/^\+/, "")}`} target="_blank" rel="noreferrer" style={{
-              flex: 1, height: 44, borderRadius: 12, border: "1.5px solid #E2E8F0",
-              background: "#ECFDF5", color: "#059669", fontSize: 13, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              textDecoration: "none",
-            }}>
-              <i className="ph ph-whatsapp-logo" style={{ fontSize: 18 }} />
-              واتساب
-            </a>
+            <ActionPill
+              icon="ph-whatsapp-logo" label="واتساب"
+              href={`https://wa.me/${cleanWhatsapp}`}
+              color="#059669" bg="#ECFDF5" borderColor="#A7F3D0"
+            />
           )}
           {center.mapLink && (
-            <a href={center.mapLink} target="_blank" rel="noreferrer" style={{
-              flex: 1, height: 44, borderRadius: 12,
-              background: "#2563EB", color: "#fff", fontSize: 13, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              textDecoration: "none",
-            }}>
-              <i className="ph ph-map-pin-line" style={{ fontSize: 18 }} />
-              الموقع
-            </a>
+            <ActionPill
+              icon="ph-map-pin-line" label="الموقع"
+              href={center.mapLink}
+              color="#fff" bg="#2563EB" borderColor="#2563EB"
+            />
           )}
-          <button onClick={shareCenter} style={{
-            width: 44, height: 44, borderRadius: 12, border: "1.5px solid #E2E8F0",
-            background: "#F8FAFC", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <i className="ph ph-share-network" style={{ fontSize: 20, color: "#64748B" }} />
-          </button>
+          <ActionPill
+            icon="ph-share-network" label="مشاركة"
+            onClick={shareCenter}
+            color="#64748B" bg="#F8FAFC" borderColor="#E2E8F0"
+          />
         </div>
 
-        {/* Info card */}
-        <div style={{
-          background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
-          padding: 20, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-        }}>
+        {/* ── Info sections ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Address */}
           {center.address && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+            <div style={{
+              background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
+              padding: "16px 18px",
+              display: "flex", alignItems: "flex-start", gap: 12,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            }}>
               <div style={{
-                width: 36, height: 36, borderRadius: 10, background: "#EFF6FF",
+                width: 40, height: 40, borderRadius: 12, background: "#EFF6FF",
                 display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}>
-                <i className="ph ph-map-pin" style={{ fontSize: 18, color: "#2563EB" }} />
+                <i className="ph ph-map-pin" style={{ fontSize: 20, color: "#2563EB" }} />
               </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 2 }}>العنوان</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{center.address}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 3 }}>العنوان</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", lineHeight: 1.6 }}>{center.address}</div>
               </div>
             </div>
           )}
-          {center.phone && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, background: "#F5F3FF",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>
-                <i className="ph ph-phone" style={{ fontSize: 18, color: "#7C3AED" }} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 2 }}>الهاتف</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{center.phone}</div>
-              </div>
-            </div>
-          )}
-          {/* Per-day schedule table */}
+
+          {/* Schedule table */}
           {center.schedule && center.schedule.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 8 }}>جدول الدوام</div>
+            <div style={{
+              background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
+              padding: "16px 18px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, background: "#ECFEFF",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <i className="ph ph-clock" style={{ fontSize: 20, color: "#0891B2" }} />
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>جدول الدوام</div>
+              </div>
               <ScheduleTable schedule={center.schedule} workingDays={activeDays} />
             </div>
           )}
+
+          {/* Working hours fallback */}
           {!center.schedule && center.workingHours && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+            <div style={{
+              background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
+              padding: "16px 18px",
+              display: "flex", alignItems: "flex-start", gap: 12,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            }}>
               <div style={{
-                width: 36, height: 36, borderRadius: 10, background: "#ECFEFF",
+                width: 40, height: 40, borderRadius: 12, background: "#ECFEFF",
                 display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}>
-                <i className="ph ph-clock" style={{ fontSize: 18, color: "#0891B2" }} />
+                <i className="ph ph-clock" style={{ fontSize: 20, color: "#0891B2" }} />
               </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 2 }}>ساعات الدوام</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 3 }}>ساعات الدوام</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{center.workingHours}</div>
               </div>
             </div>
           )}
+
+          {/* Working days chips */}
           {!center.schedule && activeDays.length > 0 && (
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", marginBottom: 8 }}>أيام الدوام</div>
-              <div style={{ display: "flex", gap: 5 }}>
+            <div style={{
+              background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
+              padding: "16px 18px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, background: "#F0FDF4",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <i className="ph ph-calendar-check" style={{ fontSize: 20, color: "#16A34A" }} />
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>أيام الدوام</div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {ALL_DAYS_FULL.map((day, i) => {
                   const on = activeDays.includes(day);
                   return (
                     <div key={day} style={{
-                      width: 36, height: 36, borderRadius: 10,
+                      width: 40, height: 40, borderRadius: 10,
                       background: on ? "#2563EB" : "#F1F5F9",
                       color: on ? "#fff" : "#94A3B8",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 800,
+                      fontSize: 14, fontWeight: 800,
                     }}>{ALL_DAYS_SHORT[i]}</div>
                   );
                 })}
@@ -459,10 +530,11 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
           )}
         </div>
 
-        {/* Reviews */}
+        {/* ── Reviews ── */}
         <div style={{
           background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
-          padding: 20, marginBottom: 16,
+          padding: 20, marginTop: 14,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontSize: 16, fontWeight: 900, color: "#0F172A" }}>آراء الزوار</div>
