@@ -39,19 +39,87 @@ function PhoneBtn({ phone }: { phone: string }) {
   );
 }
 
+/* ── WhatsApp button ─────────────────────────────────────── */
+function WhatsAppBtn({ phone }: { phone: string }) {
+  const clean = phone.replace(/[^0-9+]/g, "").replace(/^\+/, "");
+  return (
+    <a
+      href={`https://wa.me/${clean}`}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        flex: 1, height: 38, borderRadius: 10,
+        border: "1.5px solid #D1FAE5",
+        background: "#ECFDF5", color: "#059669",
+        fontSize: 12, fontWeight: 700,
+        cursor: "pointer", fontFamily: "inherit",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+        textDecoration: "none",
+        transition: "all 0.2s",
+      }}
+    >
+      <i className="ph ph-whatsapp-logo" style={{ fontSize: 16 }} />
+      واتساب
+    </a>
+  );
+}
+
+/* ── Share button helper ───────────────────────────────── */
+function ShareBtn({ centerId, centerName }: { centerId: string; centerName: string }) {
+  return (
+    <button
+      onClick={() => {
+        const url = `${window.location.origin}/centers/${centerId}`;
+        if (navigator.share) {
+          navigator.share({ title: `مركز تدريب — ${centerName}`, url });
+        } else {
+          navigator.clipboard.writeText(url);
+        }
+      }}
+      style={{
+        width: 38, height: 38, borderRadius: 10,
+        border: "1.5px solid #E2E8F0", background: "#F8FAFC",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", flexShrink: 0,
+      }}
+    >
+      <i className="ph ph-share-network" style={{ fontSize: 16, color: "#64748B" }} />
+    </button>
+  );
+}
+
 /* ── Center Card ───────────────────────────────────────── */
-function CenterCard({ c, govName }: { c: Center & { id: string }; govName: string }) {
+function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govName: string; onClick?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const activeDays = c.workingDays || [];
 
   return (
-    <div style={{
-      background: "#fff",
-      borderRadius: 16,
-      border: "1.5px solid #F0F1F3",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-      padding: "14px 16px",
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        background: "#fff",
+        borderRadius: 16,
+        border: c.promoted ? "2px solid #FBBF24" : "1.5px solid #F0F1F3",
+        boxShadow: c.promoted ? "0 2px 8px rgba(251,191,36,0.15)" : "0 1px 3px rgba(0,0,0,0.04)",
+        padding: "14px 16px",
+        cursor: onClick ? "pointer" : "default",
+        position: "relative",
+      }}
+    >
+      {/* Promoted badge */}
+      {c.promoted && (
+        <div style={{
+          position: "absolute", top: -1, left: 16,
+          background: "#FBBF24", color: "#78350F",
+          fontSize: 10, fontWeight: 800,
+          padding: "2px 8px", borderRadius: "0 0 6px 6px",
+          display: "flex", alignItems: "center", gap: 3,
+        }}>
+          <i className="ph-fill ph-crown" style={{ fontSize: 10 }} />
+          مميز
+        </div>
+      )}
+
       {/* Row 1: Name + Rating */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
         <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 900, color: "#111827", lineHeight: 1.4 }}>
@@ -97,14 +165,15 @@ function CenterCard({ c, govName }: { c: Center & { id: string }; govName: strin
       </div>
 
       {/* Row 3: Actions */}
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={e => e.stopPropagation()}>
         {c.phone && <PhoneBtn phone={c.phone} />}
+        {(c.whatsapp || c.phone) && <WhatsAppBtn phone={c.whatsapp || c.phone!} />}
         {c.mapLink && (
           <a href={c.mapLink} target="_blank" rel="noreferrer"
             style={{
               flex: 1, height: 38, borderRadius: 10,
               background: "#246BFD", color: "#fff",
-              fontSize: 13, fontWeight: 700,
+              fontSize: 12, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
               textDecoration: "none",
             }}
@@ -113,6 +182,7 @@ function CenterCard({ c, govName }: { c: Center & { id: string }; govName: strin
             الموقع
           </a>
         )}
+        <ShareBtn centerId={c.id} centerName={c.name} />
         <button
           onClick={() => setExpanded(!expanded)}
           style={{
@@ -487,9 +557,11 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
 
 /* ── Root ────────────────────────────────────────────────── */
 export default function Centers({ govs, areas, centers }: Props) {
+  const navigate = useNavigate();
   const [govId, setGovId] = useState<string | null>(null);
   const [areaId, setAreaId] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"rating" | "newest" | "nearest">("rating");
   const listRef = useRef<HTMLDivElement>(null);
 
   const govList = useMemo(() =>
@@ -510,7 +582,7 @@ export default function Centers({ govs, areas, centers }: Props) {
 
   const filtered = useMemo(() => {
     const search = q.trim().toLowerCase();
-    return Object.entries(centers)
+    let list = Object.entries(centers)
       .filter(([, c]) => {
         if (govId) {
           const inGov =
@@ -526,14 +598,25 @@ export default function Centers({ govs, areas, centers }: Props) {
         if (search) {
           return (
             c.name?.toLowerCase().includes(search) ||
-            c.address?.toLowerCase().includes(search)
+            c.address?.toLowerCase().includes(search) ||
+            c.phone?.toLowerCase().includes(search)
           );
         }
         return true;
       })
-      .map(([id, c]) => ({ id, ...c } as Center & { id: string }))
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-  }, [centers, areas, govId, areaId, q]);
+      .map(([id, c]) => ({ id, ...c } as Center & { id: string }));
+
+    // Sort: promoted first, then by selected criteria
+    list.sort((a, b) => {
+      if ((b.promoted ? 1 : 0) !== (a.promoted ? 1 : 0)) {
+        return (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0);
+      }
+      if (sort === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+      if (sort === "newest") return (b.createdAt || "").localeCompare(a.createdAt || "");
+      return (b.rating ?? 0) - (a.rating ?? 0);
+    });
+    return list;
+  }, [centers, areas, govId, areaId, q, sort]);
 
   const govName = govId ? (govs[govId]?.name || "") : "";
 
@@ -562,8 +645,8 @@ export default function Centers({ govs, areas, centers }: Props) {
           </p>
         </div>
 
-        {/* Search */}
-        <div style={{ padding: "12px 16px", position: "relative", background: "#fff" }}>
+        {/* Search + Sort */}
+        <div style={{ padding: "12px 16px", position: "relative", background: "#fff", display: "flex", gap: 8, alignItems: "center" }}>
           <i className="ph ph-magnifying-glass" style={{
             position: "absolute", right: 30, top: "50%",
             transform: "translateY(-50%)",
@@ -571,11 +654,24 @@ export default function Centers({ govs, areas, centers }: Props) {
           }} />
           <input
             className="inp"
-            placeholder="ابحث عن مركز..."
+            placeholder="ابحث بالاسم أو العنوان أو الرقم..."
             value={q}
             onChange={e => setQ(e.target.value)}
-            style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, width: "100%" }}
+            style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, flex: 1 }}
           />
+          <select
+            value={sort}
+            onChange={e => setSort(e.target.value as any)}
+            style={{
+              padding: "9px 10px", borderRadius: 12, border: "1.5px solid #E2E8F0",
+              background: "#F9FAFB", fontSize: 12, fontWeight: 700,
+              fontFamily: "inherit", color: "#374151", cursor: "pointer",
+            }}
+          >
+            <option value="rating">الأعلى تقييماً</option>
+            <option value="newest">الأحدث</option>
+            <option value="nearest">الأقرب</option>
+          </select>
         </div>
 
         {/* Governorate chips */}
@@ -645,6 +741,7 @@ export default function Centers({ govs, areas, centers }: Props) {
                   c.governorateId ? (govs[c.governorateId]?.name || "") :
                   c.areas?.[0] ? (govs[areas[c.areas[0].id]?.governorateId]?.name || "") : ""
                 )}
+                onClick={() => navigate(`/centers/${c.id}`)}
               />
             ))
           )}

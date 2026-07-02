@@ -19,6 +19,7 @@ import ReviewsScreen from "./screens/Reviews";
 import AdminLoginScreen from "./screens/AdminLogin";
 import AdminScreen from "./screens/Admin";
 import CentersJoinScreen from "./screens/CentersJoin";
+import CenterDetailScreen from "./screens/CenterDetail";
 
 const CATS = [
   "قواعد السير والمرور",
@@ -306,6 +307,9 @@ function AppRoutes() {
         } />
         <Route path="/centers/join" element={
           <CentersJoinScreen govs={govs} areas={areas} />
+        } />
+        <Route path="/centers/:id" element={
+          <CenterDetailScreen govs={govs} areas={areas} centers={centers} />
         } />
         <Route path="/categories" element={
           <CategoriesScreen cats={CATS} qCounts={qCounts} onStudy={startStudy} onTest={startTest} />

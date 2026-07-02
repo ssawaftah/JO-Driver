@@ -17,6 +17,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [govId, setGovId] = useState("");
   const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
   const [mapLink, setMapLink] = useState("");
@@ -63,6 +64,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
         name: name.trim(),
         address: address.trim() || null,
         phone: phone.trim(),
+        whatsapp: whatsapp.trim() || null,
         governorateId: govId,
         areas: areaObjs,
         mapLink: mapLink.trim() || null,
@@ -124,6 +126,7 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           <Field label="اسم المركز" value={name} onChange={setName} placeholder="اسم المركز التدريبي" />
           <Field label="العنوان" value={address} onChange={setAddress} placeholder="العنوان التفصيلي" />
           <Field label="رقم الهاتف" value={phone} onChange={setPhone} placeholder="07XXXXXXXX" type="tel" />
+          <Field label="رقم الواتساب" value={whatsapp} onChange={setWhatsapp} placeholder="07XXXXXXXX (اختياري)" type="tel" />
           <Field label="رابط الخريطة" value={mapLink} onChange={setMapLink} placeholder="Google Maps URL (اختياري)" />
         </div>
 

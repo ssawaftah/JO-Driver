@@ -56,6 +56,7 @@ export interface Center {
   name: string;
   address?: string;
   phone?: string;
+  whatsapp?: string;
   mapLink?: string;
   rating?: number;
   workingDays?: string[];
@@ -63,4 +64,15 @@ export interface Center {
   governorateId?: string;
   areaId?: string;
   areas?: { id: string; name: string }[];
+  promoted?: boolean;
+  createdAt?: string;
+}
+
+export interface CenterReview {
+  id?: string;
+  centerId: string;
+  name: string;
+  comment?: string;
+  rating: number;
+  createdAt: string;
 }

@@ -746,7 +746,7 @@ export default function Admin({ onBack }: Props) {
 
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address || null, mapLink: req.mapLink || null, phone: req.phone || null, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", publishedAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address || null, mapLink: req.mapLink || null, phone: req.phone || null, whatsapp: req.whatsapp || null, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", promoted: false, createdAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
                       style={{
                         flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
                         background: C.green, color: "#fff", fontSize: 13, fontWeight: 800,
@@ -781,7 +781,7 @@ export default function Admin({ onBack }: Props) {
   const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
   const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
-  const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[] });
+  const [addCenter, setAddCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[], promoted: false });
 
   useEffect(() => {
     if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
@@ -838,7 +838,7 @@ export default function Admin({ onBack }: Props) {
       }));
     }
     function resetAddCenter() {
-      setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] });
+      setAddCenter({ name: "", gov: Object.keys(govs)[0] || "", areaIds: [], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [], promoted: false });
     }
 
     return (
@@ -852,7 +852,13 @@ export default function Admin({ onBack }: Props) {
           <Input label="اسم المركز" value={addCenter.name} onChange={v => setAddCenter(s => ({ ...s, name: v }))} placeholder="اسم المركز التدريبي" />
           <Input label="العنوان" value={addCenter.address} onChange={v => setAddCenter(s => ({ ...s, address: v }))} placeholder="العنوان التفصيلي" />
           <Input label="رقم الهاتف" value={addCenter.phone} onChange={v => setAddCenter(s => ({ ...s, phone: v }))} placeholder="07XXXXXXXX" type="tel" />
+          <Input label="رقم الواتساب" value={addCenter.whatsapp} onChange={v => setAddCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
           <Input label="رابط الخريطة" value={addCenter.mapLink} onChange={v => setAddCenter(s => ({ ...s, mapLink: v }))} placeholder="Google Maps URL (اختياري)" />
+          <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
+            <input type="checkbox" checked={addCenter.promoted} onChange={e => setAddCenter(s => ({ ...s, promoted: e.target.checked }))} />
+            <i className="ph-fill ph-crown" style={{ color: C.gold }} />
+            مركز مميز (يظهر في أعلى القائمة)
+          </label>
         </div>
 
         {/* Location */}
@@ -941,10 +947,13 @@ export default function Admin({ onBack }: Props) {
             areas: areaObjs,
             address: addCenter.address.trim() || null,
             phone: addCenter.phone.trim() || null,
+            whatsapp: addCenter.whatsapp.trim() || null,
             mapLink: addCenter.mapLink.trim() || null,
             rating: parseFloat(addCenter.rating) || 0,
             workingHours: `${addCenter.startHour.trim()} – ${addCenter.endHour.trim()}`,
             workingDays: addCenter.selectedDays,
+            promoted: addCenter.promoted || false,
+            createdAt: new Date().toISOString(),
           }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
         }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
       </div>
@@ -958,7 +967,7 @@ export default function Admin({ onBack }: Props) {
   const [editGovName, setEditGovName] = useState("");
   const [editAreaGov, setEditAreaGov] = useState("");
   const [editAreaName, setEditAreaName] = useState("");
-  const [editCenter, setEditCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[] });
+  const [editCenter, setEditCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[], promoted: false });
 
   function EditListSection() {
     if (!editType) {
@@ -1039,7 +1048,13 @@ export default function Admin({ onBack }: Props) {
             <Input label="اسم المركز" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
             <Input label="العنوان" value={editCenter.address} onChange={v => setEditCenter(s => ({ ...s, address: v }))} />
             <Input label="رقم الهاتف" value={editCenter.phone} onChange={v => setEditCenter(s => ({ ...s, phone: v }))} type="tel" />
+            <Input label="رقم الواتساب" value={editCenter.whatsapp} onChange={v => setEditCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
             <Input label="رابط الخريطة" value={editCenter.mapLink} onChange={v => setEditCenter(s => ({ ...s, mapLink: v }))} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
+              <input type="checkbox" checked={editCenter.promoted} onChange={e => setEditCenter(s => ({ ...s, promoted: e.target.checked }))} />
+              <i className="ph-fill ph-crown" style={{ color: C.gold }} />
+              مركز مميز (يظهر في أعلى القائمة)
+            </label>
           </div>
 
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
@@ -1123,10 +1138,12 @@ export default function Admin({ onBack }: Props) {
                 areas: areaObjs,
                 address: editCenter.address.trim() || null,
                 phone: editCenter.phone.trim() || null,
+                whatsapp: editCenter.whatsapp.trim() || null,
                 mapLink: editCenter.mapLink.trim() || null,
                 rating: parseFloat(editCenter.rating) || 0,
                 workingHours: `${editCenter.startHour.trim()} – ${editCenter.endHour.trim()}`,
                 workingDays: editCenter.selectedDays,
+                promoted: editCenter.promoted || false,
               });
               showToast("تم التحديث");
               await loadAll(); setEditId(null);
@@ -1155,7 +1172,7 @@ export default function Admin({ onBack }: Props) {
                     const parts = item.workingHours.split("–").map((s: string) => s.trim());
                     if (parts.length === 2) { startHour = parts[0]; endHour = parts[1]; }
                   }
-                  setEditCenter({ name: item.name || "", gov: item.governorateId || "", areaIds, address: item.address || "", phone: item.phone || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), startHour, endHour, selectedDays: item.workingDays || [] });
+                  setEditCenter({ name: item.name || "", gov: item.governorateId || "", areaIds, address: item.address || "", phone: item.phone || "", whatsapp: item.whatsapp || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), startHour, endHour, selectedDays: item.workingDays || [], promoted: item.promoted || false });
                 }
               }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
             } />
