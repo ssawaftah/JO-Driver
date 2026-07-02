@@ -150,7 +150,7 @@ function PhoneBtn({ phone }: { phone: string }) {
     <a
       href={`tel:${clean}`}
       style={{
-        flex: 1, height: 40, borderRadius: 12,
+        flex: "1 1 120px", height: 40, borderRadius: 12,
         border: "1.5px solid #E5E7EB",
         background: "#F9FAFB", color: "#374151",
         fontSize: 13, fontWeight: 700,
@@ -158,12 +158,14 @@ function PhoneBtn({ phone }: { phone: string }) {
         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
         textDecoration: "none",
         transition: "all 0.2s",
+        minWidth: 0,
+        overflow: "hidden",
       }}
       onMouseEnter={e => { e.currentTarget.style.background = "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; }}
       onMouseLeave={e => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
     >
-      <i className="ph ph-phone" style={{ fontSize: 16, color: "#246BFD" }} />
-      {phone}
+      <i className="ph ph-phone" style={{ fontSize: 16, color: "#246BFD", flexShrink: 0 }} />
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{phone}</span>
     </a>
   );
 }
@@ -177,7 +179,7 @@ function WhatsAppBtn({ phone }: { phone: string }) {
       target="_blank"
       rel="noreferrer"
       style={{
-        flex: 1, height: 38, borderRadius: 10,
+        flex: "0 0 auto", height: 38, borderRadius: 10,
         border: "1.5px solid #D1FAE5",
         background: "#ECFDF5", color: "#059669",
         fontSize: 12, fontWeight: 700,
@@ -185,10 +187,13 @@ function WhatsAppBtn({ phone }: { phone: string }) {
         display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
         textDecoration: "none",
         transition: "all 0.2s",
+        minWidth: 0,
+        overflow: "hidden",
+        padding: "0 12px",
       }}
     >
-      <i className="ph ph-whatsapp-logo" style={{ fontSize: 16 }} />
-      واتساب
+      <i className="ph ph-whatsapp-logo" style={{ fontSize: 16, flexShrink: 0 }} />
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>واتساب</span>
     </a>
   );
 }
@@ -306,17 +311,19 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
       </div>
 
       {/* Row 3: Actions + Detail arrow */}
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={e => e.stopPropagation()}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }} onClick={e => e.stopPropagation()}>
         {c.phone && <PhoneBtn phone={c.phone} />}
         {(c.whatsapp || c.phone) && <WhatsAppBtn phone={c.whatsapp || c.phone!} />}
         {c.mapLink && (
           <a href={c.mapLink} target="_blank" rel="noreferrer"
             style={{
-              flex: 1, height: 38, borderRadius: 10,
+              flex: "1 1 90px", height: 38, borderRadius: 10,
               background: "#246BFD", color: "#fff",
               fontSize: 12, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
               textDecoration: "none",
+              minWidth: 0,
+              overflow: "hidden",
             }}
           >
             <i className="ph ph-map-pin-line" style={{ fontSize: 15 }} />
