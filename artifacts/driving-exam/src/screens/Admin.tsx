@@ -2439,59 +2439,142 @@ export default function Admin({ onBack }: Props) {
 
   // ── REVIEWS ──────────────────────────────────────────────────
   function ReviewsSection() {
-    const revEntries = Object.entries(reviews).sort((a, b) => (b[1].createdAt || "").localeCompare(a[1].createdAt || ""));
-    const avgStars = revEntries.length
-      ? (revEntries.reduce((sum, [, r]) => sum + (r.stars || 0), 0) / revEntries.length).toFixed(1)
+    const [revSearch, setRevSearch] = useState("");
+    const revEntriesRaw = Object.entries(reviews).sort((a, b) => (b[1].createdAt || "").localeCompare(a[1].createdAt || ""));
+    const revEntries = revEntriesRaw.filter(([, r]) => {
+      if (!revSearch.trim()) return true;
+      const q = revSearch.trim().toLowerCase();
+      return (r.name || "").toLowerCase().includes(q) || (r.comment || "").toLowerCase().includes(q);
+    });
+
+    const avgStars = revEntriesRaw.length
+      ? (revEntriesRaw.reduce((sum, [, r]) => sum + (r.stars || 0), 0) / revEntriesRaw.length).toFixed(1)
       : "0";
+
+    const ratingBreakdown = (() => {
+      const counts = [0, 0, 0, 0, 0];
+      revEntriesRaw.forEach(([, r]) => {
+        const idx = Math.min(5, Math.max(1, Math.round(r.stars || 0))) - 1;
+        counts[idx]++;
+      });
+      return [5, 4, 3, 2, 1].map(star => ({
+        star,
+        count: counts[star - 1],
+        pct: revEntriesRaw.length ? Math.round((counts[star - 1] / revEntriesRaw.length) * 100) : 0,
+      }));
+    })();
+
+    function timeAgo(iso: string) {
+      if (!iso) return "-";
+      const diffMs = Date.now() - new Date(iso).getTime();
+      const day = 86400000;
+      if (diffMs < 0 || isNaN(diffMs)) return new Date(iso).toLocaleDateString("ar-JO");
+      if (diffMs < 3600000) return "قبل قليل";
+      if (diffMs < day) return `منذ ${Math.floor(diffMs / 3600000)} ساعة`;
+      if (diffMs < day * 30) return `منذ ${Math.floor(diffMs / day)} يوم`;
+      return new Date(iso).toLocaleDateString("ar-JO");
+    }
+
     return (
       <div>
         <BackBtn onClick={() => setView("menu")} />
-        <SectionTitle count={revEntries.length}>آراء الزوار</SectionTitle>
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: C.gold, lineHeight: 1 }}>{avgStars}<span style={{ fontSize: 14, marginRight: 2 }}>/5</span></div>
-            <div style={{ fontSize: 11, color: C.textSec, marginTop: 4, fontWeight: 700 }}>متوسط التقييم</div>
+        <SectionTitle count={revEntriesRaw.length}>آراء الزوار</SectionTitle>
+
+        {/* Rating summary */}
+        {revEntriesRaw.length > 0 && (
+          <div style={{
+            display: "flex", gap: 20, alignItems: "center",
+            background: `linear-gradient(135deg, ${C.primaryLight}, ${C.surface})`,
+            border: `1.5px solid ${C.border}`, borderRadius: 18,
+            padding: "18px 20px", marginBottom: 18, flexWrap: "wrap",
+          }}>
+            <div style={{ textAlign: "center", flexShrink: 0 }}>
+              <div style={{ fontSize: 38, fontWeight: 900, color: C.text, lineHeight: 1 }}>{avgStars}</div>
+              <div style={{ display: "flex", gap: 2, justifyContent: "center", marginTop: 6 }}>
+                {[1,2,3,4,5].map(i => (
+                  <i key={i} className={i <= Math.round(parseFloat(avgStars)) ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 13, color: i <= Math.round(parseFloat(avgStars)) ? "#F59E0B" : "#E2E8F0" }} />
+                ))}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginTop: 6, whiteSpace: "nowrap" }}>{revEntriesRaw.length} تقييم</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 140, display: "flex", flexDirection: "column", gap: 5 }}>
+              {ratingBreakdown.map(({ star, pct, count }) => (
+                <div key={star} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: C.textSec, width: 10, textAlign: "center" }}>{star}</span>
+                  <i className="ph-fill ph-star" style={{ fontSize: 10, color: "#F59E0B" }} />
+                  <div style={{ flex: 1, height: 6, borderRadius: 3, background: C.border, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: "#F59E0B", transition: "width 0.4s ease" }} />
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: C.textLight, width: 16, textAlign: "left" }}>{count}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: C.primary, lineHeight: 1 }}>{revEntries.length}</div>
-            <div style={{ fontSize: 11, color: C.textSec, marginTop: 4, fontWeight: 700 }}>عدد الآراء</div>
-          </div>
+        )}
+
+        {/* Search */}
+        <div style={{ position: "relative", marginBottom: 14 }}>
+          <i className="ph ph-magnifying-glass" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.textSec }} />
+          <input
+            value={revSearch}
+            onChange={e => setRevSearch(e.target.value)}
+            placeholder="البحث بالاسم أو التعليق..."
+            style={{
+              width: "100%", padding: "10px 14px 10px 40px", borderRadius: 12,
+              border: `1.5px solid ${C.border}`, background: C.surface, fontSize: 14,
+              fontFamily: "inherit", color: C.text, outline: "none",
+            }}
+          />
         </div>
+
         {/* List */}
         {revEntries.length === 0 ? (
-          <Empty icon="star" text="لا يوجد آراء بعد" />
+          revSearch.trim() ? (
+            <div style={{ textAlign: "center", padding: "40px 20px", color: C.textLight }}>
+              <i className="ph ph-magnifying-glass" style={{ fontSize: 32, display: "block", marginBottom: 10 }} />
+              <div style={{ fontSize: 14, fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
+            </div>
+          ) : (
+            <Empty icon="star" text="لا يوجد آراء بعد" />
+          )
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {revEntries.map(([id, r]) => (
-              <div key={id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg, ${C.primary}, ${C.cyan})`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, flexShrink: 0 }}>
-                      {(r.name || "م").charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{r.name || "مجهول"}</div>
-                      <div style={{ fontSize: 11, color: C.textSec }}>{r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : "-"}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 2, flexShrink: 0, direction: "ltr" }}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <i key={i} className={`ph ph-star${i < (r.stars || 0) ? "-fill" : ""}`} style={{ fontSize: 14, color: i < (r.stars || 0) ? "#F59E0B" : "#D1D5DB" }} />
-                    ))}
-                  </div>
+              <div key={id} style={{
+                display: "flex", gap: 12,
+                background: C.surface, borderRadius: 16, padding: 14,
+                border: `1.5px solid ${C.border}`,
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+              }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                  background: `linear-gradient(135deg, ${C.primary}, ${C.cyan})`,
+                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, fontWeight: 900,
+                }}>
+                  {(r.name || "م").charAt(0)}
                 </div>
-                {r.comment && (
-                  <div style={{ background: C.surface2, borderRadius: 10, padding: "10px 12px", fontSize: 13, color: C.text, lineHeight: 1.7 }}>
-                    <i className="ph ph-quotes" style={{ color: C.textLight, fontSize: 16, display: "block", marginBottom: 4 }} />
-                    {r.comment}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name || "مجهول"}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 600, color: C.textLight, flexShrink: 0 }}>{timeAgo(r.createdAt)}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 1.5, flexShrink: 0, direction: "ltr" }}>
+                      {[1,2,3,4,5].map(i => (
+                        <i key={i} className={i <= (r.stars || 0) ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 12, color: i <= (r.stars || 0) ? "#F59E0B" : "#E2E8F0" }} />
+                      ))}
+                    </div>
                   </div>
-                )}
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                  <button onClick={async () => { if (!confirm("حذف هذا الرأي؟")) return; setLoading(true); try { await db.ref("reviews/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
-                    style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
-                    <i className="ph ph-trash" /> حذف
-                  </button>
+                  {r.comment && (
+                    <div style={{ fontSize: 13, color: C.textSec, lineHeight: 1.65, marginBottom: 6 }}>{r.comment}</div>
+                  )}
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button onClick={async () => { if (!confirm("حذف هذا الرأي؟")) return; setLoading(true); try { await db.ref("reviews/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                      style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
+                      <i className="ph ph-trash" /> حذف
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
