@@ -227,38 +227,28 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
   return (
     <div
       style={{
-        background: isPromoted ? "#FFFDF5" : "#fff",
+        background: "#fff",
         borderRadius: 16,
         border: isPromoted ? "2px solid #FBBF24" : "1.5px solid #F0F1F3",
         boxShadow: isPromoted
-          ? "0 4px 16px rgba(251,191,36,0.18), 0 1px 3px rgba(0,0,0,0.04)"
+          ? "0 2px 8px rgba(251,191,36,0.12)"
           : "0 1px 3px rgba(0,0,0,0.04)",
-        padding: isPromoted ? "16px 16px 14px" : "14px 16px",
+        padding: "14px 16px",
         cursor: onClick ? "pointer" : "default",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Promoted: gold shimmer stripe at top */}
+      {/* Promoted crown badge — subtle */}
       {isPromoted && (
         <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: 4,
-          background: "linear-gradient(90deg, #FBBF24 0%, #FDE68A 50%, #FBBF24 100%)",
-        }} />
-      )}
-
-      {/* Promoted crown badge */}
-      {isPromoted && (
-        <div style={{
-          position: "absolute", top: 8, left: 10,
-          background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-          color: "#78350F", fontSize: 10, fontWeight: 900,
-          padding: "3px 10px", borderRadius: 20,
-          display: "flex", alignItems: "center", gap: 4,
-          boxShadow: "0 1px 4px rgba(251,191,36,0.35)",
-          zIndex: 2,
+          position: "absolute", top: -1, left: 14,
+          background: "#FBBF24", color: "#78350F",
+          fontSize: 10, fontWeight: 900,
+          padding: "2px 8px", borderRadius: "0 0 6px 6px",
+          display: "flex", alignItems: "center", gap: 3,
         }}>
-          <i className="ph-fill ph-crown" style={{ fontSize: 11 }} />
+          <i className="ph-fill ph-crown" style={{ fontSize: 10 }} />
           مميز
         </div>
       )}
@@ -267,12 +257,10 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontSize: isPromoted ? 16 : 15,
-            fontWeight: 900,
-            color: isPromoted ? "#78350F" : "#111827",
-            lineHeight: 1.4,
+            fontSize: 15, fontWeight: 900,
+            color: "#111827", lineHeight: 1.4,
             marginBottom: 6,
-            paddingTop: isPromoted ? 18 : 0,
+            paddingTop: isPromoted ? 12 : 0,
           }}>
             {c.name}
           </div>
@@ -297,10 +285,8 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
         <span style={{
           fontSize: 11, fontWeight: 700,
           padding: "3px 9px", borderRadius: 20,
-          background: isPromoted ? "#FFFBEB" : "#F3F4F6",
-          color: isPromoted ? "#B45309" : "#6B7280",
+          background: "#F3F4F6", color: "#6B7280",
           display: "inline-flex", alignItems: "center", gap: 4,
-          border: isPromoted ? "1px solid #FDE68A" : "none",
         }}>
           <i className="ph ph-map-trifold" style={{ fontSize: 12 }} />
           {govName}
@@ -309,15 +295,13 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
           <span key={a.id} style={{
             fontSize: 11, fontWeight: 700,
             padding: "3px 9px", borderRadius: 20,
-            background: isPromoted ? "#FFFBEB" : "#EEF4FF",
-            color: isPromoted ? "#B45309" : "#246BFD",
-            border: isPromoted ? "1px solid #FDE68A" : "none",
+            background: "#EEF4FF", color: "#246BFD",
           }}>
             {a.name}
           </span>
         ))}
         {(c.areas?.length || 0) > 3 && (
-          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: isPromoted ? "#FFFBEB" : "#F3F4F6", color: "#9CA3AF" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "#F3F4F6", color: "#9CA3AF" }}>
             +{(c.areas!.length - 3)}
           </span>
         )}
@@ -342,23 +326,19 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
           </a>
         )}
         <ShareBtn centerId={c.id} centerName={c.name} />
-        {/* Left arrow: navigate to center detail */}
         <button
           onClick={(e) => { e.stopPropagation(); onClick?.(); }}
           style={{
             width: 38, height: 38, borderRadius: 10,
-            border: isPromoted ? "1.5px solid #FDE68A" : "1.5px solid #E5E7EB",
-            background: isPromoted ? "#FFFBEB" : "#F9FAFB",
+            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0,
-            transition: "all 0.15s",
+            cursor: "pointer", flexShrink: 0, transition: "all 0.15s",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = isPromoted ? "#FEF3C7" : "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = isPromoted ? "#FFFBEB" : "#F9FAFB"; e.currentTarget.style.borderColor = isPromoted ? "#FDE68A" : "#E5E7EB"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
         >
-          <i className="ph ph-arrow-left" style={{ fontSize: 18, color: isPromoted ? "#B45309" : "#246BFD" }} />
+          <i className="ph ph-arrow-left" style={{ fontSize: 18, color: "#246BFD" }} />
         </button>
-        {/* Expand toggle */}
         <button
           onClick={() => setExpanded(!expanded)}
           style={{
@@ -375,7 +355,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
       {/* ── Expanded: schedule table + address ── */}
       {expanded && (
         <div style={{
-          borderTop: `1px solid ${isPromoted ? "#FDE68A" : "#F3F4F6"}`,
+          borderTop: "1px solid #F3F4F6",
           marginTop: 12,
           paddingTop: 12,
           display: "flex",

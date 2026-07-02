@@ -248,50 +248,35 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   const status = getOpenStatus(center.schedule, activeDays, center.workingHours);
 
   return (
-    <div style={{ minHeight: "100dvh", background: isPromoted ? "#FFFBEB" : "#FAFBFC", direction: "rtl" }}>
+    <div style={{ minHeight: "100dvh", background: "#FAFBFC", direction: "rtl" }}>
       <Header />
 
       <div style={{ padding: "16px 14px", maxWidth: 720, margin: "0 auto" }}>
-        {/* Promoted gold shimmer stripe */}
-        {isPromoted && (
-          <div style={{
-            height: 4, borderRadius: "4px 4px 0 0",
-            background: "linear-gradient(90deg, #FBBF24 0%, #FDE68A 50%, #FBBF24 100%)",
-            marginBottom: -4,
-          }} />
-        )}
-
         {/* Header card */}
         <div style={{
-          background: isPromoted ? "#FFFDF5" : "#fff",
-          borderRadius: 16,
+          background: "#fff", borderRadius: 16,
           border: isPromoted ? "2px solid #FBBF24" : "1.5px solid #E2E8F0",
           boxShadow: isPromoted
-            ? "0 4px 16px rgba(251,191,36,0.15), 0 1px 3px rgba(0,0,0,0.04)"
+            ? "0 2px 8px rgba(251,191,36,0.12)"
             : "0 1px 3px rgba(0,0,0,0.04)",
-          padding: 20, marginBottom: 16, position: "relative", overflow: "hidden",
+          padding: 20, marginBottom: 16, position: "relative",
         }}>
           {isPromoted && (
             <div style={{
-              position: "absolute", top: 10, left: 14,
-              background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-              color: "#78350F", fontSize: 10, fontWeight: 900,
-              padding: "3px 10px", borderRadius: 20,
-              display: "flex", alignItems: "center", gap: 4,
-              boxShadow: "0 1px 4px rgba(251,191,36,0.35)",
-              zIndex: 2,
+              position: "absolute", top: -1, left: 14,
+              background: "#FBBF24", color: "#78350F",
+              fontSize: 10, fontWeight: 900,
+              padding: "2px 8px", borderRadius: "0 0 6px 6px",
+              display: "flex", alignItems: "center", gap: 3,
             }}>
-              <i className="ph-fill ph-crown" style={{ fontSize: 11 }} />
+              <i className="ph-fill ph-crown" style={{ fontSize: 10 }} />
               مميز
             </div>
           )}
 
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: isPromoted ? 24 : 0 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: isPromoted ? 12 : 0 }}>
             <div style={{ flex: 1 }}>
-              <div style={{
-                fontSize: isPromoted ? 20 : 18, fontWeight: 900,
-                color: isPromoted ? "#78350F" : "#0F172A", marginBottom: 8,
-              }}>{center.name}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#0F172A", marginBottom: 8 }}>{center.name}</div>
               {/* Status + location */}
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
                 <div style={{
@@ -306,10 +291,8 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
                 {govName && (
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                    background: isPromoted ? "#FFFBEB" : "#F3F4F6",
-                    color: isPromoted ? "#B45309" : "#6B7280",
+                    background: "#F3F4F6", color: "#6B7280",
                     display: "inline-flex", alignItems: "center", gap: 4,
-                    border: isPromoted ? "1px solid #FDE68A" : "none",
                   }}>
                     <i className="ph ph-map-trifold" style={{ fontSize: 12 }} /> {govName}
                   </span>
@@ -317,9 +300,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
                 {center.areas?.map(a => (
                   <span key={a.id} style={{
                     fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                    background: isPromoted ? "#FFFBEB" : "#EFF6FF",
-                    color: isPromoted ? "#B45309" : "#2563EB",
-                    border: isPromoted ? "1px solid #FDE68A" : "none",
+                    background: "#EFF6FF", color: "#2563EB",
                   }}>{a.name}</span>
                 ))}
               </div>
