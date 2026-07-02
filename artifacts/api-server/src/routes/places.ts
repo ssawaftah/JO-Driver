@@ -54,11 +54,20 @@ placesRouter.post("/places/lookup", async (req: Request, res: Response) => {
 
   try {
     const resolvedUrl = await resolveUrl(url.trim());
+
+    // Detect iOS app deep-link format (ftid=...) — no name/coords available
+    if (/[?&]ftid=/.test(resolvedUrl)) {
+      return res.status(400).json({
+        error: "رابط التطبيق لا يحتوي على بيانات كافية. افتح الرابط في المتصفح (Chrome أو Safari)، ثم انسخ الرابط من شريط العنوان وأعد لصقه هنا.",
+        hint: "app_link",
+      });
+    }
+
     const { name: urlName, lat, lng } = parseGoogleMapsUrl(resolvedUrl);
 
     if (!urlName && lat === null) {
       return res.status(400).json({
-        error: "تعذر استخراج معلومات المكان من الرابط. جرب نسخ الرابط الكامل من Google Maps.",
+        error: "تعذر قراءة الرابط. تأكد من نسخه من صفحة المركز في Google Maps (يجب أن يحتوي على اسم المكان في الرابط).",
       });
     }
 
