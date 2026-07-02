@@ -45,19 +45,22 @@ export default function ExamRules({ onStart }: Props) {
           </div>
         </div>
 
-        {/* Official notice */}
+        {/* Official notice — soft, compact */}
         <div style={{
-          background: "linear-gradient(135deg, #1a57d4, #246BFD)",
-          borderRadius: 18, padding: "18px 16px", marginBottom: 16,
-          color: "#fff", display: "flex", alignItems: "flex-start", gap: 12,
+          background: "#fff", borderRadius: 14,
+          border: "1.5px solid #DBEAFE",
+          padding: "12px 14px", marginBottom: 14,
+          display: "flex", alignItems: "center", gap: 10,
         }}>
-          <i className="ph ph-seal-check" style={{ fontSize: 32, flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 5 }}>محاكاة رسمية لاختبار دائرة الترخيص</div>
-            <div style={{ fontSize: 13, lineHeight: 1.75, opacity: 0.9 }}>
-              هذا الاختبار يُطابق آلية الفحص النظري المعتمدة في دائرة الترخيص الأردنية تماماً،
-              بما في ذلك عدد الأسئلة والوقت ومعايير النجاح والرسوب.
-            </div>
+          <div style={{
+            width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+            background: "#DBEAFE", color: "#2563EB",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+          }}>
+            <i className="ph ph-seal-check" />
+          </div>
+          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            هذا الاختبار يُطابق آلية الفحص النظري المعتمدة في دائرة الترخيص الأردنية
           </div>
         </div>
 
