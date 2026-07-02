@@ -310,7 +310,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
         )}
       </div>
 
-      {/* Row 3: Actions + Detail arrow */}
+      {/* Row 3: Actions */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }} onClick={e => e.stopPropagation()}>
         {c.phone && <PhoneBtn phone={c.phone} />}
         {(c.whatsapp || c.phone) && <WhatsAppBtn phone={c.whatsapp || c.phone!} />}
@@ -322,73 +322,35 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
               fontSize: 12, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
               textDecoration: "none",
-              minWidth: 0,
-              overflow: "hidden",
+              minWidth: 0, overflow: "hidden",
             }}
           >
             <i className="ph ph-map-pin-line" style={{ fontSize: 15 }} />
             الموقع
           </a>
         )}
+      </div>
+
+      {/* Row 4: Detail button + share */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }} onClick={e => e.stopPropagation()}>
         <ShareBtn centerId={c.id} centerName={c.name} />
         <button
           onClick={(e) => { e.stopPropagation(); onClick?.(); }}
           style={{
-            width: 38, height: 38, borderRadius: 10,
+            flex: 1, height: 40, borderRadius: 10,
             border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0, transition: "all 0.15s",
+            color: "#374151", fontSize: 13, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            cursor: "pointer", fontFamily: "inherit",
+            transition: "all 0.15s",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; e.currentTarget.style.color = "#246BFD"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.color = "#374151"; }}
         >
-          <i className="ph ph-arrow-left" style={{ fontSize: 18, color: "#246BFD" }} />
-        </button>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            width: 38, height: 38, borderRadius: 10,
-            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0,
-          }}
-        >
-          <i className={`ph ph-caret-${expanded ? "up" : "down"}`} style={{ fontSize: 16, color: "#6B7280" }} />
+          <span>عرض التفاصيل</span>
+          <i className="ph ph-arrow-left" style={{ fontSize: 16 }} />
         </button>
       </div>
-
-      {/* ── Expanded: schedule table + address ── */}
-      {expanded && (
-        <div style={{
-          borderTop: "1px solid #F3F4F6",
-          marginTop: 12,
-          paddingTop: 12,
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}>
-          {/* Per-day schedule table */}
-          <ScheduleTable schedule={c.schedule} workingDays={activeDays} />
-
-          {c.address && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "#6B7280" }}>
-              <i className="ph ph-map-pin" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0, marginTop: 2 }} />
-              <span style={{ lineHeight: 1.5 }}>{c.address}</span>
-            </div>
-          )}
-          {c.workingHours && !c.schedule && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <i className="ph ph-clock" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0 }} />
-              <span style={{
-                fontSize: 13, fontWeight: 700, color: "#374151",
-                background: "#F3F6FF", borderRadius: 8, padding: "4px 10px",
-              }}>
-                {c.workingHours}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
