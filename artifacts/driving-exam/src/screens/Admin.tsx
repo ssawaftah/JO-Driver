@@ -850,87 +850,6 @@ export default function Admin({ onBack }: Props) {
                     </div>
                   )}
 
-                  {/* Area chips */}
-                  {areaObjs.length > 0 && (
-                    <div style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                        <i className="ph ph-map-pin-area" style={{ fontSize: 12 }} />
-                        المناطق المخدّمة
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        {areaObjs.map((a: any) => (
-                          <span key={a.id} style={{
-                            padding: "5px 10px", borderRadius: 10,
-                            background: C.primaryLight, color: C.primary,
-                            fontSize: 12, fontWeight: 800,
-                            display: "flex", alignItems: "center", gap: 4,
-                          }}>
-                            <i className="ph ph-check-circle" style={{ fontSize: 13 }} />
-                            {a.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Working hours table */}
-                  {sch.length > 0 && (
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                        <i className="ph ph-clock" style={{ fontSize: 12 }} />
-                        أوقات الدوام
-                      </div>
-                      <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, background: C.surface2, borderRadius: 10, overflow: "hidden" }}>
-                          <thead>
-                            <tr style={{ borderBottom: `2px solid ${C.border}` }}>
-                              <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>اليوم</th>
-                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>من</th>
-                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>إلى</th>
-                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.red, fontSize: 10 }}>مغلق</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {ALL_DAYS_FULL.map((day, i) => {
-                              const row = sch[i] || { closed: true, from: "", to: "" };
-                              return (
-                                <tr key={day} style={{ borderBottom: "1px solid " + C.border, background: row.closed ? "rgba(239,68,68,0.04)" : "transparent" }}>
-                                  <td style={{ padding: "6px 8px", fontWeight: 700, color: row.closed ? C.textLight : C.text }}>
-                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                                      <span style={{
-                                        width: 22, height: 22, borderRadius: 6, fontSize: 10, fontWeight: 800,
-                                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                                        background: row.closed ? C.surface2 : C.primaryLight,
-                                        color: row.closed ? C.textLight : C.primary,
-                                      }}>{ALL_DAYS_SHORT[i]}</span>
-                                      <span>{day}</span>
-                                    </span>
-                                  </td>
-                                  <td style={{ padding: "6px 8px", textAlign: "center", color: row.closed ? C.textLight : C.textSec, fontWeight: 600 }}>{row.closed ? "—" : row.from}</td>
-                                  <td style={{ padding: "6px 8px", textAlign: "center", color: row.closed ? C.textLight : C.textSec, fontWeight: 600 }}>{row.closed ? "—" : row.to}</td>
-                                  <td style={{ padding: "6px 8px", textAlign: "center" }}>
-                                    {row.closed && <i className="ph ph-x" style={{ color: C.red, fontSize: 14 }} />}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  {req.description && (
-                    <div style={{ marginBottom: 12, padding: "10px 12px", background: C.surface2, borderRadius: 12 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                        <i className="ph ph-text-align-right" style={{ fontSize: 12 }} />
-                        الوصف
-                      </div>
-                      <div style={{ fontSize: 12, color: C.textSec, lineHeight: 1.7 }}>{req.description}</div>
-                    </div>
-                  )}
-
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => openReviewModal(reqId, req)}
@@ -1163,12 +1082,6 @@ export default function Admin({ onBack }: Props) {
                     </table>
                   </div>
                 </div>
-
-                {/* Promoted checkbox */}
-                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, color: C.text }}>
-                  <input type="checkbox" checked={reviewPromoted} onChange={e => setReviewPromoted(e.target.checked)} style={{ width: 18, height: 18, accentColor: C.primary, cursor: "pointer" }} />
-                  <span>مركز مميز (يظهر أولاً)</span>
-                </label>
 
                 {/* Description */}
                 <div>
