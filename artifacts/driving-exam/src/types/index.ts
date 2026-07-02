@@ -59,6 +59,8 @@ export interface Center {
   phone?: string;
   whatsapp?: string;
   mapLink?: string;
+  lat?: number;
+  lng?: number;
   rating?: number;
   reviewCount?: number;
   workingDays?: string[];

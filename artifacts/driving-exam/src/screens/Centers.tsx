@@ -28,6 +28,25 @@ function ensurePublicIds(centers: Record<string, Center>) {
   }
 }
 
+/* ── Geo helpers ───────────────────────────────────────── */
+function extractCoords(mapLink?: string): { lat: number; lng: number } | null {
+  if (!mapLink) return null;
+  const m1 = mapLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m1) return { lat: parseFloat(m1[1]), lng: parseFloat(m1[2]) };
+  const m2 = mapLink.match(/\?.*q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m2) return { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]) };
+  return null;
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 /* ── Day helpers ───────────────────────────────────────── */
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
 const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
@@ -240,7 +259,7 @@ function ShareBtn({ centerId, centerName }: { centerId: string; centerName: stri
 }
 
 /* ── Center Card (redesigned) ──────────────────────────────── */
-function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govName: string; onClick?: () => void }) {
+function CenterCard({ c, govName, onClick, distance }: { c: Center & { id: string }; govName: string; onClick?: () => void; distance?: number }) {
   const [expanded, setExpanded] = useState(false);
   const activeDays = c.workingDays || [];
   const status = getOpenStatus(c.schedule, activeDays, c.workingHours);
@@ -300,7 +319,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
         </div>
       </div>
 
-      {/* Row 2: Location tags */}
+      {/* Row 2: Location tags + distance */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
         <span style={{
           fontSize: 11, fontWeight: 700,
@@ -323,6 +342,18 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
         {(c.areas?.length || 0) > 3 && (
           <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "#F3F4F6", color: "#9CA3AF" }}>
             +{(c.areas!.length - 3)}
+          </span>
+        )}
+        {distance != null && distance !== Infinity && (
+          <span style={{
+            fontSize: 11, fontWeight: 800,
+            padding: "3px 9px", borderRadius: 20,
+            background: "#DCFCE7", color: "#166534",
+            display: "inline-flex", alignItems: "center", gap: 4,
+            marginRight: "auto",
+          }}>
+            <i className="ph-fill ph-navigation-arrow" style={{ fontSize: 12 }} />
+            {distance < 1 ? `${Math.round(distance * 1000)} م` : `${distance.toFixed(1)} كم`}
           </span>
         )}
       </div>
@@ -691,6 +722,23 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
   const [areas, setAreas] = useState<Record<string, Area>>(areasProp);
   const [centers, setCenters] = useState<Record<string, Center>>(centersProp);
 
+  /* User location for nearest sorting */
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locPermission, setLocPermission] = useState<"idle" | "granted" | "denied" | "unavailable">("idle");
+
+  function requestLocation() {
+    if (!navigator.geolocation) { setLocPermission("unavailable"); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocPermission("granted");
+        setSort("nearest");
+      },
+      () => setLocPermission("denied"),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   /* Lookup map: publicId -> firebaseKey */
   const publicIdMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -760,6 +808,20 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       })
       .map(([id, c]) => ({ id, ...c } as Center & { id: string }));
 
+    // Attach distance when nearest sorting is active
+    if (sort === "nearest" && userLocation) {
+      for (const c of list) {
+        let d = Infinity;
+        if (c.lat != null && c.lng != null) {
+          d = haversineKm(userLocation.lat, userLocation.lng, c.lat, c.lng);
+        } else {
+          const coords = extractCoords(c.mapLink);
+          if (coords) d = haversineKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        }
+        (c as any)._dist = d;
+      }
+    }
+
     // Sort: promoted first, then by selected criteria
     list.sort((a, b) => {
       if ((b.promoted ? 1 : 0) !== (a.promoted ? 1 : 0)) {
@@ -767,10 +829,15 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       }
       if (sort === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
       if (sort === "newest") return (b.createdAt || "").localeCompare(a.createdAt || "");
+      if (sort === "nearest") {
+        const da = (a as any)._dist ?? Infinity;
+        const db = (b as any)._dist ?? Infinity;
+        return da - db;
+      }
       return (b.rating ?? 0) - (a.rating ?? 0);
     });
     return list;
-  }, [centers, areas, govId, areaId, q, sort]);
+  }, [centers, areas, govId, areaId, q, sort, userLocation]);
 
   const govName = govId ? (govs[govId]?.name || "") : "";
 
@@ -813,6 +880,22 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
             onChange={e => setQ(e.target.value)}
             style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, flex: 1 }}
           />
+          <button
+            onClick={requestLocation}
+            title={locPermission === "granted" ? "تم تحديد الموقع" : "تحديد موقعي"}
+            style={{
+              width: 36, height: 36, borderRadius: 12,
+              border: "1.5px solid " + (locPermission === "granted" ? "#166534" : "#E2E8F0"),
+              background: locPermission === "granted" ? "#DCFCE7" : "#F9FAFB",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            <i
+              className={locPermission === "granted" ? "ph-fill ph-navigation-arrow" : "ph ph-crosshair"}
+              style={{ fontSize: 16, color: locPermission === "granted" ? "#166534" : "#9CA3AF" }}
+            />
+          </button>
           <select
             value={sort}
             onChange={e => setSort(e.target.value as any)}
@@ -900,6 +983,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
                   c.governorateId ? (govs[c.governorateId]?.name || "") :
                   c.areas?.[0] ? (govs[areas[c.areas[0].id]?.governorateId]?.name || "") : ""
                 )}
+                distance={sort === "nearest" ? (c as any)._dist : undefined}
                 onClick={() => navigate(`/centers/${c.publicId || c.id}`)}
               />
             ))
