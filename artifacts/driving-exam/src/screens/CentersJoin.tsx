@@ -380,8 +380,8 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
           )}
 
           <div style={{ marginTop: 14 }}>
-            <Field label="اسم المركز" value={name} onChange={setName} placeholder={fetchDone ? "أدخل اسم المركز أو اجلبه من الرابط" : "عطّل لحين جلب البيانات — الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
-            <Field label="العنوان" value={address} onChange={setAddress} placeholder={fetchDone ? "المنطقة، الشارع، المبنى..." : "عطّل لحين جلب البيانات — الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
+            <Field label="اسم المركز" value={name} onChange={setName} placeholder={fetchDone ? "أدخل اسم المركز أو اجلبه من الرابط" : "الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
+            <Field label="العنوان" value={address} onChange={setAddress} placeholder={fetchDone ? "المنطقة، الشارع، المبنى..." : "الصق رابط Google Maps أولاً"} readOnly={!fetchDone} />
           </div>
 
           {step === 1 && (

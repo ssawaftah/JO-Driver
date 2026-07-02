@@ -31,6 +31,35 @@ export default function Categories({ cats, qCounts, onStudy, onTest }: Props) {
         overflowY: "auto",
         padding: "14px",
       }}>
+        {/* Page info card */}
+        <div style={{
+          background: "#fff",
+          borderRadius: 16,
+          padding: "16px 18px",
+          border: "1.5px solid #E5E7EB",
+          marginBottom: 14,
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: "#246BFD", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 22,
+          }}>
+            <i className="ph ph-books" />
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
+              الأقسام والأسئلة
+            </div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+              اختر قسمًا لبدء المراجعة أو الاختبار — {cats.reduce((sum, c) => sum + (qCounts[c] || 0), 0)} سؤال
+            </div>
+          </div>
+        </div>
+
         {cats.map((cat, i) => {
           const m = META[cat] || DEF;
           const count = qCounts[cat] || 0;
