@@ -829,6 +829,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
     const search = q.trim().toLowerCase();
     let list = Object.entries(centers)
       .filter(([, c]) => {
+        if (c.suspended) return false;
         if (govId) {
           const inGov =
             c.governorateId === govId ||

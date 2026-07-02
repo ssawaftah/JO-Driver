@@ -233,6 +233,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
 
   const center: (Center & { id: string }) | null = useMemo(() => {
     if (!resolvedId || !centers[resolvedId]) return null;
+    if (centers[resolvedId].suspended) return null;
     return { id: resolvedId, ...centers[resolvedId] };
   }, [resolvedId, centers]);
 

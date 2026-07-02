@@ -70,6 +70,9 @@ export interface Center {
   areaId?: string;
   areas?: { id: string; name: string }[];
   promoted?: boolean;
+  suspended?: boolean;
+  description?: string;
+  imageUrl?: string;
   createdAt?: string;
 }
 

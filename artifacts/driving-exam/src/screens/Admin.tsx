@@ -4,7 +4,7 @@ import Header from "../components/Header";
 
 interface Props { onBack: () => void; }
 
-type View = "menu" | "users" | "questions" | "requests" | "add-gov" | "add-area" | "add-center" | "edit-list" | "delete-list" | "question-form" | "guide-admin" | "footer-admin" | "reviews";
+type View = "menu" | "users" | "questions" | "requests" | "geo-manage" | "centers-manage" | "add-center" | "edit-center" | "featured-centers" | "question-form" | "guide-admin" | "footer-admin" | "reviews";
 
 const Q_CATS = [
   "قواعد السير والمرور",
@@ -1248,6 +1248,18 @@ export default function Admin({ onBack }: Props) {
   const [addGovName, setAddGovName] = useState("");
   const [addAreaGov, setAddAreaGov] = useState("");
   const [addAreaName, setAddAreaName] = useState("");
+
+  // ── GEO INFO MANAGEMENT ─────────────────────────────
+  const [geoExpandedGov, setGeoExpandedGov] = useState<string | null>(null);
+  const [showAddGovModal, setShowAddGovModal] = useState(false);
+  const [geoAddAreaGovId, setGeoAddAreaGovId] = useState<string | null>(null);
+  const [editGovId, setEditGovId] = useState<string | null>(null);
+  const [editAreaId, setEditAreaId] = useState<string | null>(null);
+
+  // ── FEATURED CENTERS ─────────────────────────────────
+  const [showFeaturedPicker, setShowFeaturedPicker] = useState(false);
+  const [featuredPickerSearch, setFeaturedPickerSearch] = useState("");
+
   const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
   const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
@@ -1261,7 +1273,6 @@ export default function Admin({ onBack }: Props) {
   const [addFetchDone, setAddFetchDone] = useState(false);
 
   useEffect(() => {
-    if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
     if (view === "add-center") {
       const gids = Object.keys(govs);
       if (gids.length && !addCenter.gov) setAddCenter(s => ({ ...s, gov: gids[0], areaIds: [] }));
@@ -1269,34 +1280,6 @@ export default function Admin({ onBack }: Props) {
   }, [view, govs]);
 
   function AddSection() {
-    if (view === "add-gov") {
-      return (
-        <div>
-          <BackBtn onClick={() => setView("menu")} />
-          <SectionTitle>إضافة محافظة</SectionTitle>
-          <Input label="اسم المحافظة" value={addGovName} onChange={setAddGovName} placeholder="مثال: عمان" />
-          <Btn variant="primary" onClick={async () => {
-            if (!addGovName.trim()) { showToast("أدخل اسم المحافظة"); return; }
-            setLoading(true); try { await db.ref("governorates").push({ name: addGovName.trim() }); showToast("تم الإضافة"); setAddGovName(""); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
-          }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
-        </div>
-      );
-    }
-    if (view === "add-area") {
-      const opts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
-      return (
-        <div>
-          <BackBtn onClick={() => setView("menu")} />
-          <SectionTitle>إضافة منطقة</SectionTitle>
-          <Select label="المحافظة" value={addAreaGov} onChange={setAddAreaGov}>{opts}</Select>
-          <Input label="اسم المنطقة" value={addAreaName} onChange={setAddAreaName} placeholder="مثال: خلدا" />
-          <Btn variant="primary" onClick={async () => {
-            if (!addAreaName.trim()) { showToast("أدخل اسم المنطقة"); return; }
-            setLoading(true); try { await db.ref("areas").push({ name: addAreaName.trim(), governorateId: addAreaGov }); showToast("تم الإضافة"); setAddAreaName(""); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
-          }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
-        </div>
-      );
-    }
     const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
     const govAreas = addCenter.gov
       ? Object.entries(areas).filter(([, a]) => a.governorateId === addCenter.gov)
@@ -1357,7 +1340,7 @@ export default function Admin({ onBack }: Props) {
     return (
       <div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <BackBtn onClick={() => { resetAddCenter(); setView("menu"); }} />
+        <BackBtn onClick={() => { resetAddCenter(); setView("centers-manage"); }} />
         <SectionTitle>إضافة مركز تدريب</SectionTitle>
 
         {/* STEP 1 — URL + Name + Address */}
@@ -1439,11 +1422,6 @@ export default function Admin({ onBack }: Props) {
               <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -6, marginBottom: 10, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
                 <input type="checkbox" checked={addCenter.samePhone} onChange={e => setAddCenter(s => ({ ...s, samePhone: e.target.checked, whatsapp: "" }))} style={{ width: 16, height: 16, accentColor: C.primary }} />
                 استخدام نفس رقم الهاتف
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
-                <input type="checkbox" checked={addCenter.promoted} onChange={e => setAddCenter(s => ({ ...s, promoted: e.target.checked }))} />
-                <i className="ph-fill ph-crown" style={{ color: C.gold }} />
-                مركز مميز (يظهر في أعلى القائمة)
               </label>
             </div>
 
@@ -1574,7 +1552,7 @@ export default function Admin({ onBack }: Props) {
                 schedule: addSchedule,
                 promoted: addCenter.promoted || false,
                 createdAt: new Date().toISOString(),
-              }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("menu"); } catch { showToast("حدث خطأ"); } setLoading(false);
+              }); showToast("تم الإضافة"); resetAddCenter(); await loadAll(); setView("centers-manage"); } catch { showToast("حدث خطأ"); } setLoading(false);
             }}><i className="ph ph-floppy-disk" /> حفظ المركز</Btn>
           </>
         )}
@@ -1582,269 +1560,468 @@ export default function Admin({ onBack }: Props) {
     );
   }
 
-  // ── EDIT ──────────────────────────────────────────────────
-  type EditType = "governorates" | "areas" | "centers";
-  const [editType, setEditType] = useState<EditType | null>(null);
+  // ── EDIT CENTER ──────────────────────────────────────────────
   const [editId, setEditId] = useState<string | null>(null);
   const [editGovName, setEditGovName] = useState("");
   const [editAreaGov, setEditAreaGov] = useState("");
   const [editAreaName, setEditAreaName] = useState("");
-  const [editCenter, setEditCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[], promoted: false });
+  const [editCenter, setEditCenter] = useState({ name: "", gov: "", areaIds: [] as string[], address: "", phone: "", whatsapp: "", mapLink: "", imageUrl: "", description: "", rating: "0", startHour: "08:00", endHour: "16:00", selectedDays: [] as string[] });
 
-  function EditListSection() {
-    if (!editType) {
-      return (
-        <div>
-          <BackBtn onClick={() => setView("menu")} />
-          <SectionTitle>تعديل البيانات</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              { label: "المحافظات", icon: "map-trifold", color: C.cyan, bg: C.cyanLight, type: "governorates" as EditType },
-              { label: "المناطق", icon: "map-pin", color: C.primary, bg: C.primaryLight, type: "areas" as EditType },
-              { label: "مراكز التدريب", icon: "buildings", color: C.gold, bg: C.goldLight, type: "centers" as EditType },
-            ].map(item => (
-              <button key={item.type} onClick={() => setEditType(item.type)} style={{
-                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16,
-                display: "flex", alignItems: "center", gap: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "right",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)", transition: "all .15s", width: "100%",
-              }} onMouseEnter={e => { e.currentTarget.style.borderColor = item.color; }} onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: item.bg, color: item.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}><i className={`ph ph-${item.icon}`} /></div>
-                <div style={{ flex: 1, fontSize: 15, fontWeight: 800, color: C.text }}>{item.label}</div>
-                <i className="ph ph-caret-left" style={{ fontSize: 16, color: C.textLight }} />
-              </button>
-            ))}
-          </div>
-        </div>
-      );
+  function openEditCenter(id: string, item: any) {
+    setEditId(id);
+    const existingAreas = item.areas || (item.areaId ? [{ id: item.areaId, name: areas[item.areaId]?.name || "" }] : []);
+    const areaIds = existingAreas.map((a: any) => a.id);
+    let startHour = "08:00", endHour = "16:00";
+    if (item.workingHours && item.workingHours.includes("–")) {
+      const parts = item.workingHours.split("–").map((s: string) => s.trim());
+      if (parts.length === 2) { startHour = parts[0]; endHour = parts[1]; }
     }
-    const data = editType === "governorates" ? govs : editType === "areas" ? areas : centers;
-    const entries = Object.entries(data);
-    if (entries.length === 0) return <Empty icon="folder-open" text="لا توجد بيانات" />;
-    if (editId) {
-      const item = data[editId];
-      if (editType === "governorates") {
-        return (
-          <div>
-            <BackBtn onClick={() => setEditId(null)} />
-            <SectionTitle>تعديل محافظة</SectionTitle>
-            <Input label="الاسم" value={editGovName} onChange={setEditGovName} />
-            <Btn variant="primary" onClick={async () => { setLoading(true); try { await db.ref("governorates/" + editId).update({ name: editGovName.trim() }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
-          </div>
-        );
-      }
-      if (editType === "areas") {
-        const opts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
-        return (
-          <div>
-            <BackBtn onClick={() => setEditId(null)} />
-            <SectionTitle>تعديل منطقة</SectionTitle>
-            <Select label="المحافظة" value={editAreaGov} onChange={setEditAreaGov}>{opts}</Select>
-            <Input label="الاسم" value={editAreaName} onChange={setEditAreaName} />
-            <Btn variant="primary" onClick={async () => { setLoading(true); try { await db.ref("areas/" + editId).update({ name: editAreaName.trim(), governorateId: editAreaGov }); showToast("تم التحديث"); await loadAll(); setEditId(null); } catch { showToast("حدث خطأ"); } setLoading(false); }}><i className="ph ph-check" /> حفظ</Btn>
-          </div>
-        );
-      }
-      const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
-      const editGovAreas = editCenter.gov
-        ? Object.entries(areas).filter(([, a]) => a.governorateId === editCenter.gov)
-        : [];
-      function editToggleArea(id: string) {
-        setEditCenter(s => ({
-          ...s,
-          areaIds: s.areaIds.includes(id) ? s.areaIds.filter(x => x !== id) : [...s.areaIds, id]
-        }));
-      }
-      function editToggleDay(day: string) {
-        setEditCenter(s => ({
-          ...s,
-          selectedDays: s.selectedDays.includes(day) ? s.selectedDays.filter(x => x !== day) : [...s.selectedDays, day]
-        }));
-      }
-      return (
-        <div>
-          <BackBtn onClick={() => setEditId(null)} />
-          <SectionTitle>تعديل مركز</SectionTitle>
+    setEditCenter({ name: item.name || "", gov: item.governorateId || "", areaIds, address: item.address || "", phone: item.phone || "", whatsapp: item.whatsapp || "", mapLink: item.mapLink || "", imageUrl: item.imageUrl || "", description: item.description || "", rating: String(item.rating || 0), startHour, endHour, selectedDays: item.workingDays || [] });
+    setView("edit-center");
+  }
 
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
-            <Input label="اسم المركز" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
-            <Input label="العنوان" value={editCenter.address} onChange={v => setEditCenter(s => ({ ...s, address: v }))} />
-            <Input label="رقم الهاتف" value={editCenter.phone} onChange={v => setEditCenter(s => ({ ...s, phone: v }))} type="tel" />
-            <Input label="رقم الواتساب" value={editCenter.whatsapp} onChange={v => setEditCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
-            <Input label="رابط الخريطة" value={editCenter.mapLink} onChange={v => setEditCenter(s => ({ ...s, mapLink: v }))} />
-            <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, fontWeight: 700, color: C.text, cursor: "pointer" }}>
-              <input type="checkbox" checked={editCenter.promoted} onChange={e => setEditCenter(s => ({ ...s, promoted: e.target.checked }))} />
-              <i className="ph-fill ph-crown" style={{ color: C.gold }} />
-              مركز مميز (يظهر في أعلى القائمة)
-            </label>
-          </div>
+  function EditCenterSection() {
+    if (!editId || !centers[editId]) return <Empty icon="buildings" text="لم يتم اختيار مركز" />;
+    const gopts = Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>);
+    const editGovAreas = editCenter.gov
+      ? Object.entries(areas).filter(([, a]) => a.governorateId === editCenter.gov)
+      : [];
+    function editToggleArea(id: string) {
+      setEditCenter(s => ({
+        ...s,
+        areaIds: s.areaIds.includes(id) ? s.areaIds.filter(x => x !== id) : [...s.areaIds, id]
+      }));
+    }
+    function editToggleDay(day: string) {
+      setEditCenter(s => ({
+        ...s,
+        selectedDays: s.selectedDays.includes(day) ? s.selectedDays.filter(x => x !== day) : [...s.selectedDays, day]
+      }));
+    }
+    return (
+      <div>
+        <BackBtn onClick={() => { setEditId(null); setView("centers-manage"); }} />
+        <SectionTitle>تعديل مركز</SectionTitle>
 
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
-            <Select label="المحافظة" value={editCenter.gov} onChange={v => setEditCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
-            {editGovAreas.length > 0 && (
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {editGovAreas.map(([id, a]) => (
-                    <button key={id} onClick={() => editToggleArea(id)}
-                      style={{
-                        padding: "6px 12px", borderRadius: 10,
-                        border: `1.5px solid ${editCenter.areaIds.includes(id) ? C.primary : C.border}`,
-                        background: editCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
-                        color: editCenter.areaIds.includes(id) ? C.primary : C.textSec,
-                        fontSize: 12, fontWeight: 700,
-                        cursor: "pointer", fontFamily: "inherit",
-                        transition: "all 0.15s",
-                      }}>
-                      <i className={`ph ph-${editCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
-                      {a.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>المعلومات الأساسية</div>
+          <Input label="اسم المركز" value={editCenter.name} onChange={v => setEditCenter(s => ({ ...s, name: v }))} />
+          <Input label="العنوان" value={editCenter.address} onChange={v => setEditCenter(s => ({ ...s, address: v }))} />
+          <Input label="رقم الهاتف" value={editCenter.phone} onChange={v => setEditCenter(s => ({ ...s, phone: v }))} type="tel" />
+          <Input label="رقم الواتساب" value={editCenter.whatsapp} onChange={v => setEditCenter(s => ({ ...s, whatsapp: v }))} placeholder="07XXXXXXXX (اختياري)" type="tel" />
+          <Input label="رابط الخريطة" value={editCenter.mapLink} onChange={v => setEditCenter(s => ({ ...s, mapLink: v }))} />
+          <Input label="رابط الصورة" value={editCenter.imageUrl} onChange={v => setEditCenter(s => ({ ...s, imageUrl: v }))} placeholder="https://..." />
+          <TextArea label="الوصف" value={editCenter.description} onChange={v => setEditCenter(s => ({ ...s, description: v }))} placeholder="نبذة عن المركز..." />
+        </div>
 
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
-            <Input label="التقييم (0–5)" value={editCenter.rating} onChange={v => setEditCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>من</label>
-                <input type="time" value={editCenter.startHour}
-                  onChange={e => setEditCenter(s => ({ ...s, startHour: e.target.value }))}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>إلى</label>
-                <input type="time" value={editCenter.endHour}
-                  onChange={e => setEditCenter(s => ({ ...s, endHour: e.target.value }))}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
-                />
-              </div>
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 8 }}>أيام الدوام</label>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>الموقع</div>
+          <Select label="المحافظة" value={editCenter.gov} onChange={v => setEditCenter(s => ({ ...s, gov: v, areaIds: [] }))}>{gopts}</Select>
+          {editGovAreas.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة (اختر واحدة أو أكثر)</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {ALL_DAYS_FULL.map((day, i) => (
-                  <button key={day} onClick={() => editToggleDay(day)}
+                {editGovAreas.map(([id, a]) => (
+                  <button key={id} onClick={() => editToggleArea(id)}
                     style={{
-                      width: 42, height: 42, borderRadius: 10,
-                      border: `1.5px solid ${editCenter.selectedDays.includes(day) ? C.primary : C.border}`,
-                      background: editCenter.selectedDays.includes(day) ? C.primary : C.surface2,
-                      color: editCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
-                      fontSize: 14, fontWeight: 800,
+                      padding: "6px 12px", borderRadius: 10,
+                      border: `1.5px solid ${editCenter.areaIds.includes(id) ? C.primary : C.border}`,
+                      background: editCenter.areaIds.includes(id) ? C.primaryLight : C.bg,
+                      color: editCenter.areaIds.includes(id) ? C.primary : C.textSec,
+                      fontSize: 12, fontWeight: 700,
                       cursor: "pointer", fontFamily: "inherit",
                       transition: "all 0.15s",
                     }}>
-                    {ALL_DAYS_SHORT[i]}
+                    <i className={`ph ph-${editCenter.areaIds.includes(id) ? "check-square" : "square"}`} style={{ fontSize: 13, marginLeft: 4 }} />
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginBottom: 10, padding: "4px 10px", background: C.primaryLight, borderRadius: 8, display: "inline-block" }}>أوقات وإيام الدوام</div>
+          <Input label="التقييم (0–5)" value={editCenter.rating} onChange={v => setEditCenter(s => ({ ...s, rating: v }))} type="number" min="0" max="5" step="0.1" />
+          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>من</label>
+              <input type="time" value={editCenter.startHour}
+                onChange={e => setEditCenter(s => ({ ...s, startHour: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 6 }}>إلى</label>
+              <input type="time" value={editCenter.endHour}
+                onChange={e => setEditCenter(s => ({ ...s, endHour: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.bg, fontSize: 14, fontFamily: "inherit", color: C.text }}
+              />
+            </div>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: C.textSec, display: "block", marginBottom: 8 }}>أيام الدوام</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {ALL_DAYS_FULL.map((day, i) => (
+                <button key={day} onClick={() => editToggleDay(day)}
+                  style={{
+                    width: 42, height: 42, borderRadius: 10,
+                    border: `1.5px solid ${editCenter.selectedDays.includes(day) ? C.primary : C.border}`,
+                    background: editCenter.selectedDays.includes(day) ? C.primary : C.surface2,
+                    color: editCenter.selectedDays.includes(day) ? "#fff" : C.textSec,
+                    fontSize: 14, fontWeight: 800,
+                    cursor: "pointer", fontFamily: "inherit",
+                    transition: "all 0.15s",
+                  }}>
+                  {ALL_DAYS_SHORT[i]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Btn variant="primary" onClick={async () => {
+          if (!editCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
+          if (editCenter.phone.trim() && !/^07\d{8}$/.test(editCenter.phone.trim())) { showToast("رقم الهاتف غير صالح"); return; }
+          if (editCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
+          if (editCenter.selectedDays.length === 0) { showToast("اختر يوم دوام واحد على الأقل"); return; }
+          const areaObjs = editCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+          setLoading(true); try {
+            await db.ref("centers/" + editId).update({
+              name: editCenter.name.trim(),
+              governorateId: editCenter.gov,
+              areaId: editCenter.areaIds[0],
+              areas: areaObjs,
+              address: editCenter.address.trim() || null,
+              phone: editCenter.phone.trim() || null,
+              whatsapp: editCenter.whatsapp.trim() || null,
+              mapLink: editCenter.mapLink.trim() || null,
+              imageUrl: editCenter.imageUrl.trim() || null,
+              description: editCenter.description.trim() || null,
+              rating: parseFloat(editCenter.rating) || 0,
+              workingHours: `${editCenter.startHour.trim()} – ${editCenter.endHour.trim()}`,
+              workingDays: editCenter.selectedDays,
+            });
+            showToast("تم التحديث");
+            await loadAll(); setEditId(null); setView("centers-manage");
+          } catch { showToast("حدث خطأ"); }
+          setLoading(false);
+        }}><i className="ph ph-check" /> حفظ التغييرات</Btn>
+      </div>
+    );
+  }
+
+  // ── GEO INFO MANAGEMENT ──────────────────────────────────────
+  function GeoManageSection() {
+    const govEntries = Object.entries(govs).sort((a, b) => a[1].name.localeCompare(b[1].name, "ar"));
+
+    async function deleteGov(id: string, name: string) {
+      const areaCount = Object.values(areas).filter(a => a.governorateId === id).length;
+      if (areaCount > 0) { showToast("احذف مناطق هذه المحافظة أولاً"); return; }
+      if (!confirm(`حذف محافظة "${name}"؟`)) return;
+      setLoading(true); try { await db.ref("governorates/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+    }
+    async function deleteArea(id: string, name: string) {
+      const inUse = Object.values(centers).some(c => c.areaId === id || c.areas?.some((a: any) => a.id === id));
+      if (inUse) { showToast("لا يمكن حذف منطقة مرتبطة بمركز"); return; }
+      if (!confirm(`حذف منطقة "${name}"؟`)) return;
+      setLoading(true); try { await db.ref("areas/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+    }
+
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle count={govEntries.length}>إدارة المعلومات الجغرافية</SectionTitle>
+
+        <Btn variant="outline" style={{ marginBottom: 16 }} onClick={() => { setAddGovName(""); setShowAddGovModal(true); }}>
+          <i className="ph ph-plus" /> إضافة محافظة جديدة
+        </Btn>
+
+        {govEntries.length === 0 ? <Empty icon="map-trifold" text="لا توجد محافظات بعد" /> : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {govEntries.map(([govId, gov]) => {
+              const govAreaEntries = Object.entries(areas).filter(([, a]) => a.governorateId === govId);
+              const expanded = geoExpandedGov === govId;
+              return (
+                <div key={govId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 14 }}>
+                    <button onClick={() => setGeoExpandedGov(expanded ? null : govId)} style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "right", padding: 0 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: C.cyanLight, color: C.cyan, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+                        <i className="ph ph-map-trifold" />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{gov.name}</div>
+                        <div style={{ fontSize: 11, color: C.textSec, marginTop: 2 }}>{govAreaEntries.length} منطقة</div>
+                      </div>
+                      <i className={`ph ph-caret-${expanded ? "up" : "down"}`} style={{ fontSize: 16, color: C.textLight }} />
+                    </button>
+                    <button onClick={() => { setEditGovName(gov.name); setEditGovId(govId); }} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.border}`, background: C.surface2, color: C.primary, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className="ph ph-pencil-simple" style={{ fontSize: 14 }} />
+                    </button>
+                    <button onClick={() => deleteGov(govId, gov.name)} style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: C.redLight, color: C.red, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className="ph ph-trash" style={{ fontSize: 14 }} />
+                    </button>
+                  </div>
+                  {expanded && (
+                    <div style={{ padding: "0 14px 14px", borderTop: `1px solid ${C.surface2}` }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+                        {govAreaEntries.length === 0 && <div style={{ fontSize: 12, color: C.textLight, padding: "6px 2px" }}>لا توجد مناطق في هذه المحافظة</div>}
+                        {govAreaEntries.map(([areaId, area]) => (
+                          <div key={areaId} style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface2, borderRadius: 10, padding: "8px 10px" }}>
+                            <i className="ph ph-map-pin" style={{ fontSize: 14, color: C.primary }} />
+                            <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: C.text }}>{area.name}</div>
+                            <button onClick={() => { setEditAreaName(area.name); setEditAreaGov(area.governorateId); setEditAreaId(areaId); }} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.border}`, background: C.surface, color: C.primary, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="ph ph-pencil-simple" style={{ fontSize: 12 }} />
+                            </button>
+                            <button onClick={() => deleteArea(areaId, area.name)} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: C.redLight, color: C.red, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="ph ph-trash" style={{ fontSize: 12 }} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => { setAddAreaName(""); setAddAreaGov(govId); setGeoAddAreaGovId(govId); }} style={{
+                        marginTop: 10, width: "100%", padding: "8px 12px", borderRadius: 10,
+                        border: `1.5px dashed ${C.primary}`, background: C.surface,
+                        color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                      }}>
+                        <i className="ph ph-plus" style={{ fontSize: 14 }} /> إضافة منطقة إلى {gov.name}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Add governorate modal */}
+        {showAddGovModal && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setShowAddGovModal(false); }}>
+            <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 400, padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>إضافة محافظة جديدة</div>
+                <button onClick={() => setShowAddGovModal(false)} style={{ width: 32, height: 32, borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: C.textSec }} />
+                </button>
+              </div>
+              <Input label="اسم المحافظة" value={addGovName} onChange={setAddGovName} placeholder="مثال: عمان" />
+              <Btn variant="primary" onClick={async () => {
+                if (!addGovName.trim()) { showToast("أدخل اسم المحافظة"); return; }
+                setLoading(true); try { await db.ref("governorates").push({ name: addGovName.trim() }); showToast("تم الإضافة"); setAddGovName(""); setShowAddGovModal(false); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+              }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* Edit governorate modal */}
+        {editGovId && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setEditGovId(null); }}>
+            <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 400, padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>تعديل محافظة</div>
+                <button onClick={() => setEditGovId(null)} style={{ width: 32, height: 32, borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: C.textSec }} />
+                </button>
+              </div>
+              <Input label="اسم المحافظة" value={editGovName} onChange={setEditGovName} />
+              <Btn variant="primary" onClick={async () => {
+                if (!editGovName.trim()) { showToast("أدخل اسم المحافظة"); return; }
+                setLoading(true); try { await db.ref("governorates/" + editGovId).update({ name: editGovName.trim() }); showToast("تم التحديث"); setEditGovId(null); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+              }}><i className="ph ph-check" /> حفظ</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* Add area modal */}
+        {geoAddAreaGovId && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setGeoAddAreaGovId(null); }}>
+            <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 400, padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>إضافة منطقة إلى {govs[geoAddAreaGovId]?.name}</div>
+                <button onClick={() => setGeoAddAreaGovId(null)} style={{ width: 32, height: 32, borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: C.textSec }} />
+                </button>
+              </div>
+              <Input label="اسم المنطقة" value={addAreaName} onChange={setAddAreaName} placeholder="مثال: خلدا" />
+              <Btn variant="primary" onClick={async () => {
+                if (!addAreaName.trim()) { showToast("أدخل اسم المنطقة"); return; }
+                setLoading(true); try { await db.ref("areas").push({ name: addAreaName.trim(), governorateId: geoAddAreaGovId }); showToast("تم الإضافة"); setAddAreaName(""); setGeoAddAreaGovId(null); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+              }}><i className="ph ph-floppy-disk" /> حفظ</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* Edit area modal */}
+        {editAreaId && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setEditAreaId(null); }}>
+            <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 400, padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>تعديل منطقة</div>
+                <button onClick={() => setEditAreaId(null)} style={{ width: 32, height: 32, borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: C.textSec }} />
+                </button>
+              </div>
+              <Select label="المحافظة" value={editAreaGov} onChange={setEditAreaGov}>
+                {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
+              </Select>
+              <Input label="اسم المنطقة" value={editAreaName} onChange={setEditAreaName} />
+              <Btn variant="primary" onClick={async () => {
+                if (!editAreaName.trim()) { showToast("أدخل اسم المنطقة"); return; }
+                setLoading(true); try { await db.ref("areas/" + editAreaId).update({ name: editAreaName.trim(), governorateId: editAreaGov }); showToast("تم التحديث"); setEditAreaId(null); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+              }}><i className="ph ph-check" /> حفظ</Btn>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── CENTERS MANAGEMENT ────────────────────────────────────────
+  function CentersManageSection() {
+    const entries = Object.entries(centers).sort((a, b) => (a[1].name || "").localeCompare(b[1].name || "", "ar"));
+
+    async function toggleSuspend(id: string, suspended: boolean) {
+      setLoading(true); try { await db.ref("centers/" + id).update({ suspended: !suspended }); showToast(!suspended ? "تم تعليق النشر" : "تم استئناف النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+    }
+    async function deleteCenter(id: string, name: string) {
+      if (!confirm(`حذف مركز "${name}"؟ هذا الإجراء نهائي.`)) return;
+      setLoading(true); try { await db.ref("centers/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+    }
+
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle count={entries.length}>إدارة المراكز</SectionTitle>
+
+        <Btn variant="outline" style={{ marginBottom: 16 }} onClick={() => setView("add-center")}>
+          <i className="ph ph-plus" /> إضافة مركز جديد
+        </Btn>
+
+        {entries.length === 0 ? <Empty icon="buildings" text="لا توجد مراكز بعد" /> : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {entries.map(([id, c]) => {
+              const suspended = !!c.suspended;
+              const govName = govs[c.governorateId]?.name || "";
+              const areaNames = (c.areas || []).map((a: any) => a.name).join("، ") || (areas[c.areaId]?.name || "");
+              return (
+                <div key={id} style={{ background: C.surface, border: `1px solid ${suspended ? C.red : C.border}`, borderRadius: 14, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: c.imageUrl ? "transparent" : C.goldLight, color: C.gold, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, overflow: "hidden" }}>
+                      {c.imageUrl ? <img src={c.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <i className="ph ph-buildings" />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{c.name}</span>
+                        {c.promoted && <i className="ph-fill ph-crown" style={{ color: C.gold, fontSize: 13 }} />}
+                      </div>
+                      <div style={{ fontSize: 11, color: C.textSec, marginTop: 2 }}>{areaNames}{areaNames && govName ? " · " : ""}{govName}</div>
+                    </div>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 20,
+                      background: suspended ? C.redLight : C.greenLight, color: suspended ? C.red : C.green, flexShrink: 0, whiteSpace: "nowrap",
+                    }}>{suspended ? "معلق النشر" : "منشور"}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => openEditCenter(id, c)} style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                      <i className="ph ph-pencil-simple" /> تعديل
+                    </button>
+                    <button onClick={() => toggleSuspend(id, suspended)} style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1px solid ${suspended ? C.green : C.gold}`, background: C.surface, color: suspended ? C.green : C.gold, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                      <i className={`ph ph-${suspended ? "eye" : "eye-slash"}`} /> {suspended ? "استئناف النشر" : "تعليق النشر"}
+                    </button>
+                    <button onClick={() => deleteCenter(id, c.name)} style={{ padding: "8px 10px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <i className="ph ph-trash" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── FEATURED CENTERS ──────────────────────────────────────────
+  function FeaturedCentersSection() {
+    const featured = Object.entries(centers).filter(([, c]) => c.promoted);
+    const pickable = Object.entries(centers).filter(([, c]) => !c.promoted && c.name?.toLowerCase().includes(featuredPickerSearch.trim().toLowerCase()));
+
+    async function setPromoted(id: string, promoted: boolean) {
+      setLoading(true); try { await db.ref("centers/" + id).update({ promoted }); showToast(promoted ? "تمت الإضافة للمميزين" : "تمت الإزالة من المميزين"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false);
+    }
+
+    return (
+      <div>
+        <BackBtn onClick={() => setView("menu")} />
+        <SectionTitle count={featured.length}>المراكز المميزة</SectionTitle>
+
+        <Btn variant="outline" style={{ marginBottom: 16 }} onClick={() => { setFeaturedPickerSearch(""); setShowFeaturedPicker(true); }}>
+          <i className="ph ph-plus" /> إضافة مركز مميز
+        </Btn>
+
+        {featured.length === 0 ? <Empty icon="crown-simple" text="لا توجد مراكز مميزة بعد" /> : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {featured.map(([id, c]) => {
+              const govName = govs[c.governorateId]?.name || "";
+              const areaNames = (c.areas || []).map((a: any) => a.name).join("، ") || (areas[c.areaId]?.name || "");
+              return (
+                <div key={id} style={{ background: C.surface, border: `1.5px solid ${C.gold}`, borderRadius: 14, padding: 14, boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: c.imageUrl ? "transparent" : C.goldLight, color: C.gold, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, overflow: "hidden" }}>
+                      {c.imageUrl ? <img src={c.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <i className="ph-fill ph-crown" />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{c.name}</div>
+                      <div style={{ fontSize: 11, color: C.textSec, marginTop: 2 }}>{areaNames}{areaNames && govName ? " · " : ""}{govName}</div>
+                    </div>
+                  </div>
+                  <button onClick={() => setPromoted(id, false)} style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <i className="ph ph-x-circle" /> إزالة من المميزين
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {showFeaturedPicker && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setShowFeaturedPicker(false); }}>
+            <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 440, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 12px" }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>إضافة مركز مميز</div>
+                <button onClick={() => setShowFeaturedPicker(false)} style={{ width: 32, height: 32, borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: C.textSec }} />
+                </button>
+              </div>
+              <div style={{ padding: "0 24px 12px" }}>
+                <input value={featuredPickerSearch} onChange={e => setFeaturedPickerSearch(e.target.value)} placeholder="بحث عن مركز..." style={{
+                  width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.border}`,
+                  background: C.surface2, fontSize: 13, fontFamily: "inherit", color: C.text, outline: "none",
+                }} />
+              </div>
+              <div style={{ overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {pickable.length === 0 && <div style={{ textAlign: "center", padding: 20, fontSize: 13, color: C.textLight }}>لا توجد نتائج</div>}
+                {pickable.map(([id, c]) => (
+                  <button key={id} onClick={() => { setPromoted(id, true); setShowFeaturedPicker(false); }} style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10,
+                    border: `1px solid ${C.border}`, background: C.surface2, cursor: "pointer", fontFamily: "inherit", textAlign: "right", width: "100%",
+                  }}>
+                    <i className="ph ph-buildings" style={{ color: C.gold, fontSize: 16 }} />
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: C.text }}>{c.name}</span>
+                    <i className="ph ph-plus-circle" style={{ color: C.primary, fontSize: 16 }} />
                   </button>
                 ))}
               </div>
             </div>
           </div>
-
-          <Btn variant="primary" onClick={async () => {
-            if (!editCenter.name.trim()) { showToast("أدخل اسم المركز"); return; }
-            if (editCenter.phone.trim() && !/^07\d{8}$/.test(editCenter.phone.trim())) { showToast("رقم الهاتف غير صالح"); return; }
-            if (editCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
-            if (editCenter.selectedDays.length === 0) { showToast("اختر يوم دوام واحد على الأقل"); return; }
-            const areaObjs = editCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
-            setLoading(true); try {
-              await db.ref("centers/" + editId).update({
-                name: editCenter.name.trim(),
-                governorateId: editCenter.gov,
-                areaId: editCenter.areaIds[0],
-                areas: areaObjs,
-                address: editCenter.address.trim() || null,
-                phone: editCenter.phone.trim() || null,
-                whatsapp: editCenter.whatsapp.trim() || null,
-                mapLink: editCenter.mapLink.trim() || null,
-                rating: parseFloat(editCenter.rating) || 0,
-                workingHours: `${editCenter.startHour.trim()} – ${editCenter.endHour.trim()}`,
-                workingDays: editCenter.selectedDays,
-                promoted: editCenter.promoted || false,
-              });
-              showToast("تم التحديث");
-              await loadAll(); setEditId(null);
-            } catch { showToast("حدث خطأ"); }
-            setLoading(false);
-          }}><i className="ph ph-check" /> حفظ التغييرات</Btn>
-        </div>
-      );
-    }
-    return (
-      <div>
-        <BackBtn onClick={() => setEditType(null)} />
-        <SectionTitle>تعديل {editType === "governorates" ? "المحافظات" : editType === "areas" ? "المناطق" : "مراكز التدريب"}</SectionTitle>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {entries.map(([id, item]) => (
-            <ListItem key={id} label={item.name} sub={editType === "areas" ? govs[item.governorateId]?.name : editType === "centers" ? `${areas[item.areaId]?.name || ""} · ${govs[item.governorateId]?.name || ""}` : undefined} actions={
-              <button onClick={() => {
-                setEditId(id);
-                if (editType === "governorates") setEditGovName(item.name);
-                else if (editType === "areas") { setEditAreaName(item.name); setEditAreaGov(item.governorateId || ""); }
-                else {
-                  const existingAreas = item.areas || (item.areaId ? [{ id: item.areaId, name: areas[item.areaId]?.name || "" }] : []);
-                  const areaIds = existingAreas.map((a: any) => a.id);
-                  let startHour = "08:00", endHour = "16:00";
-                  if (item.workingHours && item.workingHours.includes("–")) {
-                    const parts = item.workingHours.split("–").map((s: string) => s.trim());
-                    if (parts.length === 2) { startHour = parts[0]; endHour = parts[1]; }
-                  }
-                  setEditCenter({ name: item.name || "", gov: item.governorateId || "", areaIds, address: item.address || "", phone: item.phone || "", whatsapp: item.whatsapp || "", mapLink: item.mapLink || "", rating: String(item.rating || 0), startHour, endHour, selectedDays: item.workingDays || [], promoted: item.promoted || false });
-                }
-              }} style={{ padding: "7px 12px", borderRadius: 8, border: `1px solid ${C.primary}`, background: C.surface, color: C.primary, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-pencil-simple" /> تعديل</button>
-            } />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // ── DELETE ──────────────────────────────────────────────────
-  const [delType, setDelType] = useState<EditType | null>(null);
-  function DeleteSection() {
-    if (!delType) {
-      return (
-        <div>
-          <BackBtn onClick={() => setView("menu")} />
-          <SectionTitle>حذف البيانات</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              { label: "المحافظات", type: "governorates" as EditType },
-              { label: "المناطق", type: "areas" as EditType },
-              { label: "مراكز التدريب", type: "centers" as EditType },
-            ].map(d => (
-              <button key={d.type} onClick={() => setDelType(d.type)} style={{
-                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18,
-                textAlign: "center", fontWeight: 800, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)", width: "100%",
-              }} onMouseEnter={e => e.currentTarget.style.borderColor = C.red} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    const data = delType === "governorates" ? govs : delType === "areas" ? areas : centers;
-    const entries = Object.entries(data);
-    if (entries.length === 0) return <Empty icon="folder-open" text="لا توجد بيانات" />;
-    return (
-      <div>
-        <BackBtn onClick={() => setDelType(null)} />
-        <SectionTitle>حذف {delType === "governorates" ? "المحافظات" : delType === "areas" ? "المناطق" : "مراكز التدريب"}</SectionTitle>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {entries.map(([id, item]) => (
-            <ListItem key={id} label={item.name} actions={
-              <button onClick={async () => { if (!confirm(`حذف "${item.name}"؟`)) return; setLoading(true); try { await db.ref(delType + "/" + id).remove(); showToast("تم الحذف"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
-                style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: C.redLight, color: C.red, fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><i className="ph ph-trash" /> حذف</button>
-            } />
-          ))}
-        </div>
+        )}
       </div>
     );
   }
@@ -2487,20 +2664,20 @@ export default function Admin({ onBack }: Props) {
           {/* Geographic Data */}
           <div style={{ fontSize: 11, fontWeight: 800, color: C.textLight, marginTop: 20, marginBottom: 12, padding: "0 4px", letterSpacing: "0.5px" }}>البيانات الجغرافية</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} iconColor={C.cyan} title="إضافة محافظة" desc="إنشاء محافظة جديدة" onClick={() => setView("add-gov")} />
-            <Card icon="map-pin" color={C.primary} colorBg={C.primaryLight} iconColor={C.primary} title="إضافة منطقة" desc="ربط منطقة بمحافظة" onClick={() => setView("add-area")} />
-            <Card icon="buildings" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="إضافة مركز" desc="مركز تدريب جديد" onClick={() => setView("add-center")} />
-            <Card icon="pencil-simple" color={C.primary} colorBg={C.primaryLight} iconColor={C.primary} title="تعديل البيانات" desc="تعديل المحافظات والمناطق" onClick={() => { setEditType(null); setView("edit-list"); }} />
-            <Card icon="trash" color={C.red} colorBg={C.redLight} iconColor={C.red} title="حذف البيانات" desc="إزالة البيانات" onClick={() => { setDelType(null); setView("delete-list"); }} />
+            <Card icon="map-trifold" color={C.cyan} colorBg={C.cyanLight} iconColor={C.cyan} title="إدارة المعلومات الجغرافية" desc="المحافظات والمناطق" onClick={() => setView("geo-manage")} />
+            <Card icon="buildings" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="إدارة المراكز" desc="عرض، تعديل، حذف، تعليق النشر" onClick={() => setView("centers-manage")} count={Object.keys(centers).length} />
+            <Card icon="crown-simple" color={C.gold} colorBg={C.goldLight} iconColor={C.gold} title="المراكز المميزة" desc="إدارة المراكز المميزة" onClick={() => setView("featured-centers")} />
           </div>
         </div>
       );
       case "users": return <UsersSection />;
       case "questions": return QuestionsSection();
       case "requests": return <RequestsSection />;
-      case "add-gov": case "add-area": case "add-center": return <AddSection />;
-      case "edit-list": return <EditListSection />;
-      case "delete-list": return <DeleteSection />;
+      case "add-center": return <AddSection />;
+      case "edit-center": return <EditCenterSection />;
+      case "geo-manage": return <GeoManageSection />;
+      case "centers-manage": return <CentersManageSection />;
+      case "featured-centers": return <FeaturedCentersSection />;
       case "guide-admin": return <GuideAdminSection />;
       case "footer-admin": return FooterAdminSection();
       case "reviews": return <ReviewsSection />;
