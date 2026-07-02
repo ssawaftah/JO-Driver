@@ -865,8 +865,31 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       }
     }
 
-    // Sort: promoted first, then by selected criteria
+    // Sort: for nearest with governorate selected, promoted centers in same gov stay on top
+    const isInSelectedGov = (c: Center) => {
+      if (!govId) return false;
+      return (
+        c.governorateId === govId ||
+        (c.areaId && areas[c.areaId]?.governorateId === govId) ||
+        (c.areas?.some(a => areas[a.id]?.governorateId === govId))
+      );
+    };
     list.sort((a, b) => {
+      // For nearest sort: promoted centers in selected governorate are always first
+      if (sort === "nearest" && govId) {
+        const aInGov = isInSelectedGov(a);
+        const bInGov = isInSelectedGov(b);
+        const aPromotedInGov = a.promoted && aInGov;
+        const bPromotedInGov = b.promoted && bInGov;
+        if ((bPromotedInGov ? 1 : 0) !== (aPromotedInGov ? 1 : 0)) {
+          return (bPromotedInGov ? 1 : 0) - (aPromotedInGov ? 1 : 0);
+        }
+        // Then everyone else by distance
+        const da = (a as any)._dist ?? Infinity;
+        const db = (b as any)._dist ?? Infinity;
+        return da - db;
+      }
+      // Default: promoted first, then by criteria
       if ((b.promoted ? 1 : 0) !== (a.promoted ? 1 : 0)) {
         return (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0);
       }
@@ -941,7 +964,14 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
           </button>
           <select
             value={sort}
-            onChange={e => setSort(e.target.value as any)}
+            onChange={e => {
+              const val = e.target.value as "rating" | "newest" | "nearest";
+              if (val === "nearest" && locPermission !== "granted") {
+                requestLocation();
+                return;
+              }
+              setSort(val);
+            }}
             style={{
               padding: "9px 10px", borderRadius: 12, border: "1.5px solid #E2E8F0",
               background: "#F9FAFB", fontSize: 12, fontWeight: 700,
@@ -977,6 +1007,48 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
             );
           })}
         </div>
+
+        {/* Location permission banner — only for users who haven't shared location */}
+        {locPermission !== "granted" && (
+          <div style={{
+            margin: "0 16px 12px",
+            padding: "12px 14px",
+            borderRadius: 14,
+            background: "#EEF4FF",
+            border: "1.5px solid #BFDBFE",
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "#246BFD", color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <i className="ph-fill ph-navigation-arrow" style={{ fontSize: 18 }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#1E40AF" }}>
+                لعرض المراكز القريبة منك
+              </div>
+              <div style={{ fontSize: 12, color: "#3B82F6", marginTop: 2 }}>
+                شارك موقعك لترتيب المراكز حسب المسافة
+              </div>
+            </div>
+            <button
+              onClick={requestLocation}
+              style={{
+                padding: "8px 14px", borderRadius: 10,
+                background: "#246BFD", color: "#fff",
+                fontSize: 12, fontWeight: 800,
+                border: "none", cursor: "pointer", fontFamily: "inherit",
+                flexShrink: 0,
+              }}
+            >
+              <i className="ph ph-crosshair" style={{ fontSize: 14, marginLeft: 4 }} />
+              تحديد موقعي
+            </button>
+          </div>
+        )}
 
         {/* Area chips */}
         {govAreas.length > 0 && (
