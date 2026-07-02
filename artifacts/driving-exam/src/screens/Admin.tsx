@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../lib/firebase";
 import Header from "../components/Header";
 
@@ -226,8 +226,19 @@ export default function Admin({ onBack }: Props) {
   const [reviewPromoted, setReviewPromoted] = useState(false);
   type ReviewDaySchedule = { closed: boolean; from: string; to: string };
   const [reviewSchedule, setReviewSchedule] = useState<ReviewDaySchedule[]>([]);
+  const [showAddAreaModal, setShowAddAreaModal] = useState(false);
+  const [reviewAddAreaName, setReviewAddAreaName] = useState("");
+  const [reviewAddAreaError, setReviewAddAreaError] = useState("");
+  const [reviewAddAreaSaving, setReviewAddAreaSaving] = useState(false);
+  const reviewAddAreaInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
+
+  useEffect(() => {
+    if (showAddAreaModal && reviewAddAreaInputRef.current) {
+      setTimeout(() => reviewAddAreaInputRef.current?.focus(), 50);
+    }
+  }, [showAddAreaModal]);
 
   async function loadAll() {
     setLoading(true);
@@ -716,6 +727,26 @@ export default function Admin({ onBack }: Props) {
   function closeReviewModal() {
     setReviewingReqId(null);
     setReviewingData(null);
+    setShowAddAreaModal(false);
+    setReviewAddAreaName("");
+    setReviewAddAreaError("");
+  }
+
+  async function saveReviewNewArea() {
+    if (!reviewGovId) { setReviewAddAreaError("اختر المحافظة أولاً"); return; }
+    if (!reviewAddAreaName.trim()) { setReviewAddAreaError("أدخل اسم المنطقة"); return; }
+    setReviewAddAreaSaving(true); setReviewAddAreaError("");
+    try {
+      const ref = db.ref("areas").push();
+      await ref.set({ name: reviewAddAreaName.trim(), governorateId: reviewGovId });
+      const id = ref.key!;
+      setAreas(prev => ({ ...prev, [id]: { id, name: reviewAddAreaName.trim(), governorateId: reviewGovId } }));
+      setReviewAreaIds(prev => [...prev, id]);
+      setReviewAddAreaName("");
+      setShowAddAreaModal(false);
+      showToast("تم إضافة المنطقة");
+    } catch { setReviewAddAreaError("حدث خطأ أثناء الحفظ. حاول مجدداً."); }
+    setReviewAddAreaSaving(false);
   }
 
   async function publishReviewedCenter() {
@@ -1011,6 +1042,20 @@ export default function Admin({ onBack }: Props) {
                   ) : (
                     <div style={{ fontSize: 12, color: C.textLight, padding: "6px 0" }}>اختر المحافظة أولاً</div>
                   )}
+                  {reviewGovId && (
+                    <button onClick={() => setShowAddAreaModal(true)} style={{
+                      marginTop: 8,
+                      padding: "6px 12px", borderRadius: 10,
+                      border: `1.5px dashed ${C.primary}`,
+                      background: C.surface,
+                      color: C.primary,
+                      fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                      display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
+                    }}>
+                      <i className="ph ph-plus" style={{ fontSize: 14 }} />
+                      إضافة منطقة جديدة
+                    </button>
+                  )}
                 </div>
 
                 {/* Rating + review count */}
@@ -1114,6 +1159,82 @@ export default function Admin({ onBack }: Props) {
                     cursor: "pointer", fontFamily: "inherit",
                   }}>
                   إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Add Area Modal (inside review) ── */}
+        {showAddAreaModal && (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(15,23,42,0.45)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16,
+          }} onClick={e => { if (e.target === e.currentTarget) setShowAddAreaModal(false); }}>
+            <div style={{
+              background: "#fff", borderRadius: 20,
+              width: "100%", maxWidth: 420,
+              padding: 24,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: "#0F172A" }}>إضافة منطقة جديدة</div>
+                <button onClick={() => setShowAddAreaModal(false)} style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  border: "1.5px solid #E2E8F0", background: "#F8FAFC",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  <i className="ph ph-x" style={{ fontSize: 16, color: "#64748B" }} />
+                </button>
+              </div>
+              <div style={{ fontSize: 13, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
+                سيتم حفظ المنطقة تلقائياً في قاعدة البيانات وارتباطها بمحافظة <b>{govs[reviewGovId]?.name || "المحافظة المختارة"}</b>.
+              </div>
+              <input ref={reviewAddAreaInputRef} value={reviewAddAreaName}
+                onChange={e => { setReviewAddAreaName(e.target.value); setReviewAddAreaError(""); }}
+                onKeyDown={e => { if (e.key === "Enter") saveReviewNewArea(); }}
+                placeholder="أدخل اسم المنطقة..."
+                style={{
+                  width: "100%", padding: "12px 14px", borderRadius: 12,
+                  border: `1.5px solid ${reviewAddAreaError ? "#DC2626" : "#E5E7EB"}`,
+                  background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#0F172A",
+                  outline: "none", boxSizing: "border-box",
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = C.primary; }}
+                onBlur={e => { e.currentTarget.style.borderColor = reviewAddAreaError ? "#DC2626" : "#E5E7EB"; }}
+              />
+              {reviewAddAreaError && (
+                <div style={{ fontSize: 12, color: "#DC2626", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                  <i className="ph ph-warning-circle" style={{ fontSize: 13 }} />
+                  {reviewAddAreaError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setShowAddAreaModal(false)} style={{
+                  flex: 1, padding: "12px", borderRadius: 12,
+                  border: "1.5px solid #E2E8F0", background: "#F8FAFC",
+                  color: "#64748B", fontSize: 14, fontWeight: 800,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  إلغاء
+                </button>
+                <button onClick={saveReviewNewArea} disabled={reviewAddAreaSaving} style={{
+                  flex: 1, padding: "12px", borderRadius: 12,
+                  border: "none", background: C.primary,
+                  color: "#fff", fontSize: 14, fontWeight: 800,
+                  cursor: reviewAddAreaSaving ? "wait" : "pointer", fontFamily: "inherit",
+                  opacity: reviewAddAreaSaving ? 0.7 : 1,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}>
+                  {reviewAddAreaSaving ? (
+                    <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                  ) : (
+                    <i className="ph ph-floppy-disk" />
+                  )}
+                  {reviewAddAreaSaving ? "جارٍ الحفظ..." : "حفظ"}
                 </button>
               </div>
             </div>
