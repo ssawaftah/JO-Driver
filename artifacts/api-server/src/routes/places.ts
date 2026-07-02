@@ -1,5 +1,9 @@
 import { Router, Request, Response } from "express";
+import { createRequire } from "module";
 import { logger } from "../lib/logger.js";
+
+const require = createRequire(import.meta.url);
+const { S2 } = require("s2-geometry");
 
 const placesRouter = Router();
 
@@ -12,6 +16,27 @@ function parseGoogleMapsUrl(url: string) {
   const lat = coordsMatch ? parseFloat(coordsMatch[1]) : null;
   const lng = coordsMatch ? parseFloat(coordsMatch[2]) : null;
   return { name, lat, lng };
+}
+
+function extractFtidCoords(url: string): { lat: number; lng: number } | null {
+  // ftid format: ftid=0xHEX:0xHEX — first hex is S2 CellID
+  const match = url.match(/[?&]ftid=(0x[0-9a-f]+)/i);
+  if (!match) return null;
+  try {
+    const decimal = BigInt(match[1]).toString();
+    const result = S2.idToLatLng(decimal) as { lat: number; lng: number };
+    if (
+      typeof result.lat === "number" &&
+      typeof result.lng === "number" &&
+      isFinite(result.lat) &&
+      isFinite(result.lng)
+    ) {
+      return result;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
 }
 
 async function resolveUrl(url: string): Promise<string> {
@@ -55,34 +80,43 @@ placesRouter.post("/places/lookup", async (req: Request, res: Response) => {
   try {
     const resolvedUrl = await resolveUrl(url.trim());
 
-    // Detect iOS app deep-link format (ftid=...) — no name/coords available
-    if (/[?&]ftid=/.test(resolvedUrl)) {
-      return res.status(400).json({
-        error: "رابط التطبيق لا يحتوي على بيانات كافية. افتح الرابط في المتصفح (Chrome أو Safari)، ثم انسخ الرابط من شريط العنوان وأعد لصقه هنا.",
-        hint: "app_link",
+    // ── Path A: standard /maps/place/NAME/@lat,lng URL ──────────────────────
+    const { name: urlName, lat: urlLat, lng: urlLng } = parseGoogleMapsUrl(resolvedUrl);
+
+    if (urlName || urlLat !== null) {
+      const address =
+        urlLat !== null && urlLng !== null
+          ? await getAddressFromCoords(urlLat, urlLng)
+          : null;
+      return res.json({
+        name: urlName,
+        address,
+        phone: null,
+        rating: null,
+        startHour: null,
+        endHour: null,
+        workingDays: [],
       });
     }
 
-    const { name: urlName, lat, lng } = parseGoogleMapsUrl(resolvedUrl);
-
-    if (!urlName && lat === null) {
-      return res.status(400).json({
-        error: "تعذر قراءة الرابط. تأكد من نسخه من صفحة المركز في Google Maps (يجب أن يحتوي على اسم المكان في الرابط).",
+    // ── Path B: iOS app deep-link → ftid=0xHEX format ───────────────────────
+    const ftidCoords = extractFtidCoords(resolvedUrl);
+    if (ftidCoords) {
+      const address = await getAddressFromCoords(ftidCoords.lat, ftidCoords.lng);
+      return res.json({
+        name: null,          // can't extract name from ftid without API key
+        address,
+        phone: null,
+        rating: null,
+        startHour: null,
+        endHour: null,
+        workingDays: [],
       });
     }
 
-    const nominatimAddr = lat !== null && lng !== null
-      ? await getAddressFromCoords(lat, lng)
-      : null;
-
-    return res.json({
-      name: urlName,
-      address: nominatimAddr,
-      phone: null,
-      rating: null,
-      startHour: null,
-      endHour: null,
-      workingDays: [],
+    // ── Nothing worked ───────────────────────────────────────────────────────
+    return res.status(400).json({
+      error: "تعذر قراءة الرابط. تأكد من نسخه من صفحة المركز في Google Maps.",
     });
   } catch (err) {
     logger.error(err);

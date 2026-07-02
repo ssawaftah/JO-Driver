@@ -789,7 +789,6 @@ export default function Admin({ onBack }: Props) {
   const [addMapsFetching, setAddMapsFetching] = useState(false);
   const [addFetchError, setAddFetchError] = useState("");
   const [addFetchDone, setAddFetchDone] = useState(false);
-  const [addFetchHint, setAddFetchHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (view === "add-area") { const ids = Object.keys(govs); if (ids.length && !addAreaGov) setAddAreaGov(ids[0]); }
@@ -859,15 +858,15 @@ export default function Admin({ onBack }: Props) {
       setAddMapsFetching(true);
       setAddFetchError("");
       setAddFetchDone(false);
-      setAddFetchHint(null);
+
       try {
         const res = await fetch("/api/places/lookup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url }),
         });
-        const data = await res.json() as { name?: string; address?: string; error?: string; hint?: string; };
-        if (!res.ok) { setAddFetchError(data.error || "حدث خطأ"); setAddFetchHint(data.hint || null); return; }
+        const data = await res.json() as { name?: string; address?: string; error?: string; };
+        if (!res.ok) { setAddFetchError(data.error || "حدث خطأ"); return; }
         setAddCenter(s => ({
           ...s,
           name: data.name || s.name,
@@ -934,24 +933,10 @@ export default function Admin({ onBack }: Props) {
             </button>
           </div>
           {addFetchError && (
-            addFetchHint === "app_link" ? (
-              <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "#FFF7ED", border: `1.5px solid #FED7AA`, fontSize: 12 }}>
-                <div style={{ fontWeight: 800, color: "#C2410C", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                  <i className="ph ph-device-mobile" style={{ fontSize: 15 }} />
-                  رابط التطبيق — يحتاج خطوة إضافية
-                </div>
-                <div style={{ color: "#92400E", lineHeight: 1.7 }}>
-                  <div>① افتح الرابط في Safari أو Chrome</div>
-                  <div>② سيفتح Google Maps في المتصفح</div>
-                  <div>③ انسخ الرابط من شريط العنوان وألصقه هنا</div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#DC2626", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6 }}>
-                <i className="ph ph-warning-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }} />
-                {addFetchError}
-              </div>
-            )
+            <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#FEF2F2", color: "#DC2626", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <i className="ph ph-warning-circle" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }} />
+              {addFetchError}
+            </div>
           )}
           {addFetchDone && (
             <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#F0FDF4", color: "#16A34A", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
