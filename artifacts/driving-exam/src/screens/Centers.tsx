@@ -1,5 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { db } from "../lib/firebase";
 import type { Governorate, Area, Center } from "../types";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
@@ -556,13 +557,34 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
 }
 
 /* ── Root ────────────────────────────────────────────────── */
-export default function Centers({ govs, areas, centers }: Props) {
+export default function Centers({ govs: govsProp, areas: areasProp, centers: centersProp }: Props) {
   const navigate = useNavigate();
   const [govId, setGovId] = useState<string | null>(null);
   const [areaId, setAreaId] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"rating" | "newest" | "nearest">("rating");
+  const [loading, setLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const [govs, setGovs] = useState<Record<string, Governorate>>(govsProp);
+  const [areas, setAreas] = useState<Record<string, Area>>(areasProp);
+  const [centers, setCenters] = useState<Record<string, Center>>(centersProp);
+
+  useEffect(() => {
+    if (Object.keys(centers).length === 0) {
+      setLoading(true);
+      Promise.all([
+        db.ref("governorates").once("value"),
+        db.ref("areas").once("value"),
+        db.ref("centers").once("value"),
+      ]).then(([g, a, c]) => {
+        setGovs(g.val() || {});
+        setAreas(a.val() || {});
+        setCenters(c.val() || {});
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }
+  }, []);
 
   const govList = useMemo(() =>
     Object.entries(govs)
@@ -726,7 +748,12 @@ export default function Centers({ govs, areas, centers }: Props) {
 
         {/* Centers list */}
         <div style={{ padding: "14px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "64px 0", color: "#9CA3AF" }}>
+              <i className="ph ph-spinner" style={{ fontSize: 40, display: "block", marginBottom: 12, color: "#246BFD", animation: "spin 1s linear infinite" }} />
+              <p style={{ fontSize: 14 }}>جارٍ تحميل المراكز...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 0", color: "#9CA3AF" }}>
               <i className="ph ph-map-pin-simple-slash" style={{ fontSize: 48, display: "block", marginBottom: 12, color: "#D1D5DB" }} />
               <p style={{ fontSize: 15, fontWeight: 700, color: "#374151", marginBottom: 6 }}>لا توجد مراكز</p>

@@ -11,6 +11,31 @@ interface Props {
   centers: Record<string, Center>;
 }
 
+function useAutoLoadCenters(govsProp: Record<string, Governorate>, areasProp: Record<string, Area>, centersProp: Record<string, Center>) {
+  const [govs, setGovs] = useState(govsProp);
+  const [areas, setAreas] = useState(areasProp);
+  const [centers, setCenters] = useState(centersProp);
+  const [dataLoading, setDataLoading] = useState(Object.keys(centersProp).length === 0);
+
+  useEffect(() => {
+    if (Object.keys(centersProp).length === 0) {
+      setDataLoading(true);
+      Promise.all([
+        db.ref("governorates").once("value"),
+        db.ref("areas").once("value"),
+        db.ref("centers").once("value"),
+      ]).then(([g, a, c]) => {
+        setGovs(g.val() || {});
+        setAreas(a.val() || {});
+        setCenters(c.val() || {});
+        setDataLoading(false);
+      }).catch(() => setDataLoading(false));
+    }
+  }, []);
+
+  return { govs, areas, centers, dataLoading };
+}
+
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
 const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
@@ -33,10 +58,11 @@ function StarInput({ value, onChange }: { value: number; onChange: (n: number) =
   );
 }
 
-export default function CenterDetail({ govs, areas, centers }: Props) {
+export default function CenterDetail({ govs: govsProp, areas: areasProp, centers: centersProp }: Props) {
+  const { govs, areas, centers, dataLoading } = useAutoLoadCenters(govsProp, areasProp, centersProp);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const [reviews, setReviews] = useState<{ id: string; name: string; comment?: string; rating: number; createdAt: string }[]>([]);
   const [reviewName, setReviewName] = useState("");
   const [reviewComment, setReviewComment] = useState("");
@@ -52,8 +78,8 @@ export default function CenterDetail({ govs, areas, centers }: Props) {
   const govName = center?.governorateId ? govs[center.governorateId]?.name : "";
 
   useEffect(() => {
-    if (!id) { setLoading(false); return; }
-    setLoading(true);
+    if (!id) { setReviewsLoading(false); return; }
+    setReviewsLoading(true);
     db.ref(`centerReviews/${id}`).once("value").then(snap => {
       const val = snap.val() || {};
       const list = Object.entries(val).map(([k, v]: [string, any]) => ({
@@ -61,8 +87,8 @@ export default function CenterDetail({ govs, areas, centers }: Props) {
         createdAt: v.createdAt || "",
       })).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       setReviews(list);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+      setReviewsLoading(false);
+    }).catch(() => setReviewsLoading(false));
   }, [id]);
 
   async function submitReview() {
@@ -101,13 +127,22 @@ export default function CenterDetail({ govs, areas, centers }: Props) {
     }
   }
 
-  if (!center) {
+  if (dataLoading || !center) {
     return (
       <div style={{ minHeight: "100dvh", background: "#FAFBFC", direction: "rtl" }}>
         <Header />
-        <div style={{ textAlign: "center", padding: "60px 20px" }}>
-          <i className="ph ph-storefront" style={{ fontSize: 48, color: "#D1D5DB", marginBottom: 16 }} />
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#6B7280" }}>المركز غير موجود</div>
+        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+          {dataLoading ? (
+            <>
+              <i className="ph ph-spinner" style={{ fontSize: 40, color: "#246BFD", marginBottom: 12, animation: "spin 1s linear infinite" }} />
+              <div style={{ fontSize: 14, color: "#9CA3AF" }}>جارٍ تحميل المركز...</div>
+            </>
+          ) : (
+            <>
+              <i className="ph ph-storefront" style={{ fontSize: 48, color: "#D1D5DB", marginBottom: 16 }} />
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#6B7280" }}>المركز غير موجود</div>
+            </>
+          )}
         </div>
         <AppFooter />
       </div>
