@@ -207,6 +207,24 @@ export default function Admin({ onBack }: Props) {
   const [guideSections, setGuideSections] = useState<Record<string, any>>({});
   const [reviews, setReviews] = useState<Record<string, any>>({});
 
+  /* ── Review request modal state ── */
+  const [reviewingReqId, setReviewingReqId] = useState<string | null>(null);
+  const [reviewingData, setReviewingData] = useState<any>(null);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewAddress, setReviewAddress] = useState("");
+  const [reviewPhone, setReviewPhone] = useState("");
+  const [reviewWhatsapp, setReviewWhatsapp] = useState("");
+  const [reviewMapLink, setReviewMapLink] = useState("");
+  const [reviewImageUrl, setReviewImageUrl] = useState("");
+  const [reviewDesc, setReviewDesc] = useState("");
+  const [reviewRating, setReviewRating] = useState("");
+  const [reviewReviewCount, setReviewReviewCount] = useState("");
+  const [reviewGovId, setReviewGovId] = useState("");
+  const [reviewAreaIds, setReviewAreaIds] = useState<string[]>([]);
+  const [reviewWorkingDays, setReviewWorkingDays] = useState<string[]>([]);
+  const [reviewWorkingHours, setReviewWorkingHours] = useState("");
+  const [reviewPromoted, setReviewPromoted] = useState(false);
+
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
   async function loadAll() {
@@ -665,6 +683,61 @@ export default function Admin({ onBack }: Props) {
   }
 
   // ── REQUESTS ────────────────────────────────────────────
+  function openReviewModal(reqId: string, req: any) {
+    setReviewingReqId(reqId);
+    setReviewingData(req);
+    setReviewName(req.name || "");
+    setReviewAddress(req.address || "");
+    setReviewPhone(req.phone || "");
+    setReviewWhatsapp(req.whatsapp || "");
+    setReviewMapLink(req.mapLink || "");
+    setReviewImageUrl(req.imageUrl || "");
+    setReviewDesc(req.description || "");
+    setReviewRating(String(req.rating || ""));
+    setReviewReviewCount(String(req.reviewCount || ""));
+    setReviewGovId(req.governorateId || "");
+    setReviewAreaIds((req.areas || []).map((a: any) => a.id));
+    setReviewWorkingDays(req.workingDays || []);
+    setReviewWorkingHours(req.workingHours || "");
+    setReviewPromoted(req.promoted || false);
+  }
+
+  function closeReviewModal() {
+    setReviewingReqId(null);
+    setReviewingData(null);
+  }
+
+  async function publishReviewedCenter() {
+    if (!reviewingReqId || !reviewingData) return;
+    setLoading(true);
+    try {
+      const areaObjs = reviewAreaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+      await db.ref("centers").push({
+        name: reviewName.trim() || reviewingData.name,
+        address: reviewAddress.trim() || reviewingData.address || null,
+        mapLink: reviewMapLink.trim() || reviewingData.mapLink || null,
+        phone: reviewPhone.trim() || reviewingData.phone || null,
+        whatsapp: reviewWhatsapp.trim() || reviewingData.whatsapp || null,
+        rating: parseFloat(reviewRating) || reviewingData.rating || 0,
+        reviewCount: parseInt(reviewReviewCount) || reviewingData.reviewCount || 0,
+        imageUrl: reviewImageUrl.trim() || null,
+        description: reviewDesc.trim() || null,
+        workingDays: reviewWorkingDays,
+        workingHours: reviewWorkingHours,
+        areas: areaObjs,
+        areaId: areaObjs[0]?.id || "",
+        governorateId: reviewGovId || reviewingData.governorateId || "",
+        promoted: reviewPromoted,
+        createdAt: new Date().toISOString(),
+      });
+      await db.ref("centerRequests/" + reviewingReqId).remove();
+      showToast("تم النشر");
+      closeReviewModal();
+      await loadAll();
+    } catch { showToast("حدث خطأ"); }
+    setLoading(false);
+  }
+
   function RequestsSection() {
     const entries = Object.entries(requests).sort((a, b) => (b[1].submittedAt || "").localeCompare(a[1].submittedAt || ""));
     return (
@@ -746,14 +819,14 @@ export default function Admin({ onBack }: Props) {
 
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={async () => { if (!confirm(`نشر "${req.name}" ؟`)) return; setLoading(true); try { await db.ref("centers").push({ name: req.name, address: req.address || null, mapLink: req.mapLink || null, phone: req.phone || null, whatsapp: req.whatsapp || null, rating: req.rating || 0, workingDays: req.workingDays || [], workingHours: req.workingHours || "", areas: req.areas || [], areaId: req.areas?.[0]?.id || "", governorateId: req.governorateId || "", promoted: false, createdAt: new Date().toISOString() }); await db.ref("centerRequests/" + reqId).remove(); showToast("تم النشر"); await loadAll(); } catch { showToast("حدث خطأ"); } setLoading(false); }}
+                    <button onClick={() => openReviewModal(reqId, req)}
                       style={{
                         flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
-                        background: C.green, color: "#fff", fontSize: 13, fontWeight: 800,
+                        background: C.primary, color: "#fff", fontSize: 13, fontWeight: 800,
                         cursor: "pointer", fontFamily: "inherit",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                       }}>
-                      <i className="ph ph-check-circle" /> نشر المركز
+                      <i className="ph ph-eye" /> مراجعة المركز
                     </button>
                     <button onClick={async () => { if (!confirm(`رفض "${req.name}" ؟`)) return; try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); } catch { showToast("حدث خطأ"); } }}
                       style={{
@@ -768,6 +841,212 @@ export default function Admin({ onBack }: Props) {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ── Review Modal ── */}
+        {reviewingReqId && reviewingData && (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 150,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16,
+          }} onClick={(e) => { if (e.target === e.currentTarget) closeReviewModal(); }}>
+            <div style={{
+              background: C.surface, borderRadius: 18, width: "100%", maxWidth: 520, maxHeight: "90vh",
+              display: "flex", flexDirection: "column", overflow: "hidden",
+              boxShadow: "0 16px 48px rgba(0,0,0,0.2)", direction: "rtl",
+            }}>
+              {/* Modal header */}
+              <div style={{
+                padding: "16px 20px", borderBottom: `1px solid ${C.border}`,
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: C.text }}>مراجعة ونشر المركز</div>
+                <button onClick={closeReviewModal} style={{
+                  width: 32, height: 32, borderRadius: 8, border: "none",
+                  background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                }}><i className="ph ph-x" style={{ fontSize: 18, color: C.textLight }} /></button>
+              </div>
+
+              {/* Modal body (scrollable) */}
+              <div style={{ padding: 20, overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+
+                {/* Image preview */}
+                <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 80, height: 80, borderRadius: 12, overflow: "hidden", flexShrink: 0,
+                    background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {reviewImageUrl ? (
+                      <img src={reviewImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <div style={{
+                        width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                        background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark || "#1d4ed8"})`, color: "#fff",
+                        fontSize: 28, fontWeight: 800,
+                      }}>{(reviewName || reviewingData.name || "?").charAt(0)}</div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>صورة المركز (URL)</label>
+                    <input value={reviewImageUrl} onChange={e => setReviewImageUrl(e.target.value)} placeholder="رابط الصورة..." style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>اسم المركز</label>
+                  <input value={reviewName} onChange={e => setReviewName(e.target.value)} style={{
+                    width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                    fontSize: 13, fontFamily: "inherit", background: C.surface2,
+                  }} />
+                </div>
+
+                {/* Address + map link */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>العنوان</label>
+                    <input value={reviewAddress} onChange={e => setReviewAddress(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", background: C.surface2,
+                    }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>رابط Google Maps</label>
+                    <input value={reviewMapLink} onChange={e => setReviewMapLink(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                </div>
+
+                {/* Phone + whatsapp */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>الهاتف</label>
+                    <input value={reviewPhone} onChange={e => setReviewPhone(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>WhatsApp</label>
+                    <input value={reviewWhatsapp} onChange={e => setReviewWhatsapp(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                </div>
+
+                {/* Governorate + areas */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المحافظة</label>
+                    <select value={reviewGovId} onChange={e => { setReviewGovId(e.target.value); setReviewAreaIds([]); }} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", background: C.surface2,
+                    }}>
+                      <option value="">اختر المحافظة</option>
+                      {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق</label>
+                    <select value={reviewAreaIds[0] || ""} onChange={e => { const v = e.target.value; setReviewAreaIds(v ? [v] : []); }} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", background: C.surface2,
+                    }}>
+                      <option value="">اختر المنطقة</option>
+                      {Object.entries(areas).filter(([_, a]) => a.governorateId === reviewGovId).map(([id, a]) => <option key={id} value={id}>{a.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Rating + review count */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>التقييم (0–5)</label>
+                    <input type="number" min="0" max="5" step="0.1" value={reviewRating} onChange={e => setReviewRating(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>عدد التقييمات</label>
+                    <input type="number" min="0" value={reviewReviewCount} onChange={e => setReviewReviewCount(e.target.value)} style={{
+                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                      fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+                    }} />
+                  </div>
+                </div>
+
+                {/* Working hours + days */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>ساعات العمل</label>
+                  <input value={reviewWorkingHours} onChange={e => setReviewWorkingHours(e.target.value)} placeholder="مثال: 08:00 – 16:00" style={{
+                    width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                    fontSize: 13, fontFamily: "inherit", background: C.surface2, marginBottom: 10,
+                  }} />
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {ALL_DAYS_FULL.map((day, i) => {
+                      const on = reviewWorkingDays.includes(day);
+                      return (
+                        <button key={day} onClick={() => {
+                          setReviewWorkingDays(prev => on ? prev.filter(d => d !== day) : [...prev, day]);
+                        }} style={{
+                          padding: "6px 10px", borderRadius: 8, border: on ? "none" : `1px solid ${C.border}`,
+                          background: on ? C.primary : C.surface2, color: on ? "#fff" : C.textSec,
+                          fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                        }}>{ALL_DAYS_SHORT[i]}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Promoted checkbox */}
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, color: C.text }}>
+                  <input type="checkbox" checked={reviewPromoted} onChange={e => setReviewPromoted(e.target.checked)} style={{ width: 18, height: 18, accentColor: C.primary, cursor: "pointer" }} />
+                  <span>مركز مميز (يظهر أولاً)</span>
+                </label>
+
+                {/* Description */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>وصف المركز</label>
+                  <textarea value={reviewDesc} onChange={e => setReviewDesc(e.target.value)} placeholder="أوصف المركز..." rows={3} style={{
+                    width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                    fontSize: 13, fontFamily: "inherit", background: C.surface2, resize: "vertical",
+                  }} />
+                </div>
+              </div>
+
+              {/* Modal footer */}
+              <div style={{
+                padding: "14px 20px", borderTop: `1px solid ${C.border}`,
+                display: "flex", gap: 10,
+              }}>
+                <button onClick={publishReviewedCenter}
+                  style={{
+                    flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
+                    background: C.green, color: "#fff", fontSize: 13, fontWeight: 800,
+                    cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}>
+                  <i className="ph ph-check-circle" /> نشر المركز
+                </button>
+                <button onClick={closeReviewModal}
+                  style={{
+                    padding: "10px 18px", borderRadius: 10, border: `1px solid ${C.border}`,
+                    background: C.surface, color: C.text, fontSize: 13, fontWeight: 800,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}>
+                  إلغاء
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -1084,7 +1363,8 @@ export default function Admin({ onBack }: Props) {
                 const snap = await db.ref("centers").once("value");
                 const existing = snap.val() || {};
                 for (const c of Object.values(existing)) {
-                  if ((c as Center).publicId && (c as Center).publicId! >= nextPublicId) nextPublicId = (c as Center).publicId! + 1;
+                  const pub = (c as any).publicId;
+                  if (pub && pub >= nextPublicId) nextPublicId = pub + 1;
                 }
                 await db.ref("centers").push({
                 publicId: nextPublicId,
@@ -1770,7 +2050,7 @@ export default function Admin({ onBack }: Props) {
       if (!sponsorName.trim()) { showToast("أدخل اسم الراعي"); return; }
       setLoading(true);
       try {
-        await db.ref("footer/sponsors").push({ name: sponsorName.trim(), link: sponsorLink.trim() || "https://wa.me/9620778244772?text=" });
+        await db.ref("footer/sponsors").push({ name: sponsorName.trim(), link: sponsorLink.trim() || "https://wa.me/962778244772?text=" });
         setSponsorName(""); setSponsorLink("");
         showToast("تمت الإضافة"); await loadFooter();
       } catch { showToast("حدث خطأ"); }

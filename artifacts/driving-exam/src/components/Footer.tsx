@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../lib/firebase";
 
 const DEFAULT_ABOUT = "منصة JO Driver هي دليلك الأول لاجتياز امتحان القيادة النظري في الأردن.";
-const SPONSOR_LINK = "https://wa.me/9620778244772?text=";
+const SPONSOR_LINK = "https://wa.me/962778244772?text=";
 
 /** Only show footer on these routes */
 const HIDE_FOOTER_PATHS = ["/exam", "/test", "/study"];

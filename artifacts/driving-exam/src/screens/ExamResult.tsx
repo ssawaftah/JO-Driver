@@ -26,14 +26,15 @@ export default function ExamResult({ ok, wrong, total, skipped, onRetry, onHome 
   useEffect(() => {
     const session = loadSession();
     if (!session) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     db.ref("reviews").once("value").then(snap => {
       const val = snap.val() || {};
       const already = Object.values(val).some((r: any) => r.reviewerKey === session.key);
       if (!already) {
-        const timer = setTimeout(() => setShowReview(true), 800);
-        return () => clearTimeout(timer);
+        timer = setTimeout(() => setShowReview(true), 800);
       }
     }).catch(() => {});
+    return () => { if (timer) clearTimeout(timer); };
   }, []);
 
   // Circle SVG

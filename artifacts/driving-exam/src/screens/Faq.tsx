@@ -323,7 +323,7 @@ export default function GuideScreen({ initialSections }: Props) {
               </Accordion>
             ))}
 
-            <a href="https://wa.me/9620778244772?text=" target="_blank" rel="noreferrer" style={{
+            <a href="https://wa.me/962778244772?text=" target="_blank" rel="noreferrer" style={{
               display: "flex", flexDirection: "row", alignItems: "center",
               justifyContent: "center", gap: 8, padding: "14px",
               borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff",
