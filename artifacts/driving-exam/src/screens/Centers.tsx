@@ -15,6 +15,134 @@ interface Props {
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
 const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 
+/* ── Open-status badge (based on user's device time) ───── */
+function getOpenStatus(
+  schedule?: { closed: boolean; from: string; to: string }[],
+  workingDays?: string[],
+  workingHours?: string
+): { label: string; color: string; bg: string; icon: string } {
+  const now = new Date();
+  // JS getDay: 0=Sun, 1=Mon ... we need to map to Arabic day names
+  const dayMap = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+  const todayName = dayMap[now.getDay()];
+
+  // Parse hours from schedule (preferred) or workingHours fallback
+  let fromStr: string | null = null;
+  let toStr: string | null = null;
+  let isClosed = false;
+
+  if (schedule && schedule.length === 7) {
+    const todayIdx = ALL_DAYS_FULL.indexOf(todayName);
+    if (todayIdx >= 0) {
+      const s = schedule[todayIdx];
+      isClosed = s.closed;
+      fromStr = s.from;
+      toStr = s.to;
+    }
+  }
+  if (!fromStr && workingHours) {
+    const m = workingHours.match(/(\d{1,2}:\d{2})/g);
+    if (m && m.length >= 2) { fromStr = m[0]; toStr = m[1]; }
+  }
+  if (workingDays && workingDays.length > 0 && !workingDays.includes(todayName)) {
+    isClosed = true;
+  }
+
+  if (isClosed || !fromStr || !toStr) {
+    return { label: "مغلق اليوم", color: "#991B1B", bg: "#FEF2F2", icon: "ph-moon" };
+  }
+
+  const hm = (s: string) => {
+    const [h, m] = s.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const fromMin = hm(fromStr);
+  const toMin = hm(toStr);
+
+  if (nowMin < fromMin) {
+    const mins = fromMin - nowMin;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return {
+      label: h > 0 ? `يفتح بعد ${h}س ${m > 0 ? m + "د" : ""}` : `يفتح بعد ${m}د`,
+      color: "#92400E", bg: "#FFF7ED", icon: "ph-clock-countdown",
+    };
+  }
+  if (nowMin <= toMin) {
+    const mins = toMin - nowMin;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return {
+      label: h > 0 ? `مفتوح · يغلق بعد ${h}س ${m > 0 ? m + "د" : ""}` : `مفتوح · يغلق بعد ${m}د`,
+      color: "#166534", bg: "#F0FDF4", icon: "ph-door-open",
+    };
+  }
+  return { label: "مغلق الآن", color: "#991B1B", bg: "#FEF2F2", icon: "ph-moon" };
+}
+
+/* ── Google-style star rating display ─────────────────────── */
+function GoogleStars({ rating, reviewCount }: { rating?: number; reviewCount?: number }) {
+  if (rating == null) return null;
+  const full = Math.round(rating);          // 4.7 → 5, 4.2 → 4
+  const empty = 5 - full;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, direction: "ltr" as const }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>{rating.toFixed(1)}</span>
+      <div style={{ display: "flex", gap: 1 }}>
+        {Array.from({ length: full }).map((_, i) => (
+          <i key={`f${i}`} className="ph-fill ph-star" style={{ fontSize: 14, color: "#F59E0B" }} />
+        ))}
+        {Array.from({ length: Math.max(0, empty) }).map((_, i) => (
+          <i key={`e${i}`} className="ph ph-star" style={{ fontSize: 14, color: "#D1D5DB" }} />
+        ))}
+      </div>
+      {reviewCount != null && reviewCount > 0 && (
+        <span style={{ fontSize: 12, color: "#6B7280" }}>({reviewCount})</span>
+      )}
+    </div>
+  );
+}
+
+/* ── Schedule table (per-day hours) ─────────────────────── */
+function ScheduleTable({ schedule, workingDays }: {
+  schedule?: { closed: boolean; from: string; to: string }[];
+  workingDays?: string[];
+}) {
+  if (!schedule || schedule.length === 0) return null;
+  const rows = ALL_DAYS_FULL.map((day, i) => {
+    const s = schedule[i];
+    const on = s ? !s.closed : (workingDays || []).includes(day);
+    return { day, short: ALL_DAYS_SHORT[i], on, from: s?.from, to: s?.to };
+  });
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      {rows.map(r => (
+        <div key={r.day} style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "6px 10px", borderRadius: 8,
+          background: r.on ? "#F8FAFC" : "transparent",
+          opacity: r.on ? 1 : 0.45,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: 6,
+              background: r.on ? "#2563EB" : "#E5E7EB",
+              color: r.on ? "#fff" : "#9CA3AF",
+              fontSize: 11, fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{r.short}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{r.day}</span>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: r.on ? "#2563EB" : "#9CA3AF" }}>
+            {r.on ? `${r.from} – ${r.to}` : "مغلق"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Phone call button ─────────────────────────────────── */
 function PhoneBtn({ phone }: { phone: string }) {
   const clean = phone.replace(/[^0-9+]/g, "");
@@ -89,83 +217,113 @@ function ShareBtn({ centerId, centerName }: { centerId: string; centerName: stri
   );
 }
 
-/* ── Center Card ───────────────────────────────────────── */
+/* ── Center Card (redesigned) ──────────────────────────────── */
 function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govName: string; onClick?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const activeDays = c.workingDays || [];
+  const status = getOpenStatus(c.schedule, activeDays, c.workingHours);
+  const isPromoted = !!c.promoted;
 
   return (
     <div
-      onClick={onClick}
       style={{
-        background: "#fff",
+        background: isPromoted ? "#FFFDF5" : "#fff",
         borderRadius: 16,
-        border: c.promoted ? "2px solid #FBBF24" : "1.5px solid #F0F1F3",
-        boxShadow: c.promoted ? "0 2px 8px rgba(251,191,36,0.15)" : "0 1px 3px rgba(0,0,0,0.04)",
-        padding: "14px 16px",
+        border: isPromoted ? "2px solid #FBBF24" : "1.5px solid #F0F1F3",
+        boxShadow: isPromoted
+          ? "0 4px 16px rgba(251,191,36,0.18), 0 1px 3px rgba(0,0,0,0.04)"
+          : "0 1px 3px rgba(0,0,0,0.04)",
+        padding: isPromoted ? "16px 16px 14px" : "14px 16px",
         cursor: onClick ? "pointer" : "default",
         position: "relative",
+        overflow: "hidden",
       }}
     >
-      {/* Promoted badge */}
-      {c.promoted && (
+      {/* Promoted: gold shimmer stripe at top */}
+      {isPromoted && (
         <div style={{
-          position: "absolute", top: -1, left: 16,
-          background: "#FBBF24", color: "#78350F",
-          fontSize: 10, fontWeight: 800,
-          padding: "2px 8px", borderRadius: "0 0 6px 6px",
-          display: "flex", alignItems: "center", gap: 3,
+          position: "absolute", top: 0, left: 0, right: 0, height: 4,
+          background: "linear-gradient(90deg, #FBBF24 0%, #FDE68A 50%, #FBBF24 100%)",
+        }} />
+      )}
+
+      {/* Promoted crown badge */}
+      {isPromoted && (
+        <div style={{
+          position: "absolute", top: 8, left: 10,
+          background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+          color: "#78350F", fontSize: 10, fontWeight: 900,
+          padding: "3px 10px", borderRadius: 20,
+          display: "flex", alignItems: "center", gap: 4,
+          boxShadow: "0 1px 4px rgba(251,191,36,0.35)",
+          zIndex: 2,
         }}>
-          <i className="ph-fill ph-crown" style={{ fontSize: 10 }} />
+          <i className="ph-fill ph-crown" style={{ fontSize: 11 }} />
           مميز
         </div>
       )}
 
-      {/* Row 1: Name + Rating */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
-        <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 900, color: "#111827", lineHeight: 1.4 }}>
-          {c.name}
-        </div>
-        {c.rating != null && (
+      {/* Row 1: Name + open-status + rating */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            display: "flex", alignItems: "center", gap: 4,
-            background: "#FFFBEB", border: "1.5px solid #FDE68A",
-            borderRadius: 10, padding: "4px 8px", flexShrink: 0,
+            fontSize: isPromoted ? 16 : 15,
+            fontWeight: 900,
+            color: isPromoted ? "#78350F" : "#111827",
+            lineHeight: 1.4,
+            marginBottom: 6,
+            paddingTop: isPromoted ? 18 : 0,
           }}>
-            <i className="ph ph-star-fill" style={{ fontSize: 13, color: "#F59E0B" }} />
-            <span style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>{c.rating}</span>
+            {c.name}
           </div>
-        )}
+          {/* Status badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            background: status.bg, color: status.color,
+            fontSize: 11, fontWeight: 800,
+            padding: "3px 10px", borderRadius: 20,
+          }}>
+            <i className={`ph ${status.icon}`} style={{ fontSize: 12 }} />
+            {status.label}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          <GoogleStars rating={c.rating} reviewCount={c.reviewCount} />
+        </div>
       </div>
 
       {/* Row 2: Location tags */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
         <span style={{
           fontSize: 11, fontWeight: 700,
           padding: "3px 9px", borderRadius: 20,
-          background: "#F3F4F6", color: "#6B7280",
+          background: isPromoted ? "#FFFBEB" : "#F3F4F6",
+          color: isPromoted ? "#B45309" : "#6B7280",
           display: "inline-flex", alignItems: "center", gap: 4,
+          border: isPromoted ? "1px solid #FDE68A" : "none",
         }}>
           <i className="ph ph-map-trifold" style={{ fontSize: 12 }} />
           {govName}
         </span>
-        {c.areas?.slice(0, 4).map(a => (
+        {c.areas?.slice(0, 3).map(a => (
           <span key={a.id} style={{
             fontSize: 11, fontWeight: 700,
             padding: "3px 9px", borderRadius: 20,
-            background: "#EEF4FF", color: "#246BFD",
+            background: isPromoted ? "#FFFBEB" : "#EEF4FF",
+            color: isPromoted ? "#B45309" : "#246BFD",
+            border: isPromoted ? "1px solid #FDE68A" : "none",
           }}>
             {a.name}
           </span>
         ))}
-        {(c.areas?.length || 0) > 4 && (
-          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "#F3F4F6", color: "#9CA3AF" }}>
-            +{(c.areas!.length - 4)}
+        {(c.areas?.length || 0) > 3 && (
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: isPromoted ? "#FFFBEB" : "#F3F4F6", color: "#9CA3AF" }}>
+            +{(c.areas!.length - 3)}
           </span>
         )}
       </div>
 
-      {/* Row 3: Actions */}
+      {/* Row 3: Actions + Detail arrow */}
       <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={e => e.stopPropagation()}>
         {c.phone && <PhoneBtn phone={c.phone} />}
         {(c.whatsapp || c.phone) && <WhatsAppBtn phone={c.whatsapp || c.phone!} />}
@@ -184,6 +342,23 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
           </a>
         )}
         <ShareBtn centerId={c.id} centerName={c.name} />
+        {/* Left arrow: navigate to center detail */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+          style={{
+            width: 38, height: 38, borderRadius: 10,
+            border: isPromoted ? "1.5px solid #FDE68A" : "1.5px solid #E5E7EB",
+            background: isPromoted ? "#FFFBEB" : "#F9FAFB",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", flexShrink: 0,
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = isPromoted ? "#FEF3C7" : "#F0F9FF"; e.currentTarget.style.borderColor = "#246BFD"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = isPromoted ? "#FFFBEB" : "#F9FAFB"; e.currentTarget.style.borderColor = isPromoted ? "#FDE68A" : "#E5E7EB"; }}
+        >
+          <i className="ph ph-arrow-left" style={{ fontSize: 18, color: isPromoted ? "#B45309" : "#246BFD" }} />
+        </button>
+        {/* Expand toggle */}
         <button
           onClick={() => setExpanded(!expanded)}
           style={{
@@ -197,23 +372,26 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
         </button>
       </div>
 
-      {/* ── Expanded details ── */}
+      {/* ── Expanded: schedule table + address ── */}
       {expanded && (
         <div style={{
-          borderTop: "1px solid #F3F4F6",
-          marginTop: 10,
-          paddingTop: 10,
+          borderTop: `1px solid ${isPromoted ? "#FDE68A" : "#F3F4F6"}`,
+          marginTop: 12,
+          paddingTop: 12,
           display: "flex",
           flexDirection: "column",
-          gap: 10,
+          gap: 12,
         }}>
+          {/* Per-day schedule table */}
+          <ScheduleTable schedule={c.schedule} workingDays={activeDays} />
+
           {c.address && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "#6B7280" }}>
               <i className="ph ph-map-pin" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0, marginTop: 2 }} />
               <span style={{ lineHeight: 1.5 }}>{c.address}</span>
             </div>
           )}
-          {c.workingHours && (
+          {c.workingHours && !c.schedule && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <i className="ph ph-clock" style={{ fontSize: 15, color: "#9CA3AF", flexShrink: 0 }} />
               <span style={{
@@ -222,27 +400,6 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
               }}>
                 {c.workingHours}
               </span>
-            </div>
-          )}
-          {activeDays.length > 0 && (
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 800, color: "#9CA3AF", marginBottom: 6 }}>أيام الدوام</p>
-              <div style={{ display: "flex", gap: 5 }}>
-                {ALL_DAYS_FULL.map((day, i) => {
-                  const on = activeDays.includes(day);
-                  return (
-                    <div key={day} style={{
-                      width: 30, height: 30, borderRadius: 8,
-                      background: on ? "#246BFD" : "#F3F4F6",
-                      color: on ? "#fff" : "#C4C9D4",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 12, fontWeight: 800,
-                    }}>
-                      {ALL_DAYS_SHORT[i]}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           )}
         </div>
