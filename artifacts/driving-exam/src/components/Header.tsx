@@ -54,7 +54,13 @@ export default function Header({ onMenuOpen }: Props) {
         )}
 
         {/* Logo next to button */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div
+          onClick={() => navigate("/")}
+          style={{
+            display: "flex", alignItems: "center", gap: 10,
+            cursor: "pointer",
+          }}
+        >
           <div style={{
             width: 38, height: 38, borderRadius: 12,
             background: "linear-gradient(135deg, #246BFD, #4f86ff)",
