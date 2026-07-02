@@ -262,6 +262,29 @@ export default function GuideScreen({ initialSections }: Props) {
           <div style={{ textAlign: "center", padding: 40, color: "#9CA3AF", fontSize: 13 }}>لا توجد أقسام</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Page info card */}
+            <div style={{
+              background: "#fff", borderRadius: 16, padding: "16px 18px",
+              border: "1.5px solid #E5E7EB", marginBottom: 4,
+              display: "flex", alignItems: "center", gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: "#0891B2", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+              }}>
+                <i className="ph ph-compass" />
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
+                  دليل الطالب
+                </div>
+                <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+                  خطوات، أوراق، رسوم، شروط، وإجابات على أسئلتك
+                </div>
+              </div>
+            </div>
+
             <div style={{
               background: "linear-gradient(135deg, #246BFD 0%, #4f86ff 100%)",
               borderRadius: 18, padding: "16px", color: "#fff", textAlign: "right",

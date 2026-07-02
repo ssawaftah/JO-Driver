@@ -136,13 +136,27 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div style={{ padding: "16px", flex: 1 }}>
-        {/* Title */}
-        <div style={{ textAlign: "center", marginBottom: 18 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, #F59E0B, #F97316)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 10px" }}>
+        {/* Page info card */}
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "16px 18px",
+          border: "1.5px solid #E5E7EB", marginBottom: 14,
+          display: "flex", alignItems: "center", gap: 14,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: "#F59E0B", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+          }}>
             <i className="ph ph-star" />
           </div>
-          <h1 style={{ fontSize: 20, fontWeight: 900, color: "#111827", margin: 0 }}>سجل الزوار</h1>
-          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>شاركنا تجربتك وقيّم خدماتنا</p>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
+              سجل الزوار
+            </div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+              شاركنا تجربتك وقيّم خدماتنا — رأيك يهمنا
+            </div>
+          </div>
         </div>
 
         {/* Review Form */}

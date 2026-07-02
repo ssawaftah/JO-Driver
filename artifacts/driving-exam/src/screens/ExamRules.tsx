@@ -22,6 +22,29 @@ export default function ExamRules({ onStart }: Props) {
       {/* Body */}
       <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "16px 14px" }}>
 
+        {/* Page info card */}
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "16px 18px",
+          border: "1.5px solid #E5E7EB", marginBottom: 14,
+          display: "flex", alignItems: "center", gap: 14,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: "#DC2626", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+          }}>
+            <i className="ph ph-exam" />
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
+              الامتحان النظري
+            </div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+              60 سؤال من جميع الأقسام بشكل عشوائي — 60 دقيقة — 51 إجابة للنجاح
+            </div>
+          </div>
+        </div>
+
         {/* Official notice */}
         <div style={{
           background: "linear-gradient(135deg, #1a57d4, #246BFD)",

@@ -924,12 +924,27 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
       {/* ── Everything scrolls together ── */}
       <div ref={listRef} style={{ flex: 1, overflowY: "auto" }}>
 
-        {/* Local header */}
-        <div style={{ background: "#fff", borderBottom: "1.5px solid #F0F1F3", padding: "14px 16px" }}>
-          <h1 style={{ fontSize: 17, fontWeight: 900, color: "#111827", margin: 0 }}>مراكز التدريب</h1>
-          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0, marginTop: 1 }}>
-            {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد`}
-          </p>
+        {/* Page info card */}
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "16px 18px",
+          border: "1.5px solid #E5E7EB", margin: "14px 16px 10px",
+          display: "flex", alignItems: "center", gap: 14,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: "#16A34A", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+          }}>
+            <i className="ph ph-map-pin-area" />
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#111827" }}>
+              مراكز التدريب المعتمدة
+            </div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+              {govId ? `${filtered.length} مركز في ${govName}` : `${totalCenters} مركز معتمد في الأردن`}
+            </div>
+          </div>
         </div>
 
         {/* Search + Sort */}
