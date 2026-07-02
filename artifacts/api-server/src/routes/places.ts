@@ -56,15 +56,29 @@ async function resolveUrl(url: string): Promise<string> {
 
 async function getAddressFromCoords(lat: number, lng: number): Promise<string | null> {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=ar&zoom=18`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=ar&zoom=18&addressdetails=1`;
     const res = await fetch(url, {
       headers: { "User-Agent": "JODriver/1.0" },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { display_name?: string };
-    if (!data.display_name) return null;
-    return data.display_name.replace(/،\s*الأردن$|,\s*Jordan$/i, "").trim();
+    const data = (await res.json()) as {
+      display_name?: string;
+      address?: {
+        neighbourhood?: string;
+        suburb?: string;
+        county?: string;
+        state?: string;
+        city?: string;
+      };
+    };
+    const a = data.address || {};
+    // City: state or city field
+    const city = a.state || a.city || "";
+    // Area: neighbourhood first, then suburb, then county
+    const area = a.neighbourhood || a.suburb || a.county || "";
+    if (!city) return null;
+    return area ? `${area}، ${city}` : city;
   } catch {
     return null;
   }
