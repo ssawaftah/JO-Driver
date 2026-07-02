@@ -946,22 +946,6 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
             onChange={e => setQ(e.target.value)}
             style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, flex: 1 }}
           />
-          <button
-            onClick={requestLocation}
-            title={locPermission === "granted" ? "تم تحديد الموقع" : "تحديد موقعي"}
-            style={{
-              width: 36, height: 36, borderRadius: 12,
-              border: "1.5px solid " + (locPermission === "granted" ? "#166534" : "#E2E8F0"),
-              background: locPermission === "granted" ? "#DCFCE7" : "#F9FAFB",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", flexShrink: 0,
-            }}
-          >
-            <i
-              className={locPermission === "granted" ? "ph-fill ph-navigation-arrow" : "ph ph-crosshair"}
-              style={{ fontSize: 16, color: locPermission === "granted" ? "#166534" : "#9CA3AF" }}
-            />
-          </button>
           <select
             value={sort}
             onChange={e => {
