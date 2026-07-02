@@ -25,15 +25,34 @@ function useAutoLoadCenters(govsProp: Record<string, Governorate>, areasProp: Re
         db.ref("areas").once("value"),
         db.ref("centers").once("value"),
       ]).then(([g, a, c]) => {
+        const centersVal = c.val() || {};
+        ensurePublicIds(centersVal);
         setGovs(g.val() || {});
         setAreas(a.val() || {});
-        setCenters(c.val() || {});
+        setCenters(centersVal);
         setDataLoading(false);
       }).catch(() => setDataLoading(false));
     }
   }, []);
 
   return { govs, areas, centers, dataLoading };
+}
+
+/* Ensure every center has a publicId (auto-increment). Computes locally only. */
+function ensurePublicIds(centers: Record<string, Center>) {
+  const entries = Object.entries(centers);
+  let maxPublicId = 0;
+  const missing: [string, Center][] = [];
+  for (const [id, c] of entries) {
+    if (c.publicId) { maxPublicId = Math.max(maxPublicId, c.publicId); }
+    else { missing.push([id, c]); }
+  }
+  if (missing.length === 0) return;
+  missing.sort((a, b) => a[0].localeCompare(b[0]));
+  for (const [id] of missing) {
+    maxPublicId++;
+    centers[id] = { ...centers[id], publicId: maxPublicId };
+  }
 }
 
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
@@ -162,17 +181,30 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   const [sendingReview, setSendingReview] = useState(false);
   const [toast, setToast] = useState("");
 
-  const center: (Center & { id: string }) | null = useMemo(() => {
-    if (!id || !centers[id]) return null;
-    return { id, ...centers[id] };
+  /* Lookup by publicId if the param is numeric, otherwise by firebase key */
+  const resolvedId = useMemo(() => {
+    if (!id) return null;
+    if (/^\d+$/.test(id)) {
+      for (const [key, c] of Object.entries(centers)) {
+        if (c.publicId === parseInt(id, 10)) return key;
+      }
+      return null;
+    }
+    return id;
   }, [id, centers]);
 
+  const center: (Center & { id: string }) | null = useMemo(() => {
+    if (!resolvedId || !centers[resolvedId]) return null;
+    return { id: resolvedId, ...centers[resolvedId] };
+  }, [resolvedId, centers]);
+
+  const centerPublicId = center?.publicId || center?.id;
   const govName = center?.governorateId ? govs[center.governorateId]?.name : "";
 
   useEffect(() => {
-    if (!id) { setReviewsLoading(false); return; }
+    if (!resolvedId) { setReviewsLoading(false); return; }
     setReviewsLoading(true);
-    db.ref(`centerReviews/${id}`).once("value").then(snap => {
+    db.ref(`centerReviews/${resolvedId}`).once("value").then(snap => {
       const val = snap.val() || {};
       const list = Object.entries(val).map(([k, v]: [string, any]) => ({
         id: k, name: v.name || "", comment: v.comment || "", rating: v.rating || 0,
@@ -181,14 +213,14 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
       setReviews(list);
       setReviewsLoading(false);
     }).catch(() => setReviewsLoading(false));
-  }, [id]);
+  }, [resolvedId]);
 
   async function submitReview() {
-    if (!center) return;
+    if (!center || !resolvedId) return;
     if (!reviewName.trim()) { setToast("أدخل اسمك"); setTimeout(() => setToast(""), 2000); return; }
     setSendingReview(true);
     try {
-      await db.ref(`centerReviews/${center.id}`).push({
+      await db.ref(`centerReviews/${resolvedId}`).push({
         name: reviewName.trim(),
         comment: reviewComment.trim() || null,
         rating: reviewRating,
@@ -208,7 +240,7 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   }
 
   function shareCenter() {
-    const url = `${window.location.origin}/centers/${center?.id}`;
+    const url = `${window.location.origin}/centers/${centerPublicId}`;
     const text = `مركز تدريب القيادة — ${center?.name}`;
     if (navigator.share) {
       navigator.share({ title: text, url });
@@ -487,39 +519,44 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
               <div style={{ fontSize: 14, fontWeight: 600 }}>لا توجد تقييمات بعد. كن أول مقيّم!</div>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {reviews.map(r => (
                 <div key={r.id} style={{
-                  borderBottom: "1px solid #F1F5F9", paddingBottom: 12,
+                  background: "#F8FAFC", borderRadius: 14, padding: 14,
+                  border: "1.5px solid #E2E8F0",
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                     <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>{r.name}</span>
                     <div style={{ display: "flex", gap: 2 }}>
-                      {[1,2,3,4,5].map(n => (
-                        <i key={n} className={n <= r.rating ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 12, color: n <= r.rating ? "#F59E0B" : "#E2E8F0" }} />
+                      {Array.from({ length: r.rating }).map((_, i) => (
+                        <i key={i} className="ph-fill ph-star" style={{ fontSize: 13, color: "#F59E0B" }} />
                       ))}
                     </div>
                   </div>
                   {r.comment && (
-                    <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.6 }}>{r.comment}</div>
+                    <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 6 }}>{r.comment}</div>
                   )}
+                  <div style={{ fontSize: 11, color: "#94A3B8" }}>{r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : ""}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        <AppFooter />
       </div>
 
       {/* Toast */}
       {toast && (
         <div style={{
-          position: "fixed", bottom: 30, left: "50%", transform: "translateX(-50%)",
-          background: "#0F172A", color: "#fff", padding: "12px 20px",
-          borderRadius: 12, fontSize: 13, fontWeight: 700, zIndex: 200,
-        }}>{toast}</div>
+          position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
+          background: "#0F172A", color: "#fff", fontSize: 14, fontWeight: 700,
+          padding: "12px 24px", borderRadius: 12, zIndex: 1000,
+          whiteSpace: "nowrap",
+        }}>
+          {toast}
+        </div>
       )}
-
-      <AppFooter />
     </div>
   );
 }

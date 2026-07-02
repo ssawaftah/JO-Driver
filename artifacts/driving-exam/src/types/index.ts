@@ -53,6 +53,7 @@ export interface Governorate { id?: string; name: string; }
 export interface Area { id?: string; name: string; governorateId: string; }
 export interface Center {
   id?: string;
+  publicId?: number;
   name: string;
   address?: string;
   phone?: string;

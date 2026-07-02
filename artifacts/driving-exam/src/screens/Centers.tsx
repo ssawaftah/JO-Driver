@@ -11,6 +11,23 @@ interface Props {
   centers: Record<string, Center>;
 }
 
+/* Ensure every center has a publicId (auto-increment). Computes locally only. */
+function ensurePublicIds(centers: Record<string, Center>) {
+  const entries = Object.entries(centers);
+  let maxPublicId = 0;
+  const missing: [string, Center][] = [];
+  for (const [id, c] of entries) {
+    if (c.publicId) { maxPublicId = Math.max(maxPublicId, c.publicId); }
+    else { missing.push([id, c]); }
+  }
+  if (missing.length === 0) return;
+  missing.sort((a, b) => a[0].localeCompare(b[0]));
+  for (const [id] of missing) {
+    maxPublicId++;
+    centers[id] = { ...centers[id], publicId: maxPublicId };
+  }
+}
+
 /* ── Day helpers ───────────────────────────────────────── */
 const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
 const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
@@ -333,7 +350,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
 
       {/* Row 4: Detail button + share */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }} onClick={e => e.stopPropagation()}>
-        <ShareBtn centerId={c.id} centerName={c.name} />
+        <ShareBtn centerId={`${c.publicId || c.id}`} centerName={c.name} />
         <button
           onClick={(e) => { e.stopPropagation(); onClick?.(); }}
           style={{
@@ -674,6 +691,15 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
   const [areas, setAreas] = useState<Record<string, Area>>(areasProp);
   const [centers, setCenters] = useState<Record<string, Center>>(centersProp);
 
+  /* Lookup map: publicId -> firebaseKey */
+  const publicIdMap = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const [key, c] of Object.entries(centers)) {
+      if (c.publicId) map.set(c.publicId, key);
+    }
+    return map;
+  }, [centers]);
+
   useEffect(() => {
     if (Object.keys(centers).length === 0) {
       setLoading(true);
@@ -682,9 +708,11 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
         db.ref("areas").once("value"),
         db.ref("centers").once("value"),
       ]).then(([g, a, c]) => {
+        const centersVal = c.val() || {};
+        ensurePublicIds(centersVal);
         setGovs(g.val() || {});
         setAreas(a.val() || {});
-        setCenters(c.val() || {});
+        setCenters(centersVal);
         setLoading(false);
       }).catch(() => setLoading(false));
     }
@@ -872,7 +900,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
                   c.governorateId ? (govs[c.governorateId]?.name || "") :
                   c.areas?.[0] ? (govs[areas[c.areas[0].id]?.governorateId]?.name || "") : ""
                 )}
-                onClick={() => navigate(`/centers/${c.id}`)}
+                onClick={() => navigate(`/centers/${c.publicId || c.id}`)}
               />
             ))
           )}

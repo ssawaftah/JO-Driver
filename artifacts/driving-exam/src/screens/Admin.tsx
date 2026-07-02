@@ -1078,7 +1078,16 @@ export default function Admin({ onBack }: Props) {
               if (addCenter.areaIds.length === 0) { showToast("اختر منطقة واحدة على الأقل"); return; }
               if (workingDays.length === 0) { showToast("حدد يوم دوام واحد على الأقل"); return; }
               const areaObjs = addCenter.areaIds.map(id => ({ id, name: areas[id]?.name || "" }));
-              setLoading(true); try { await db.ref("centers").push({
+              setLoading(true); try {
+                // Compute next publicId
+                let nextPublicId = 1;
+                const snap = await db.ref("centers").once("value");
+                const existing = snap.val() || {};
+                for (const c of Object.values(existing)) {
+                  if ((c as Center).publicId && (c as Center).publicId! >= nextPublicId) nextPublicId = (c as Center).publicId! + 1;
+                }
+                await db.ref("centers").push({
+                publicId: nextPublicId,
                 name: addCenter.name.trim(),
                 governorateId: addCenter.gov,
                 areaId: addCenter.areaIds[0],
