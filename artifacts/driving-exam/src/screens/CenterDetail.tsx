@@ -240,6 +240,35 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   const centerPublicId = center?.publicId || center?.id;
   const govName = center?.governorateId ? govs[center.governorateId]?.name : "";
 
+  const avgRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  }, [reviews]);
+
+  const ratingBreakdown = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    reviews.forEach(r => {
+      const idx = Math.min(5, Math.max(1, Math.round(r.rating))) - 1;
+      counts[idx]++;
+    });
+    return [5, 4, 3, 2, 1].map(star => ({
+      star,
+      count: counts[star - 1],
+      pct: reviews.length ? Math.round((counts[star - 1] / reviews.length) * 100) : 0,
+    }));
+  }, [reviews]);
+
+  function timeAgo(iso: string) {
+    if (!iso) return "";
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const day = 86400000;
+    if (diffMs < 0 || isNaN(diffMs)) return new Date(iso).toLocaleDateString("ar-JO");
+    if (diffMs < 3600000) return "قبل قليل";
+    if (diffMs < day) return `منذ ${Math.floor(diffMs / 3600000)} ساعة`;
+    if (diffMs < day * 30) return `منذ ${Math.floor(diffMs / day)} يوم`;
+    return new Date(iso).toLocaleDateString("ar-JO");
+  }
+
   useEffect(() => {
     if (!resolvedId) { setReviewsLoading(false); return; }
     setReviewsLoading(true);
@@ -533,30 +562,73 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
 
         {/* ── Reviews ── */}
         <div style={{
-          background: "#fff", borderRadius: 16, border: "1.5px solid #E2E8F0",
-          padding: 20, marginTop: 14,
+          background: "#fff", borderRadius: 20, border: "1.5px solid #E2E8F0",
+          padding: 20, marginTop: 14, overflow: "hidden",
           boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
         }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#0F172A" }}>آراء الزوار</div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>{reviews.length} تقييم</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+              background: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <i className="ph-fill ph-chats-circle" style={{ fontSize: 18, color: "#B45309" }} />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 900, color: "#0F172A" }}>آراء الزوار</div>
           </div>
+
+          {/* Rating summary */}
+          {reviews.length > 0 && (
+            <div style={{
+              display: "flex", gap: 20, alignItems: "center",
+              background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
+              border: "1.5px solid #DBEAFE", borderRadius: 16,
+              padding: "18px 20px", marginBottom: 20, flexWrap: "wrap",
+            }}>
+              <div style={{ textAlign: "center", flexShrink: 0 }}>
+                <div style={{ fontSize: 38, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>{avgRating.toFixed(1)}</div>
+                <div style={{ display: "flex", gap: 2, justifyContent: "center", marginTop: 6 }}>
+                  {[1,2,3,4,5].map(i => (
+                    <i key={i} className={i <= Math.round(avgRating) ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 13, color: i <= Math.round(avgRating) ? "#F59E0B" : "#E2E8F0" }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginTop: 6, whiteSpace: "nowrap" }}>{reviews.length} تقييم</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 140, display: "flex", flexDirection: "column", gap: 5 }}>
+                {ratingBreakdown.map(({ star, pct, count }) => (
+                  <div key={star} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B", width: 10, textAlign: "center" }}>{star}</span>
+                    <i className="ph-fill ph-star" style={{ fontSize: 10, color: "#F59E0B" }} />
+                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: "#E2E8F0", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: "#F59E0B", transition: "width 0.4s ease" }} />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", width: 16, textAlign: "left" }}>{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Review form */}
           <div style={{
-            background: "#F8FAFC", borderRadius: 14, padding: 16, marginBottom: 20,
-            border: "1.5px solid #E2E8F0",
+            background: "#F8FAFC", borderRadius: 16, padding: 18, marginBottom: 20,
+            border: "1.5px dashed #CBD5E1",
           }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#374151", marginBottom: 10 }}>أضف تقييمك</div>
-            <StarInput value={reviewRating} onChange={setReviewRating} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <i className="ph ph-pencil-simple-line" style={{ fontSize: 16, color: "#2563EB" }} />
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#1E293B" }}>شاركنا رأيك</div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+              <StarInput value={reviewRating} onChange={setReviewRating} />
+            </div>
             <input
               value={reviewName}
               onChange={e => setReviewName(e.target.value)}
               placeholder="اسمك"
               style={{
-                width: "100%", padding: "10px 12px", borderRadius: 10,
+                width: "100%", padding: "11px 14px", borderRadius: 12,
                 border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14,
-                fontFamily: "inherit", color: "#0F172A", marginTop: 12,
+                fontFamily: "inherit", color: "#0F172A", boxSizing: "border-box",
               }}
             />
             <textarea
@@ -565,51 +637,66 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
               placeholder="تعليقك عن المركز (اختياري)"
               rows={3}
               style={{
-                width: "100%", padding: "10px 12px", borderRadius: 10,
+                width: "100%", padding: "11px 14px", borderRadius: 12,
                 border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14,
                 fontFamily: "inherit", color: "#0F172A", marginTop: 10, resize: "vertical",
+                boxSizing: "border-box",
               }}
             />
             <button
               onClick={submitReview}
               disabled={sendingReview}
               style={{
-                width: "100%", marginTop: 12, padding: "12px",
-                background: "#2563EB", color: "#fff", borderRadius: 12,
+                width: "100%", marginTop: 12, padding: "13px",
+                background: sendingReview ? "#93C5FD" : "linear-gradient(135deg, #2563EB, #1D4ED8)",
+                color: "#fff", borderRadius: 12,
                 border: "none", fontSize: 14, fontWeight: 800,
                 cursor: sendingReview ? "wait" : "pointer", fontFamily: "inherit",
-                opacity: sendingReview ? 0.7 : 1,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                boxShadow: sendingReview ? "none" : "0 4px 12px rgba(37,99,235,0.25)",
               }}
             >
-              {sendingReview ? "جارٍ إرسال..." : "إرسال التقييم"}
+              <i className={sendingReview ? "ph ph-circle-notch" : "ph ph-paper-plane-tilt"} style={{ fontSize: 16, animation: sendingReview ? "spin 0.8s linear infinite" : undefined }} />
+              {sendingReview ? "جارٍ الإرسال..." : "إرسال التقييم"}
             </button>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
 
           {/* Review list */}
           {reviews.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "30px 0", color: "#94A3B8" }}>
-              <i className="ph ph-chat-circle-dots" style={{ fontSize: 40, display: "block", marginBottom: 10 }} />
-              <div style={{ fontSize: 14, fontWeight: 600 }}>لا توجد تقييمات بعد. كن أول مقيّم!</div>
+            <div style={{ textAlign: "center", padding: "34px 0", color: "#94A3B8" }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: "50%", background: "#F1F5F9",
+                display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px",
+              }}>
+                <i className="ph ph-chat-circle-dots" style={{ fontSize: 30, color: "#CBD5E1" }} />
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#64748B" }}>لا توجد تقييمات بعد</div>
+              <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>كن أول من يشارك رأيه في هذا المركز</div>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {reviews.map(r => (
                 <div key={r.id} style={{
-                  background: "#F8FAFC", borderRadius: 14, padding: 14,
-                  border: "1.5px solid #E2E8F0",
+                  display: "flex", gap: 12,
+                  background: "#F8FAFC", borderRadius: 16, padding: 14,
+                  border: "1.5px solid #EEF2F7",
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>{r.name}</span>
-                    <div style={{ display: "flex", gap: 2 }}>
-                      {Array.from({ length: r.rating }).map((_, i) => (
-                        <i key={i} className="ph-fill ph-star" style={{ fontSize: 13, color: "#F59E0B" }} />
+                  <CenterAvatar name={r.name || "م"} size={40} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+                      <span style={{ fontSize: 10.5, color: "#94A3B8", fontWeight: 600, flexShrink: 0 }}>{timeAgo(r.createdAt)}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 2, marginBottom: r.comment ? 6 : 0 }}>
+                      {[1,2,3,4,5].map(i => (
+                        <i key={i} className={i <= r.rating ? "ph-fill ph-star" : "ph ph-star"} style={{ fontSize: 12, color: i <= r.rating ? "#F59E0B" : "#E2E8F0" }} />
                       ))}
                     </div>
+                    {r.comment && (
+                      <div style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.65 }}>{r.comment}</div>
+                    )}
                   </div>
-                  {r.comment && (
-                    <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 6 }}>{r.comment}</div>
-                  )}
-                  <div style={{ fontSize: 11, color: "#94A3B8" }}>{r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : ""}</div>
                 </div>
               ))}
             </div>
