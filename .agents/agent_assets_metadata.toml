@@ -59,3 +59,9 @@ id = "uTxM1Slx4Yq2ypkx_AUb6"
 uri = "file://screenshots/center-detail-page.jpg"
 type = "image"
 title = "صفحة تفاصيل المركز - التصميم الجديد"
+
+[[outputs]]
+id = "rkl_gamAtFFbmlzUURsEO"
+uri = "file://README.md"
+type = "text"
+title = "README.md — دليل شامل لمشروع JO Driver"
