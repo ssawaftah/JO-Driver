@@ -144,6 +144,8 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
   const [schedule, setSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [rating, setRating] = useState("");
   const [reviewCount, setReviewCount] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [description, setDescription] = useState("");
 
   /* Add-area modal state */
   const [showAddArea, setShowAddArea] = useState(false);
@@ -269,6 +271,8 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
         mapLink: mapLink.trim() || null,
         rating: parseFloat(rating) || 0,
         reviewCount: parseInt(reviewCount) || 0,
+        imageUrl: imageUrl.trim() || null,
+        description: description.trim() || null,
         workingHours,
         workingDays,
         schedule,
@@ -517,6 +521,21 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* Media + Description */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: 16, border: "1.5px solid #F0F1F3" }}>
+              <SectionLabel>معلومات إضافية</SectionLabel>
+              <Field label="رابط صورة المركز (URL)" value={imageUrl} onChange={setImageUrl} placeholder="https://..." />
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "#374151", display: "block", marginBottom: 6 }}>وصف المركز</label>
+                <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="أوصف المركز للطلاب..." rows={3} style={{
+                  width: "100%", padding: "11px 14px", borderRadius: 10,
+                  border: "1.5px solid #E5E7EB", background: "#F9FAFB",
+                  fontSize: 14, fontFamily: "inherit", color: "#374151",
+                  outline: "none", resize: "vertical", boxSizing: "border-box",
+                }} />
               </div>
             </div>
 

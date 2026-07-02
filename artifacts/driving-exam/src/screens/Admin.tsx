@@ -224,6 +224,8 @@ export default function Admin({ onBack }: Props) {
   const [reviewWorkingDays, setReviewWorkingDays] = useState<string[]>([]);
   const [reviewWorkingHours, setReviewWorkingHours] = useState("");
   const [reviewPromoted, setReviewPromoted] = useState(false);
+  type ReviewDaySchedule = { closed: boolean; from: string; to: string };
+  const [reviewSchedule, setReviewSchedule] = useState<ReviewDaySchedule[]>([]);
 
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); }, []);
 
@@ -700,6 +702,15 @@ export default function Admin({ onBack }: Props) {
     setReviewWorkingDays(req.workingDays || []);
     setReviewWorkingHours(req.workingHours || "");
     setReviewPromoted(req.promoted || false);
+    if (req.schedule) {
+      setReviewSchedule(req.schedule);
+    } else {
+      const closedSet = new Set(req.workingDays || []);
+      setReviewSchedule(ALL_DAYS_FULL.map((day, i) => ({
+        closed: !closedSet.has(day),
+        from: "08:00", to: "16:00",
+      })));
+    }
   }
 
   function closeReviewModal() {
@@ -712,6 +723,9 @@ export default function Admin({ onBack }: Props) {
     setLoading(true);
     try {
       const areaObjs = reviewAreaIds.map(id => ({ id, name: areas[id]?.name || "" }));
+      const workingDays = ALL_DAYS_FULL.filter((_, i) => !reviewSchedule[i].closed);
+      const firstOpen = reviewSchedule.find(d => !d.closed);
+      const workingHours = firstOpen ? `${firstOpen.from} – ${firstOpen.to}` : "";
       await db.ref("centers").push({
         name: reviewName.trim() || reviewingData.name,
         address: reviewAddress.trim() || reviewingData.address || null,
@@ -722,8 +736,9 @@ export default function Admin({ onBack }: Props) {
         reviewCount: parseInt(reviewReviewCount) || reviewingData.reviewCount || 0,
         imageUrl: reviewImageUrl.trim() || null,
         description: reviewDesc.trim() || null,
-        workingDays: reviewWorkingDays,
-        workingHours: reviewWorkingHours,
+        workingDays,
+        workingHours,
+        schedule: reviewSchedule,
         areas: areaObjs,
         areaId: areaObjs[0]?.id || "",
         governorateId: reviewGovId || reviewingData.governorateId || "",
@@ -747,81 +762,180 @@ export default function Admin({ onBack }: Props) {
         {entries.length === 0 ? <Empty icon="clipboard-text" text="لا توجد طلبات" /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {entries.map(([reqId, req]) => {
-              const areasList = (req.areas || []).map((a: any) => a.name).join("، ");
-              const activeDays = req.workingDays || [];
+              const areaObjs = req.areas || [];
+              const sch = req.schedule || [];
               const status = req.status === "pending" ? { bg: "rgba(245,158,11,0.15)", color: C.gold, txt: "قيد المراجعة" }
                 : req.status === "approved" ? { bg: "rgba(34,197,94,0.15)", color: C.green, txt: "تم النشر" }
                 : { bg: "rgba(239,68,68,0.15)", color: C.red, txt: "مرفوض" };
               return (
-                <div key={reqId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.03)", direction: "rtl" }}>
-                  {/* Header: name + status */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8 }}>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: C.text, flex: 1, lineHeight: 1.4 }}>{req.name}</div>
-                    <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>{status.txt}</span>
-                  </div>
-
-                  {/* Info rows */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.textSec }}>
-                      <i className="ph ph-phone" style={{ color: C.primary, fontSize: 14, flexShrink: 0 }} />
-                      <span style={{ fontWeight: 700, color: C.text }}>{req.phone || "-"}</span>
+                <div key={reqId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.04)", direction: "rtl" }}>
+                  {/* Header: avatar + name + status */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        width: 52, height: 52, borderRadius: 14, overflow: "hidden", flexShrink: 0,
+                        background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark})`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {req.imageUrl ? (
+                          <img src={req.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <span style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>{(req.name || "?").charAt(0)}</span>
+                        )}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: C.text, lineHeight: 1.4, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.name}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, display: "flex", alignItems: "center", gap: 4 }}>
+                          <i className="ph ph-calendar-blank" style={{ fontSize: 11 }} />
+                          {req.submittedAt ? new Date(req.submittedAt).toLocaleDateString("ar-JO") : "-"}
+                        </div>
+                      </div>
                     </div>
-                    {areasList && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: C.textSec }}>
-                        <i className="ph ph-map-pin" style={{ color: C.primary, fontSize: 14, flexShrink: 0 }} />
-                        <span>{govs[req.governorateId]?.name || "-"} — {areasList}</span>
+                    <span style={{ background: status.bg, color: status.color, padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>{status.txt}</span>
+                  </div>
+
+                  {/* Info grid cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                    {req.phone && (
+                      <div style={{ background: C.surface2, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="ph ph-phone" style={{ color: C.primary, fontSize: 16 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: C.textSec, marginBottom: 1 }}>الهاتف</div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{req.phone}</div>
+                        </div>
                       </div>
                     )}
-                    {req.address && (
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: C.textSec }}>
-                        <i className="ph ph-map-trifold" style={{ color: C.primary, fontSize: 14, flexShrink: 0, marginTop: 2 }} />
-                        <span style={{ lineHeight: 1.5 }}>{req.address}</span>
+                    {req.whatsapp && (
+                      <div style={{ background: C.surface2, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "#ECFDF5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="ph ph-whatsapp-logo" style={{ color: C.green, fontSize: 16 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: C.textSec, marginBottom: 1 }}>واتساب</div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{req.whatsapp}</div>
+                        </div>
+                      </div>
+                    )}
+                    {req.governorateId && (
+                      <div style={{ background: C.surface2, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "#FFFBEB", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="ph ph-map-pin" style={{ color: C.gold, fontSize: 16 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: C.textSec, marginBottom: 1 }}>المحافظة</div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{govs[req.governorateId]?.name || "-"}</div>
+                        </div>
+                      </div>
+                    )}
+                    {req.rating != null && (
+                      <div style={{ background: C.surface2, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "#FFF7ED", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="ph ph-star-fill" style={{ color: C.gold, fontSize: 16 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: C.textSec, marginBottom: 1 }}>التقييم</div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>{req.rating} / 5</div>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Working days + hours */}
-                  {(activeDays.length > 0 || req.workingHours) && (
-                    <div style={{
-                      background: C.surface2, borderRadius: 10, padding: 10,
-                      marginBottom: 10, border: `1px solid ${C.border}`,
-                    }}>
-                      {req.workingHours && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.textSec, marginBottom: 6 }}>
-                          <i className="ph ph-clock" style={{ color: C.primary, fontSize: 13 }} />
-                          <span style={{ fontWeight: 700, color: C.text }}>{req.workingHours}</span>
-                        </div>
-                      )}
-                      {activeDays.length > 0 && (
-                        <div style={{ display: "flex", gap: 5 }}>
-                          {ALL_DAYS_SHORT.map((d, i) => {
-                            const on = activeDays.includes(ALL_DAYS_FULL[i]);
-                            return (
-                              <div key={d} style={{
-                                width: 26, height: 26, borderRadius: 7,
-                                background: on ? C.primary : C.surface2,
-                                color: on ? "#fff" : C.textLight,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 11, fontWeight: 800,
-                              }}>{d}</div>
-                            );
-                          })}
-                        </div>
-                      )}
+                  {/* Address */}
+                  {req.address && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 10, padding: "10px 12px", background: C.surface2, borderRadius: 12 }}>
+                      <i className="ph ph-map-trifold" style={{ color: C.primary, fontSize: 16, flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6 }}>{req.address}</span>
                     </div>
                   )}
 
-                  {/* Rating */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                    <i className="ph ph-star-fill" style={{ fontSize: 14, color: C.gold }} />
-                    <span style={{ fontSize: 13, fontWeight: 800, color: C.gold }}>{req.rating || 0} / 5</span>
-                  </div>
+                  {/* Area chips */}
+                  {areaObjs.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <i className="ph ph-map-pin-area" style={{ fontSize: 12 }} />
+                        المناطق المخدّمة
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {areaObjs.map((a: any) => (
+                          <span key={a.id} style={{
+                            padding: "5px 10px", borderRadius: 10,
+                            background: C.primaryLight, color: C.primary,
+                            fontSize: 12, fontWeight: 800,
+                            display: "flex", alignItems: "center", gap: 4,
+                          }}>
+                            <i className="ph ph-check-circle" style={{ fontSize: 13 }} />
+                            {a.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Working hours table */}
+                  {sch.length > 0 && (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <i className="ph ph-clock" style={{ fontSize: 12 }} />
+                        أوقات الدوام
+                      </div>
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, background: C.surface2, borderRadius: 10, overflow: "hidden" }}>
+                          <thead>
+                            <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                              <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>اليوم</th>
+                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>من</th>
+                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>إلى</th>
+                              <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.red, fontSize: 10 }}>مغلق</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ALL_DAYS_FULL.map((day, i) => {
+                              const row = sch[i] || { closed: true, from: "", to: "" };
+                              return (
+                                <tr key={day} style={{ borderBottom: "1px solid " + C.border, background: row.closed ? "rgba(239,68,68,0.04)" : "transparent" }}>
+                                  <td style={{ padding: "6px 8px", fontWeight: 700, color: row.closed ? C.textLight : C.text }}>
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                                      <span style={{
+                                        width: 22, height: 22, borderRadius: 6, fontSize: 10, fontWeight: 800,
+                                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                        background: row.closed ? C.surface2 : C.primaryLight,
+                                        color: row.closed ? C.textLight : C.primary,
+                                      }}>{ALL_DAYS_SHORT[i]}</span>
+                                      <span>{day}</span>
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: "6px 8px", textAlign: "center", color: row.closed ? C.textLight : C.textSec, fontWeight: 600 }}>{row.closed ? "—" : row.from}</td>
+                                  <td style={{ padding: "6px 8px", textAlign: "center", color: row.closed ? C.textLight : C.textSec, fontWeight: 600 }}>{row.closed ? "—" : row.to}</td>
+                                  <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                                    {row.closed && <i className="ph ph-x" style={{ color: C.red, fontSize: 14 }} />}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {req.description && (
+                    <div style={{ marginBottom: 12, padding: "10px 12px", background: C.surface2, borderRadius: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                        <i className="ph ph-text-align-right" style={{ fontSize: 12 }} />
+                        الوصف
+                      </div>
+                      <div style={{ fontSize: 12, color: C.textSec, lineHeight: 1.7 }}>{req.description}</div>
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => openReviewModal(reqId, req)}
                       style={{
-                        flex: 1, padding: "10px 14px", borderRadius: 10, border: "none",
+                        flex: 1, padding: "11px 14px", borderRadius: 12, border: "none",
                         background: C.primary, color: "#fff", fontSize: 13, fontWeight: 800,
                         cursor: "pointer", fontFamily: "inherit",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -830,7 +944,7 @@ export default function Admin({ onBack }: Props) {
                     </button>
                     <button onClick={async () => { if (!confirm(`رفض "${req.name}" ؟`)) return; try { await db.ref("centerRequests/" + reqId).remove(); showToast("تم الرفض"); await loadAll(); } catch { showToast("حدث خطأ"); } }}
                       style={{
-                        padding: "10px 14px", borderRadius: 10, border: "none",
+                        padding: "11px 14px", borderRadius: 12, border: "none",
                         background: C.red, color: "#fff", fontSize: 13, fontWeight: 800,
                         cursor: "pointer", fontFamily: "inherit",
                         display: "flex", alignItems: "center", gap: 6,
@@ -942,28 +1056,42 @@ export default function Admin({ onBack }: Props) {
                   </div>
                 </div>
 
-                {/* Governorate + areas */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المحافظة</label>
-                    <select value={reviewGovId} onChange={e => { setReviewGovId(e.target.value); setReviewAreaIds([]); }} style={{
-                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-                      fontSize: 13, fontFamily: "inherit", background: C.surface2,
-                    }}>
-                      <option value="">اختر المحافظة</option>
-                      {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق</label>
-                    <select value={reviewAreaIds[0] || ""} onChange={e => { const v = e.target.value; setReviewAreaIds(v ? [v] : []); }} style={{
-                      width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-                      fontSize: 13, fontFamily: "inherit", background: C.surface2,
-                    }}>
-                      <option value="">اختر المنطقة</option>
-                      {Object.entries(areas).filter(([_, a]) => a.governorateId === reviewGovId).map(([id, a]) => <option key={id} value={id}>{a.name}</option>)}
-                    </select>
-                  </div>
+                {/* Governorate + area chips */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المحافظة</label>
+                  <select value={reviewGovId} onChange={e => { setReviewGovId(e.target.value); setReviewAreaIds([]); }} style={{
+                    width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+                    fontSize: 13, fontFamily: "inherit", background: C.surface2,
+                    marginBottom: 10,
+                  }}>
+                    <option value="">اختر المحافظة</option>
+                    {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
+                  </select>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة</label>
+                  {reviewGovId ? (
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {Object.entries(areas).filter(([_, a]) => a.governorateId === reviewGovId).sort((a, b) => a[1].name.localeCompare(b[1].name, "ar")).map(([id, a]) => {
+                        const selected = reviewAreaIds.includes(id);
+                        return (
+                          <button key={id} onClick={() => {
+                            setReviewAreaIds(prev => selected ? prev.filter(x => x !== id) : [...prev, id]);
+                          }} style={{
+                            padding: "6px 12px", borderRadius: 10,
+                            border: `1.5px solid ${selected ? C.primary : C.border}`,
+                            background: selected ? C.primaryLight : C.surface2,
+                            color: selected ? C.primary : C.textSec,
+                            fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                            display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
+                          }}>
+                            <i className={`ph ${selected ? "ph-check-circle" : "ph-circle"}`} style={{ fontSize: 14 }} />
+                            {a.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: C.textLight, padding: "6px 0" }}>اختر المحافظة أولاً</div>
+                  )}
                 </div>
 
                 {/* Rating + review count */}
@@ -984,26 +1112,55 @@ export default function Admin({ onBack }: Props) {
                   </div>
                 </div>
 
-                {/* Working hours + days */}
+                {/* Working hours table */}
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>ساعات العمل</label>
-                  <input value={reviewWorkingHours} onChange={e => setReviewWorkingHours(e.target.value)} placeholder="مثال: 08:00 – 16:00" style={{
-                    width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-                    fontSize: 13, fontFamily: "inherit", background: C.surface2, marginBottom: 10,
-                  }} />
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {ALL_DAYS_FULL.map((day, i) => {
-                      const on = reviewWorkingDays.includes(day);
-                      return (
-                        <button key={day} onClick={() => {
-                          setReviewWorkingDays(prev => on ? prev.filter(d => d !== day) : [...prev, day]);
-                        }} style={{
-                          padding: "6px 10px", borderRadius: 8, border: on ? "none" : `1px solid ${C.border}`,
-                          background: on ? C.primary : C.surface2, color: on ? "#fff" : C.textSec,
-                          fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                        }}>{ALL_DAYS_SHORT[i]}</button>
-                      );
-                    })}
+                  <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>أوقات الدوام</label>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, background: C.surface2, borderRadius: 10, overflow: "hidden" }}>
+                      <thead>
+                        <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                          <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>اليوم</th>
+                          <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>من</th>
+                          <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>إلى</th>
+                          <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.red, fontSize: 10 }}>مغلق</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ALL_DAYS_FULL.map((day, i) => {
+                          const row = reviewSchedule[i];
+                          return (
+                            <tr key={day} style={{ borderBottom: "1px solid " + C.border, background: row.closed ? "rgba(239,68,68,0.04)" : "transparent" }}>
+                              <td style={{ padding: "6px 8px", fontWeight: 700, color: row.closed ? C.textLight : C.text }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                                  <span style={{
+                                    width: 22, height: 22, borderRadius: 6, fontSize: 10, fontWeight: 800,
+                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                    background: row.closed ? C.surface2 : C.primaryLight,
+                                    color: row.closed ? C.textLight : C.primary,
+                                  }}>{ALL_DAYS_SHORT[i]}</span>
+                                  <span>{day}</span>
+                                </span>
+                              </td>
+                              <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                                <input type="time" value={row.from} disabled={row.closed}
+                                  onChange={e => setReviewSchedule(s => s.map((d, idx) => idx === i ? { ...d, from: e.target.value } : d))}
+                                  style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
+                              </td>
+                              <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                                <input type="time" value={row.to} disabled={row.closed}
+                                  onChange={e => setReviewSchedule(s => s.map((d, idx) => idx === i ? { ...d, to: e.target.value } : d))}
+                                  style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
+                              </td>
+                              <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                                <input type="checkbox" checked={row.closed}
+                                  onChange={e => setReviewSchedule(s => s.map((d, idx) => idx === i ? { ...d, closed: e.target.checked } : d))}
+                                  style={{ width: 16, height: 16, accentColor: C.red, cursor: "pointer" }} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
