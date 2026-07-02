@@ -52,10 +52,11 @@ interface ScrapedData {
 }
 
 async function scrapeGoogleMaps(url: string): Promise<ScrapedData> {
+  // Mobile Safari UA returns richer HTML including phone numbers
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
       "Accept-Language": "ar-JO,ar;q=0.9,en;q=0.5",
       Accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -96,11 +97,20 @@ async function scrapeGoogleMaps(url: string): Promise<ScrapedData> {
     if (closeM && !result.endHour) result.endHour = closeM[1];
   }
 
-  // --- Jordan phone patterns anywhere in HTML ---
-  const phoneM = html.match(
-    /(?:\+962\s?7[\d\s\-]{8,12}|\+962\s?[23][\d\s\-]{7,11}|07\d{8})/
-  );
-  if (phoneM) result.phone = normalizeJordanPhone(phoneM[0]);
+  // --- Jordan phone patterns anywhere in HTML — pick most frequent ---
+  // Note: numbers are embedded in longer strings, so we use simple regex then pick by frequency
+  const allPhones = [
+    ...[...html.matchAll(/\+962\s?7\d{8}/g)].map(m => normalizeJordanPhone(m[0])),
+    ...[...html.matchAll(/07\d{8}/g)].map(m => m[0]),
+  ].filter(p => p.length === 10 && /^07\d{8}$/.test(p));
+
+  if (allPhones.length) {
+    // Count frequency; the main listing phone usually appears most often
+    const freq = new Map<string, number>();
+    for (const p of allPhones) freq.set(p, (freq.get(p) ?? 0) + 1);
+    const [topPhone] = [...freq.entries()].sort((a, b) => b[1] - a[1]);
+    result.phone = topPhone[0];
+  }
 
   // --- JSON-LD structured data ---
   const jsonLds = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
@@ -128,6 +138,38 @@ async function scrapeGoogleMaps(url: string): Promise<ScrapedData> {
   }
 
   return result;
+}
+
+async function getPhoneFromOverpass(lat: number, lng: number): Promise<string | null> {
+  try {
+    const query = `
+      [out:json][timeout:6];
+      (
+        node["phone"](around:250,${lat},${lng});
+        way["phone"](around:250,${lat},${lng});
+        node["contact:phone"](around:250,${lat},${lng});
+        way["contact:phone"](around:250,${lat},${lng});
+      );
+      out body;
+    `;
+    const res = await fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      elements?: Array<{ tags?: Record<string, string> }>;
+    };
+    for (const el of data.elements ?? []) {
+      const raw = el.tags?.phone || el.tags?.["contact:phone"];
+      if (raw) return normalizeJordanPhone(raw);
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 async function getAddressFromCoords(lat: number, lng: number): Promise<string | null> {
@@ -168,11 +210,14 @@ placesRouter.post("/places/lookup", async (req: Request, res: Response) => {
       });
     }
 
-    // Scrape page + Nominatim reverse-geocode in parallel
-    const [scrapedResult, nominatimResult] = await Promise.allSettled([
+    // Scrape page + Nominatim + Overpass in parallel
+    const [scrapedResult, nominatimResult, overpassPhoneResult] = await Promise.allSettled([
       scrapeGoogleMaps(resolvedUrl),
       lat !== null && lng !== null
         ? getAddressFromCoords(lat, lng)
+        : Promise.resolve(null),
+      lat !== null && lng !== null
+        ? getPhoneFromOverpass(lat, lng)
         : Promise.resolve(null),
     ]);
 
@@ -180,11 +225,13 @@ placesRouter.post("/places/lookup", async (req: Request, res: Response) => {
       scrapedResult.status === "fulfilled" ? scrapedResult.value : {};
     const nominatimAddr: string | null =
       nominatimResult.status === "fulfilled" ? nominatimResult.value : null;
+    const overpassPhone: string | null =
+      overpassPhoneResult.status === "fulfilled" ? overpassPhoneResult.value : null;
 
     return res.json({
       name: urlName || s.name,
       address: s.address || nominatimAddr,
-      phone: s.phone || null,
+      phone: s.phone || overpassPhone || null,
       rating: s.rating ?? null,
       startHour: s.startHour || null,
       endHour: s.endHour || null,
