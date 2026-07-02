@@ -273,7 +273,7 @@ function CenterCard({ c, govName, onClick }: { c: Center & { id: string }; govNa
             {status.label}
           </div>
         </div>
-        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: isPromoted ? 14 : 0 }}>
           <GoogleStars rating={c.rating} reviewCount={c.reviewCount} />
         </div>
       </div>
