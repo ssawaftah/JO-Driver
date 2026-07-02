@@ -36,7 +36,7 @@ export default function Header({ onMenuOpen }: Props) {
           </button>
         ) : (
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/"); }}
             style={{
               width: 40, height: 40, borderRadius: 12,
               border: "1.5px solid #E5E7EB", background: "#F9FAFB",
