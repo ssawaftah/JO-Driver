@@ -36,12 +36,7 @@ export default function Header({ onMenuOpen }: Props) {
           </button>
         ) : (
           <button
-            onClick={() => {
-              const state = window.history.state;
-              const canGoBack = state && typeof state.idx === "number" && state.idx > 0;
-              if (canGoBack) navigate(-1);
-              else navigate("/");
-            }}
+            onClick={() => navigate(-1)}
             style={{
               width: 40, height: 40, borderRadius: 12,
               border: "1.5px solid #E5E7EB", background: "#F9FAFB",
