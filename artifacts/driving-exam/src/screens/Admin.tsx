@@ -1199,6 +1199,9 @@ export default function Admin({ onBack }: Props) {
   const [showFeaturedPicker, setShowFeaturedPicker] = useState(false);
   const [featuredPickerSearch, setFeaturedPickerSearch] = useState("");
 
+  // ── REVIEWS ──────────────────────────────────────────
+  const [revSearch, setRevSearch] = useState("");
+
 
   function QuickAddAreaModal({ govId, open, onClose, onAdded }: {
     govId: string; open: boolean; onClose: () => void; onAdded: (id: string) => void;
@@ -1315,6 +1318,7 @@ export default function Admin({ onBack }: Props) {
   const [addMapsFetching, setAddMapsFetching] = useState(false);
   const [addFetchError, setAddFetchError] = useState("");
   const [addFetchDone, setAddFetchDone] = useState(false);
+  const [showAddCFAreaModal, setShowAddCFAreaModal] = useState(false);
 
   useEffect(() => {
     if (view === "add-center") {
@@ -1324,8 +1328,6 @@ export default function Admin({ onBack }: Props) {
   }, [view, govs]);
 
   function AddSection() {
-    const [showAddCFAreaModal, setShowAddCFAreaModal] = useState(false);
-
     function resetAddCenter() {
       setAddCF({ ...DEFAULT_CENTER_FORM, govId: Object.keys(govs)[0] || "" });
       setAddFetchError("");
@@ -2431,7 +2433,6 @@ export default function Admin({ onBack }: Props) {
 
   // ── REVIEWS ──────────────────────────────────────────────────
   function ReviewsSection() {
-    const [revSearch, setRevSearch] = useState("");
     const revEntriesRaw = Object.entries(reviews).sort((a, b) => (b[1].createdAt || "").localeCompare(a[1].createdAt || ""));
     const revEntries = revEntriesRaw.filter(([, r]) => {
       if (!revSearch.trim()) return true;
