@@ -3,20 +3,60 @@ import { openExam, openCategories, openCenters } from "../app.js";
 import { db } from "../lib/firebase.js";
 
 const cards = [
-  { icon: "pencil-line",        color: "#16A34A", bg: "#DCFCE7", title: "الامتحان النظري",      desc: "محاكاة واقعية لاختبار القيادة",              badge: null, action: "onExam"    },
-  { icon: "book-open",          color: "#2563EB", bg: "#DBEAFE", title: "دراسة الأسئلة",        desc: "مراجعة الأسئلة حسب الأقسام",                badge: null, action: "onStudy"   },
-  { icon: "map-pin",            color: "#D97706", bg: "#FEF3C7", title: "مراكز تدريب القيادة", desc: "ابحث عن أقرب مركز تدريب معتمد",             badge: null, action: "onCenters" },
-  { icon: "book-open-text",     color: "#7C3AED", bg: "#EDE9FE", title: "دليل الطالب",  desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة",     badge: null, action: "onGuide"   },
+  {
+    icon: "pencil-line",
+    color: "#16A34A",
+    bg: "#DCFCE7",
+    title: "الامتحان النظري",
+    desc: "محاكاة واقعية لاختبار القيادة",
+    badge: null,
+    action: "onExam",
+  },
+  {
+    icon: "book-open",
+    color: "#2563EB",
+    bg: "#DBEAFE",
+    title: "دراسة الأسئلة",
+    desc: "مراجعة الأسئلة حسب الأقسام",
+    badge: null,
+    action: "onStudy",
+  },
+  {
+    icon: "map-pin",
+    color: "#D97706",
+    bg: "#FEF3C7",
+    title: "مراكز تدريب القيادة",
+    desc: "ابحث عن أقرب مركز تدريب معتمد",
+    badge: null,
+    action: "onCenters",
+  },
+  {
+    icon: "book-open-text",
+    color: "#7C3AED",
+    bg: "#EDE9FE",
+    title: "دليل الطالب",
+    desc: "خطوات، وثائق، رسوم، شروط وأسئلة شائعة",
+    badge: null,
+    action: "onGuide",
+  },
 ];
 
 const extraCards = [
-  { icon: "star", color: "#F59E0B", bg: "#FEF3C7", title: "سجل الزوار", desc: "قيّم تجربتك واطلاع رأيك", action: "onReviews" },
+  {
+    icon: "star",
+    color: "#F59E0B",
+    bg: "#FEF3C7",
+    title: "سجل الزوار",
+    desc: "قيّم تجربتك واطلاع رأيك",
+    action: "onReviews",
+  },
 ];
 
 export function render(container, ctx) {
   const name = state.userName;
   const hour = new Date().getHours();
-  const greet = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
+  const greet =
+    hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
 
   const actions = {
     onExam: () => openExam(),
@@ -28,7 +68,8 @@ export function render(container, ctx) {
 
   container.innerHTML = "";
   const el = document.createElement("div");
-  el.style.cssText = "display:flex;flex-direction:column;min-height:100dvh;background:#F3F6FF;";
+  el.style.cssText =
+    "display:flex;flex-direction:column;min-height:100dvh;background:#F3F6FF;";
 
   const content = document.createElement("div");
   content.style.cssText = "padding:20px 16px;flex:1;";
@@ -36,7 +77,8 @@ export function render(container, ctx) {
 
   // Greeting
   const greeting = document.createElement("div");
-  greeting.style.cssText = "background:linear-gradient(135deg, #246BFD 0%, #4f86ff 100%);border-radius:20px;padding:20px;marginBottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;";
+  greeting.style.cssText =
+    "background:linear-gradient(135deg, #246BFD 0%, #4f86ff 100%);border-radius:20px;padding:20px;marginBottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;";
   greeting.innerHTML = `
     <div>
       <p style="font-size:13px;opacity:0.85;margin-bottom:4px;">${greet}،</p>
@@ -55,10 +97,11 @@ export function render(container, ctx) {
   content.appendChild(cardsGrid);
 
   const allCards = [...cards, ...extraCards];
-  allCards.forEach(c => {
+  allCards.forEach((c) => {
     const btn = document.createElement("button");
-    btn.style.cssText = "background:#fff;border:1.5px solid #E5E7EB;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;font-family:inherit;text-align:right;width:100%;transition:border-color 0.15s;";
-    
+    btn.style.cssText =
+      "background:#fff;border:1.5px solid #E5E7EB;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;font-family:inherit;text-align:right;width:100%;transition:border-color 0.15s;";
+
     const iconColor = c.action === "onReviews" ? "#F59E0B" : c.color;
 
     btn.innerHTML = `
