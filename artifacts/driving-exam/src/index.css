@@ -174,3 +174,17 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.3s ease forwards; }
+
+/* Stable focus styles for mobile keyboards — replaces inline onFocus/onBlur */
+.join-field:focus,
+.review-field:focus,
+.centers-field:focus {
+  border-color: #246BFD !important;
+  outline: none;
+}
+.centers-field {
+  transition: border-color .15s;
+}
+.review-field {
+  transition: border-color .15s;
+}

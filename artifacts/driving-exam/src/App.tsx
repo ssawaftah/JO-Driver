@@ -100,11 +100,29 @@ function AppRoutes() {
 
   const [guideSections, setGuideSections] = useState<GuideSection[] | null>(null);
 
+  /* ── LocalStorage Cache ────────────────────────────────────────── */
+  const CACHE_KEYS = { govs: "dex_cache_govs", areas: "dex_cache_areas", centers: "dex_cache_centers", questions: "dex_cache_questions", guide: "dex_cache_guide" };
+
+  function loadCache<T>(key: string): T | null {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      return parsed as T;
+    } catch { return null; }
+  }
+  function saveCache(key: string, data: unknown) {
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+  }
+
   async function preloadSharedData() {
     const gSnap = await db.ref("guide/sections").once("value");
     const gsVal = gSnap.val() || {};
     if (Object.keys(gsVal).length > 0) {
-      setGuideSections(Object.entries(gsVal).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
+      const sections = Object.entries(gsVal).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+      setGuideSections(sections);
+      saveCache(CACHE_KEYS.guide, gsVal);
     }
   }
 
@@ -123,11 +141,50 @@ function AppRoutes() {
     } else {
       const saved = loadSession();
       if (saved) setUserName(saved.name);
+      // Load cached data immediately for instant navigation
+      const cachedGovs = loadCache<Record<string, Governorate>>(CACHE_KEYS.govs);
+      const cachedAreas = loadCache<Record<string, Area>>(CACHE_KEYS.areas);
+      const cachedCenters = loadCache<Record<string, Center>>(CACHE_KEYS.centers);
+      const cachedQuestions = loadCache<Record<string, Question>>(CACHE_KEYS.questions);
+      const cachedGuide = loadCache<any>(CACHE_KEYS.guide);
+      if (cachedGovs) setGovs(cachedGovs);
+      if (cachedAreas) setAreas(cachedAreas);
+      if (cachedCenters) setCenters(cachedCenters);
+      if (cachedQuestions) setQuestions(cachedQuestions);
+      if (cachedGuide) {
+        setGuideSections(Object.entries(cachedGuide).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
+      }
       setLoading(false);
-      preloadSharedData();
+      // Then refresh data from Firebase in background
+      refreshDataInBackground();
     }
     return cleanup;
   }, []);
+
+  async function refreshDataInBackground() {
+    try {
+      const [g, a, c, q, gs] = await Promise.all([
+        db.ref("governorates").once("value"),
+        db.ref("areas").once("value"),
+        db.ref("centers").once("value"),
+        db.ref("questions").once("value"),
+        db.ref("guide/sections").once("value"),
+      ]);
+      const govsVal = g.val() || {};
+      const areasVal = a.val() || {};
+      const centersVal = c.val() || {};
+      const questionsVal = q.val() || {};
+      const guideVal = gs.val() || {};
+      setGovs(govsVal); saveCache(CACHE_KEYS.govs, govsVal);
+      setAreas(areasVal); saveCache(CACHE_KEYS.areas, areasVal);
+      setCenters(centersVal); saveCache(CACHE_KEYS.centers, centersVal);
+      setQuestions(questionsVal); saveCache(CACHE_KEYS.questions, questionsVal);
+      if (Object.keys(guideVal).length > 0) {
+        setGuideSections(Object.entries(guideVal).map(([id, s]: [string, any]) => ({ id, ...s })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
+        saveCache(CACHE_KEYS.guide, guideVal);
+      }
+    } catch { /* silent fail — cached data is already showing */ }
+  }
 
   function load(msg: string) { setLoadMsg(msg); setLoading(true); }
   function unload() { setLoading(false); }

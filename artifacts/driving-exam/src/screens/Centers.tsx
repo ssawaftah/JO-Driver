@@ -698,6 +698,9 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
+        autoComplete="off"
+        spellCheck={false}
+        className="centers-field"
         style={{
           width: "100%", padding: "10px 14px", borderRadius: 10,
           border: "1.5px solid #E5E7EB", background: "#F9FAFB",
@@ -723,18 +726,36 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
   const [centers, setCenters] = useState<Record<string, Center>>(centersProp);
 
   /* User location for nearest sorting */
+  const LOC_CACHE_KEY = "dex_loc_cache";
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locPermission, setLocPermission] = useState<"idle" | "granted" | "denied" | "unavailable">("idle");
   const [resolvedCoords, setResolvedCoords] = useState<Record<string, { lat: number; lng: number }>>({});
   const resolvedPendingRef = useRef<Set<string>>(new Set());
 
+  // Restore cached location on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LOC_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.lat != null && parsed?.lng != null) {
+          setUserLocation({ lat: parsed.lat, lng: parsed.lng });
+          setLocPermission("granted");
+          setSort("nearest");
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   function requestLocation() {
     if (!navigator.geolocation) { setLocPermission("unavailable"); return; }
     navigator.geolocation.getCurrentPosition(
       pos => {
-        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
         setLocPermission("granted");
         setSort("nearest");
+        try { localStorage.setItem(LOC_CACHE_KEY, JSON.stringify(loc)); } catch {}
       },
       () => setLocPermission("denied"),
       { enableHighAccuracy: true, timeout: 10000 }
@@ -956,11 +977,13 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
             fontSize: 17, color: "#9CA3AF", pointerEvents: "none",
           }} />
           <input
-            className="inp"
+            className="inp centers-field"
             placeholder="ابحث بالاسم أو العنوان أو الرقم..."
             value={q}
             onChange={e => setQ(e.target.value)}
             style={{ paddingRight: 42, background: "#F9FAFB", borderRadius: 12, flex: 1 }}
+            autoComplete="off"
+            spellCheck={false}
           />
           <select
             value={sort}
@@ -972,6 +995,7 @@ export default function Centers({ govs: govsProp, areas: areasProp, centers: cen
               }
               setSort(val);
             }}
+            autoComplete="off"
             style={{
               padding: "9px 10px", borderRadius: 12, border: "1.5px solid #E2E8F0",
               background: "#F9FAFB", fontSize: 12, fontWeight: 700,

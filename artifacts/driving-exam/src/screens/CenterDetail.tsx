@@ -3,7 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
 import Header from "../components/Header";
 import AppFooter from "../components/Footer";
+import PhoneAuthModal from "../components/PhoneAuthModal";
 import type { Center, Governorate, Area } from "../types";
+
+const SESSION_KEY = "dex_user";
+function loadSession(): { name: string; key: string } | null {
+  try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); return s?.key ? s : null; } catch { return null; }
+}
+function saveSession(name: string, key: string) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ name, key })); } catch {}
+}
 
 interface Props {
   govs: Record<string, Governorate>;
@@ -218,6 +227,8 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
   const [reviewRating, setReviewRating] = useState(5);
   const [sendingReview, setSendingReview] = useState(false);
   const [toast, setToast] = useState("");
+  const [showReg, setShowReg] = useState(false);
+  const [postAsAnonymous, setPostAsAnonymous] = useState(false);
 
   /* Lookup by publicId if numeric, else by firebase key */
   const resolvedId = useMemo(() => {
@@ -285,26 +296,48 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
 
   async function submitReview() {
     if (!center || !resolvedId) return;
-    if (!reviewName.trim()) { setToast("أدخل اسمك"); setTimeout(() => setToast(""), 2000); return; }
+    if (reviewRating === 0) { setToast("اختر تقييماً بالنجوم"); setTimeout(() => setToast(""), 2000); return; }
+
+    const session = loadSession();
+
+    // No session or anonymous → show registration
+    if (!session || session.key.startsWith("anon_")) { setShowReg(true); return; }
+
+    // Verify user still exists
     setSendingReview(true);
     try {
+      const userSnap = await db.ref("users/" + session.key).once("value");
+      if (!userSnap.exists()) {
+        localStorage.removeItem(SESSION_KEY);
+        setShowReg(true);
+        setSendingReview(false);
+        return;
+      }
+      const displayName = postAsAnonymous ? "مجهول" : (reviewName.trim() || session.name);
       await db.ref(`centerReviews/${resolvedId}`).push({
-        name: reviewName.trim(),
+        name: displayName,
         comment: reviewComment.trim() || null,
         rating: reviewRating,
+        reviewerKey: session.key,
         createdAt: new Date().toISOString(),
       });
       setReviews(prev => [{
-        id: "tmp", name: reviewName.trim(), comment: reviewComment.trim() || undefined,
+        id: "tmp", name: displayName, comment: reviewComment.trim() || undefined,
         rating: reviewRating, createdAt: new Date().toISOString(),
       }, ...prev]);
-      setReviewName(""); setReviewComment(""); setReviewRating(5);
+      setReviewName(""); setReviewComment(""); setReviewRating(5); setPostAsAnonymous(false);
       setToast("تم إرسال التقييم بنجاح");
     } catch {
       setToast("خطأ في إرسال التقييم");
     }
     setSendingReview(false);
     setTimeout(() => setToast(""), 2000);
+  }
+
+  function handleRegistered(name: string, key: string) {
+    saveSession(name, key);
+    setShowReg(false);
+    submitReview();
   }
 
   function shareCenter() {
@@ -625,6 +658,9 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
               value={reviewName}
               onChange={e => setReviewName(e.target.value)}
               placeholder="اسمك"
+              autoComplete="off"
+              spellCheck={false}
+              className="review-field"
               style={{
                 width: "100%", padding: "11px 14px", borderRadius: 12,
                 border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14,
@@ -636,6 +672,9 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
               onChange={e => setReviewComment(e.target.value)}
               placeholder="تعليقك عن المركز (اختياري)"
               rows={3}
+              autoComplete="off"
+              spellCheck={false}
+              className="review-field"
               style={{
                 width: "100%", padding: "11px 14px", borderRadius: 12,
                 border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14,
@@ -643,6 +682,18 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
                 boxSizing: "border-box",
               }}
             />
+            {/* Anonymous toggle for logged-in users */}
+            {(() => {
+              const s = loadSession();
+              if (!s || s.key.startsWith("anon_")) return null;
+              return (
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#6B7280", marginTop: 10, marginBottom: 10 }}>
+                  <input type="checkbox" checked={postAsAnonymous} onChange={e => setPostAsAnonymous(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#246BFD" }} />
+                  التعليق كمجهول
+                </label>
+              );
+            })()}
+
             <button
               onClick={submitReview}
               disabled={sendingReview}
@@ -717,6 +768,8 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
           {toast}
         </div>
       )}
+
+      <PhoneAuthModal open={showReg} onClose={() => setShowReg(false)} onSuccess={handleRegistered} title="سجّل بياناتك" subtitle="أدخل اسمك ورقم هاتفك لإرسال التقييم" />
     </div>
   );
 }

@@ -40,15 +40,17 @@ function Field({ label, value, onChange, placeholder, type = "text", min, max, s
         onChange={e => onChange?.(e.target.value)}
         placeholder={placeholder}
         readOnly={readOnly}
+        inputMode={type === "tel" ? "tel" : type === "number" ? "decimal" : "text"}
+        autoComplete="off"
+        spellCheck={false}
+        className="join-field"
         style={{
           width: "100%", padding: "11px 14px", borderRadius: 10,
           border: "1.5px solid #E5E7EB", background: readOnly ? "#F3F4F6" : "#F9FAFB",
           fontSize: 14, fontFamily: "inherit", color: "#374151",
-          outline: "none", transition: "border-color .15s", boxSizing: "border-box",
+          outline: "none", boxSizing: "border-box",
           cursor: readOnly ? "default" : "text",
         }}
-        onFocus={e => { if (!readOnly) e.currentTarget.style.borderColor = P; }}
-        onBlur={e => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
       />
     </div>
   );
@@ -341,6 +343,9 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
                 if (isGoogleMapsUrl(pasted)) setTimeout(() => { setMapLink(pasted); fetchFromMaps(); }, 80);
               }}
               placeholder="https://maps.google.com/maps/place/..."
+              autoComplete="off"
+              spellCheck={false}
+              className="join-field"
               style={{
                 flex: 1, padding: "10px 14px", borderRadius: 10,
                 border: "1.5px solid #E5E7EB", background: "#F9FAFB",
@@ -621,14 +626,15 @@ export default function CentersJoinScreen({ govs, areas }: Props) {
               onChange={e => { setNewAreaName(e.target.value); setAreaError(""); }}
               onKeyDown={e => { if (e.key === "Enter") saveNewArea(); }}
               placeholder="أدخل اسم المنطقة..."
+              autoComplete="off"
+              spellCheck={false}
+              className="join-field"
               style={{
                 width: "100%", padding: "12px 14px", borderRadius: 12,
                 border: `1.5px solid ${areaError ? "#DC2626" : "#E5E7EB"}`,
                 background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#0F172A",
                 outline: "none", boxSizing: "border-box",
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = P; }}
-              onBlur={e => { e.currentTarget.style.borderColor = areaError ? "#DC2626" : "#E5E7EB"; }}
             />
             {areaError && (
               <div style={{ fontSize: 12, color: "#DC2626", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>

@@ -55,14 +55,13 @@ export default function AdminLogin({ onLogin }: Props) {
             onChange={e => setEmail(e.target.value)}
             placeholder="البريد الإلكتروني"
             autoComplete="email"
+            spellCheck={false}
             style={{
               width: "100%", padding: "14px 16px", border: "1.5px solid #E8EAED",
               borderRadius: 14, fontSize: 15, fontFamily: "inherit", marginBottom: 14,
               outline: "none", direction: "rtl", background: "#fff", color: "#1A1D1F",
               transition: "border-color .15s, box-shadow .15s",
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = "#246BFD"; e.currentTarget.style.boxShadow = "0 0 0 3px #E8F0FE"; }}
-            onBlur={e => { e.currentTarget.style.borderColor = "#E8EAED"; e.currentTarget.style.boxShadow = "none"; }}
           />
           <input
             type="password"
@@ -70,14 +69,13 @@ export default function AdminLogin({ onLogin }: Props) {
             onChange={e => setPassword(e.target.value)}
             placeholder="كلمة المرور"
             autoComplete="current-password"
+            spellCheck={false}
             style={{
               width: "100%", padding: "14px 16px", border: "1.5px solid #E8EAED",
               borderRadius: 14, fontSize: 15, fontFamily: "inherit", marginBottom: 14,
               outline: "none", direction: "rtl", background: "#fff", color: "#1A1D1F",
               transition: "border-color .15s, box-shadow .15s",
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = "#246BFD"; e.currentTarget.style.boxShadow = "0 0 0 3px #E8F0FE"; }}
-            onBlur={e => { e.currentTarget.style.borderColor = "#E8EAED"; e.currentTarget.style.boxShadow = "none"; }}
           />
           {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 14, fontWeight: 700 }}>{error}</p>}
           <button

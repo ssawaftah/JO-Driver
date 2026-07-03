@@ -178,8 +178,9 @@ export default function ReviewsScreen({ onBack }: { onBack: () => void }) {
                 background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#111827", outline: "none", resize: "vertical",
                 transition: "border-color .15s",
               }}
-              onFocus={e => e.currentTarget.style.borderColor = "#246BFD"}
-              onBlur={e => e.currentTarget.style.borderColor = "#E5E7EB"}
+              autoComplete="off"
+              spellCheck={false}
+              className="review-field"
             />
           </div>
 
