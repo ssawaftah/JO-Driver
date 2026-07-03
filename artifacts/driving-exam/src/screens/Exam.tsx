@@ -21,8 +21,6 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
     return shuffled.slice(0, EXAM_TOTAL);
   });
 
-  // History stack for answered indices (to enable back navigation)
-  const [history, setHistory] = useState<number[]>([]);          // stack of queue indices already answered
   const [answers, setAnswers] = useState<(number | null)[]>(() => new Array(EXAM_TOTAL).fill(null));
   const [currentIdx, setCurrentIdx] = useState(0);               // index into queue
   const [selected, setSelected] = useState<number | null>(null);
@@ -93,7 +91,6 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
       return;
     }
 
-    setHistory(h => [...h, currentIdx]);
     setCurrentIdx(i => i + 1);
   }
 
@@ -111,23 +108,12 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
     setAnswers(newAnswers);
     setSelected(null);
 
-    // Don't push to history when skipping
     if (currentIdx >= newQueue.length) {
       // edge case: all remaining skipped
       finish(newAnswers);
     }
   }
 
-  // ── Go back ───────────────────────────────────────────────
-  function goBack() {
-    if (history.length === 0) return;
-    const prev = history[history.length - 1];
-    setHistory(h => h.slice(0, -1));
-    setCurrentIdx(prev);
-    setSelected(answers[prev] ?? null);
-  }
-
-  const canBack = history.length > 0;
   const isLast = currentIdx >= queue.length - 1;
   const qNum = currentIdx + 1;
 
@@ -258,22 +244,6 @@ export default function Exam({ allQuestions, onFinish, onBack }: Props) {
         background: "#fff",
         display: "flex", gap: 8,
       }}>
-        {/* Back */}
-        <button
-          onClick={goBack}
-          disabled={!canBack}
-          title="رجوع"
-          style={{
-            width: 46, height: 46, borderRadius: 13, flexShrink: 0,
-            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: canBack ? "pointer" : "not-allowed",
-            opacity: canBack ? 1 : 0.35,
-          }}
-        >
-          <i className="ph ph-arrow-right" style={{ fontSize: 20, color: "#246BFD" }} />
-        </button>
-
         {/* Skip */}
         <button
           onClick={skipQuestion}

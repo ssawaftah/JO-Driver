@@ -16,8 +16,10 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
   const q = qs[idx];
   const pct = Math.round(((idx + 1) / total) * 100);
   const answered = answers.filter(a => a !== null).length;
+  const isAnswered = answers[idx] !== null;
 
   function pick(i: number) {
+    if (answers[idx] !== null) return; // locked once answered — no editing
     setAnswers(prev => {
       const next = [...prev];
       next[idx] = i;
@@ -81,32 +83,51 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {q.options.map((opt, i) => {
             const sel = answers[idx] === i;
+            const isCorrectOpt = i === q.correctAnswer;
+
+            let bg = "#fff";
+            let border = "#E5E7EB";
+            let circleBg = "#F3F4F6";
+            let circleColor = "#9CA3AF";
+            let icon: string | null = null;
+
+            if (isAnswered) {
+              if (isCorrectOpt) {
+                bg = "#ECFDF3"; border = "#16A34A"; circleBg = "#16A34A"; circleColor = "#fff"; icon = "ph-check";
+              } else if (sel) {
+                bg = "#FEF2F2"; border = "#DC2626"; circleBg = "#DC2626"; circleColor = "#fff"; icon = "ph-x";
+              }
+            } else if (sel) {
+              bg = "#EEF4FF"; border = "#246BFD"; circleBg = "#246BFD"; circleColor = "#fff"; icon = "ph-check";
+            }
+
             return (
               <button
                 key={i}
                 onClick={() => pick(i)}
+                disabled={isAnswered}
                 style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "13px 14px", borderRadius: 13, width: "100%", textAlign: "right",
-                  background: sel ? "#EEF4FF" : "#fff",
-                  border: `1.5px solid ${sel ? "#246BFD" : "#E5E7EB"}`,
-                  cursor: "pointer", fontFamily: "inherit",
+                  background: bg,
+                  border: `1.5px solid ${border}`,
+                  cursor: isAnswered ? "default" : "pointer", fontFamily: "inherit",
                   transition: "border-color 0.15s, background 0.15s",
                 }}
               >
                 <div style={{
                   width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                  background: sel ? "#246BFD" : "#F3F4F6",
-                  color: sel ? "#fff" : "#9CA3AF",
+                  background: circleBg,
+                  color: circleColor,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: sel ? 14 : 12, fontWeight: 800,
+                  fontSize: icon ? 14 : 12, fontWeight: 800,
                   transition: "background 0.15s",
                 }}>
-                  {sel
-                    ? <i className="ph ph-check" style={{ fontSize: 14 }} />
+                  {icon
+                    ? <i className={`ph ${icon}`} style={{ fontSize: 14 }} />
                     : String.fromCharCode(0x0041 + i)}
                 </div>
-                <span style={{ fontSize: 14, fontWeight: sel ? 700 : 500, color: "#374151" }}>
+                <span style={{ fontSize: 14, fontWeight: (sel || (isAnswered && isCorrectOpt)) ? 700 : 500, color: "#374151" }}>
                   {opt}
                 </span>
               </button>
@@ -120,27 +141,15 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
         padding: "12px 16px", borderTop: "1px solid #E5E7EB",
         display: "flex", gap: 10, background: "#fff",
       }}>
-        <button
-          onClick={() => setIdx(i => Math.max(0, i - 1))}
-          disabled={idx === 0}
-          style={{
-            width: 48, height: 48, borderRadius: 13, flexShrink: 0,
-            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
-            cursor: idx === 0 ? "not-allowed" : "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            opacity: idx === 0 ? 0.4 : 1,
-          }}
-        >
-          <i className="ph ph-arrow-right" style={{ fontSize: 20, color: "#246BFD" }} />
-        </button>
-
         {idx < total - 1 ? (
           <button
             onClick={() => setIdx(i => i + 1)}
+            disabled={!isAnswered}
             style={{
               flex: 1, height: 48, borderRadius: 13, border: "none",
-              background: "#246BFD", color: "#fff",
-              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              background: isAnswered ? "#246BFD" : "#E5E7EB",
+              color: isAnswered ? "#fff" : "#9CA3AF",
+              fontSize: 15, fontWeight: 700, cursor: isAnswered ? "pointer" : "not-allowed", fontFamily: "inherit",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
@@ -149,10 +158,12 @@ export default function Test({ qs, cat, onBack, onFinish }: Props) {
         ) : (
           <button
             onClick={finish}
+            disabled={!isAnswered}
             style={{
               flex: 1, height: 48, borderRadius: 13, border: "none",
-              background: "#16A34A", color: "#fff",
-              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              background: isAnswered ? "#16A34A" : "#E5E7EB",
+              color: isAnswered ? "#fff" : "#9CA3AF",
+              fontSize: 15, fontWeight: 700, cursor: isAnswered ? "pointer" : "not-allowed", fontFamily: "inherit",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
