@@ -409,16 +409,32 @@ export default function CenterDetail({ govs: govsProp, areas: areasProp, centers
             </div>
           )}
 
-          {/* Top gradient banner */}
+          {/* Top banner — image if available, else gradient */}
           <div style={{
-            height: 90,
-            background: "linear-gradient(135deg, #2563EB 0%, #0891B2 100%)",
+            height: 120,
+            background: center.imageUrl
+              ? `url("${center.imageUrl}") center/cover no-repeat`
+              : "linear-gradient(135deg, #2563EB 0%, #0891B2 100%)",
             position: "relative",
           }} />
 
           {/* Avatar + name + rating */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: -48, padding: "0 20px 16px", position: "relative" }}>
-            <CenterAvatar name={center.name} size={96} />
+            {center.imageUrl ? (
+              <img
+                src={center.imageUrl}
+                alt={center.name}
+                style={{
+                  width: 96, height: 96, borderRadius: "50%",
+                  objectFit: "cover", border: "3px solid #fff",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                  background: "#fff",
+                }}
+                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <CenterAvatar name={center.name} size={96} />
+            )}
             <div style={{ fontSize: 20, fontWeight: 900, color: "#0F172A", marginTop: 12, textAlign: "center" }}>{center.name}</div>
             <div style={{ marginTop: 6 }}>
               <GoogleStars rating={center.rating} reviewCount={center.reviewCount} />
