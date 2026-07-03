@@ -2623,17 +2623,17 @@ export default function Admin({ onBack }: Props) {
           </div>
         </div>
       );
-      case "users": return <UsersSection />;
+      case "users": return UsersSection();
       case "questions": return QuestionsSection();
-      case "requests": return <RequestsSection />;
-      case "add-center": return <AddSection />;
-      case "edit-center": return <EditCenterSection />;
-      case "geo-manage": return <GeoManageSection />;
-      case "centers-manage": return <CentersManageSection />;
-      case "featured-centers": return <FeaturedCentersSection />;
-      case "guide-admin": return <GuideAdminSection />;
+      case "requests": return RequestsSection();
+      case "add-center": return AddSection();
+      case "edit-center": return EditCenterSection();
+      case "geo-manage": return GeoManageSection();
+      case "centers-manage": return CentersManageSection();
+      case "featured-centers": return FeaturedCentersSection();
+      case "guide-admin": return GuideAdminSection();
       case "footer-admin": return FooterAdminSection();
-      case "reviews": return <ReviewsSection />;
+      case "reviews": return ReviewsSection();
       default: return null;
     }
   };
