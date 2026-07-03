@@ -189,6 +189,222 @@ function Toast({ msg }: { msg: string }) {
   );
 }
 
+const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
+const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+
+type DaySchedule = { closed: boolean; from: string; to: string };
+const DEFAULT_SCHEDULE: DaySchedule[] = ALL_DAYS_FULL.map((_, i) => ({ closed: i === 6, from: "08:00", to: "16:00" }));
+
+type CenterFormValue = {
+  name: string; address: string; mapLink: string; phone: string; whatsapp: string;
+  imageUrl: string; description: string; rating: string; reviewCount: string;
+  govId: string; areaIds: string[]; schedule: DaySchedule[];
+};
+const DEFAULT_CENTER_FORM: CenterFormValue = {
+  name: "", address: "", mapLink: "", phone: "", whatsapp: "",
+  imageUrl: "", description: "", rating: "", reviewCount: "",
+  govId: "", areaIds: [], schedule: DEFAULT_SCHEDULE,
+};
+
+function CenterFormFields({ value, onChange, onOpenAddArea, govs, areas }: {
+  value: CenterFormValue;
+  onChange: (patch: Partial<CenterFormValue>) => void;
+  onOpenAddArea: () => void;
+  govs: Record<string, { name: string }>;
+  areas: Record<string, { name: string; governorateId: string }>;
+}) {
+  return (
+    <>
+      {/* Image preview */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+        <div style={{ width: 80, height: 80, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {value.imageUrl ? (
+            <img src={value.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark || "#1d4ed8"})`, color: "#fff", fontSize: 28, fontWeight: 800 }}>{(value.name || "?").charAt(0)}</div>
+          )}
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>صورة المركز (URL)</label>
+          <input value={value.imageUrl} onChange={e => onChange({ imageUrl: e.target.value })} placeholder="رابط الصورة..." autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+      </div>
+
+      {/* Name */}
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>اسم المركز</label>
+        <input value={value.name} onChange={e => onChange({ name: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+          width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+          fontSize: 13, fontFamily: "inherit", background: C.surface2,
+        }} />
+      </div>
+
+      {/* Address + map link */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>العنوان</label>
+          <input value={value.address} onChange={e => onChange({ address: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", background: C.surface2,
+          }} />
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>رابط Google Maps</label>
+          <input value={value.mapLink} onChange={e => onChange({ mapLink: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+      </div>
+
+      {/* Phone + whatsapp */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>الهاتف</label>
+          <input value={value.phone} onChange={e => onChange({ phone: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>WhatsApp</label>
+          <input value={value.whatsapp} onChange={e => onChange({ whatsapp: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+      </div>
+
+      {/* Governorate + area chips */}
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المحافظة</label>
+        <select value={value.govId} onChange={e => onChange({ govId: e.target.value, areaIds: [] })} className="admin-field" style={{
+          width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+          fontSize: 13, fontFamily: "inherit", background: C.surface2,
+          marginBottom: 10,
+        }}>
+          <option value="">اختر المحافظة</option>
+          {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
+        </select>
+        <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة</label>
+        {value.govId ? (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {Object.entries(areas).filter(([_, a]) => a.governorateId === value.govId).sort((a, b) => a[1].name.localeCompare(b[1].name, "ar")).map(([id, a]) => {
+              const selected = value.areaIds.includes(id);
+              return (
+                <button key={id} onClick={() => {
+                  onChange({ areaIds: selected ? value.areaIds.filter(x => x !== id) : [...value.areaIds, id] });
+                }} style={{
+                  padding: "6px 12px", borderRadius: 10,
+                  border: `1.5px solid ${selected ? C.primary : C.border}`,
+                  background: selected ? C.primaryLight : C.surface2,
+                  color: selected ? C.primary : C.textSec,
+                  fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
+                }}>
+                  <i className={`ph ${selected ? "ph-check-circle" : "ph-circle"}`} style={{ fontSize: 14 }} />
+                  {a.name}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: C.textLight, padding: "6px 0" }}>اختر المحافظة أولاً</div>
+        )}
+        {value.govId && (
+          <button onClick={onOpenAddArea} style={{
+            marginTop: 8, padding: "6px 12px", borderRadius: 10,
+            border: `1.5px dashed ${C.primary}`,
+            background: C.surface, color: C.primary,
+            fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
+          }}>
+            <i className="ph ph-plus" style={{ fontSize: 14 }} />
+            إضافة منطقة جديدة
+          </button>
+        )}
+      </div>
+
+      {/* Rating + review count */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>التقييم (0–5)</label>
+          <input type="number" min="0" max="5" step="0.1" value={value.rating} onChange={e => onChange({ rating: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>عدد التقييمات</label>
+          <input type="number" min="0" value={value.reviewCount} onChange={e => onChange({ reviewCount: e.target.value })} autoComplete="off" spellCheck={false} className="admin-field" style={{
+            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+            fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
+          }} />
+        </div>
+      </div>
+
+      {/* Working hours table */}
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>أوقات الدوام</label>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, background: C.surface2, borderRadius: 10, overflow: "hidden" }}>
+            <thead>
+              <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>اليوم</th>
+                <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>من</th>
+                <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>إلى</th>
+                <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.red, fontSize: 10 }}>مغلق</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ALL_DAYS_FULL.map((day, i) => {
+                const row = value.schedule[i] || { closed: false, from: "08:00", to: "16:00" };
+                return (
+                  <tr key={day} style={{ borderBottom: "1px solid " + C.border, background: row.closed ? "rgba(239,68,68,0.04)" : "transparent" }}>
+                    <td style={{ padding: "6px 8px", fontWeight: 700, color: row.closed ? C.textLight : C.text }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ width: 22, height: 22, borderRadius: 6, fontSize: 10, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", background: row.closed ? C.surface2 : C.primaryLight, color: row.closed ? C.textLight : C.primary }}>{ALL_DAYS_SHORT[i]}</span>
+                        <span>{day}</span>
+                      </span>
+                    </td>
+                    <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                      <input type="time" value={row.from} disabled={row.closed}
+                        onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, from: e.target.value } : d) })}
+                        style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
+                    </td>
+                    <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                      <input type="time" value={row.to} disabled={row.closed}
+                        onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, to: e.target.value } : d) })}
+                        style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
+                    </td>
+                    <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                      <input type="checkbox" checked={row.closed}
+                        onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, closed: e.target.checked } : d) })}
+                        style={{ width: 16, height: 16, accentColor: C.red, cursor: "pointer" }} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>وصف المركز</label>
+        <textarea value={value.description} onChange={e => onChange({ description: e.target.value })} placeholder="أوصف المركز..." rows={3} autoComplete="off" spellCheck={false} className="admin-field" style={{
+          width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
+          fontSize: 13, fontFamily: "inherit", background: C.surface2, resize: "vertical",
+        }} />
+      </div>
+    </>
+  );
+}
+
 // ── Main component ──────────────────────────────────────────────────
 export default function Admin({ onBack }: Props) {
   const [view, setView] = useState<View>("menu");
@@ -924,6 +1140,8 @@ export default function Admin({ onBack }: Props) {
                     if (patch.schedule !== undefined) setReviewSchedule(patch.schedule);
                   }}
                   onOpenAddArea={() => setShowAddAreaModal(true)}
+                  govs={govs}
+                  areas={areas}
                 />
               </div>
 
@@ -981,234 +1199,6 @@ export default function Admin({ onBack }: Props) {
   const [showFeaturedPicker, setShowFeaturedPicker] = useState(false);
   const [featuredPickerSearch, setFeaturedPickerSearch] = useState("");
 
-  const ALL_DAYS_SHORT = ["س","ح","ن","ث","ر","خ","ج"];
-  const ALL_DAYS_FULL = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
-
-  type DaySchedule = { closed: boolean; from: string; to: string };
-  const DEFAULT_SCHEDULE: DaySchedule[] = ALL_DAYS_FULL.map((_, i) => ({ closed: i === 6, from: "08:00", to: "16:00" }));
-
-  /* ── Shared center form (identical across review / add / edit) ── */
-  type CenterFormValue = {
-    name: string; address: string; mapLink: string; phone: string; whatsapp: string;
-    imageUrl: string; description: string; rating: string; reviewCount: string;
-    govId: string; areaIds: string[]; schedule: DaySchedule[];
-  };
-  const DEFAULT_CENTER_FORM: CenterFormValue = {
-    name: "", address: "", mapLink: "", phone: "", whatsapp: "",
-    imageUrl: "", description: "", rating: "", reviewCount: "",
-    govId: "", areaIds: [], schedule: DEFAULT_SCHEDULE,
-  };
-
-  function CenterFormFields({ value, onChange, onOpenAddArea }: {
-    value: CenterFormValue;
-    onChange: (patch: Partial<CenterFormValue>) => void;
-    onOpenAddArea: () => void;
-  }) {
-    return (
-      <>
-        {/* Image preview */}
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: 12, overflow: "hidden", flexShrink: 0,
-            background: C.surface2, display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            {value.imageUrl ? (
-              <img src={value.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <div style={{
-                width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                background: `linear-gradient(135deg, ${C.primary}, ${C.primaryDark || "#1d4ed8"})`, color: "#fff",
-                fontSize: 28, fontWeight: 800,
-              }}>{(value.name || "?").charAt(0)}</div>
-            )}
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>صورة المركز (URL)</label>
-            <input value={value.imageUrl} onChange={e => onChange({ imageUrl: e.target.value })} placeholder="رابط الصورة..." style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-        </div>
-
-        {/* Name */}
-        <div>
-          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>اسم المركز</label>
-          <input value={value.name} onChange={e => onChange({ name: e.target.value })} style={{
-            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-            fontSize: 13, fontFamily: "inherit", background: C.surface2,
-          }} />
-        </div>
-
-        {/* Address + map link */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>العنوان</label>
-            <input value={value.address} onChange={e => onChange({ address: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", background: C.surface2,
-            }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>رابط Google Maps</label>
-            <input value={value.mapLink} onChange={e => onChange({ mapLink: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-        </div>
-
-        {/* Phone + whatsapp */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>الهاتف</label>
-            <input value={value.phone} onChange={e => onChange({ phone: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>WhatsApp</label>
-            <input value={value.whatsapp} onChange={e => onChange({ whatsapp: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-        </div>
-
-        {/* Governorate + area chips */}
-        <div>
-          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المحافظة</label>
-          <select value={value.govId} onChange={e => onChange({ govId: e.target.value, areaIds: [] })} style={{
-            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-            fontSize: 13, fontFamily: "inherit", background: C.surface2,
-            marginBottom: 10,
-          }}>
-            <option value="">اختر المحافظة</option>
-            {Object.entries(govs).map(([id, g]) => <option key={id} value={id}>{g.name}</option>)}
-          </select>
-          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>المناطق المخدّمة</label>
-          {value.govId ? (
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {Object.entries(areas).filter(([_, a]) => a.governorateId === value.govId).sort((a, b) => a[1].name.localeCompare(b[1].name, "ar")).map(([id, a]) => {
-                const selected = value.areaIds.includes(id);
-                return (
-                  <button key={id} onClick={() => {
-                    onChange({ areaIds: selected ? value.areaIds.filter(x => x !== id) : [...value.areaIds, id] });
-                  }} style={{
-                    padding: "6px 12px", borderRadius: 10,
-                    border: `1.5px solid ${selected ? C.primary : C.border}`,
-                    background: selected ? C.primaryLight : C.surface2,
-                    color: selected ? C.primary : C.textSec,
-                    fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                    display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
-                  }}>
-                    <i className={`ph ${selected ? "ph-check-circle" : "ph-circle"}`} style={{ fontSize: 14 }} />
-                    {a.name}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ fontSize: 12, color: C.textLight, padding: "6px 0" }}>اختر المحافظة أولاً</div>
-          )}
-          {value.govId && (
-            <button onClick={onOpenAddArea} style={{
-              marginTop: 8,
-              padding: "6px 12px", borderRadius: 10,
-              border: `1.5px dashed ${C.primary}`,
-              background: C.surface,
-              color: C.primary,
-              fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-              display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
-            }}>
-              <i className="ph ph-plus" style={{ fontSize: 14 }} />
-              إضافة منطقة جديدة
-            </button>
-          )}
-        </div>
-
-        {/* Rating + review count */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>التقييم (0–5)</label>
-            <input type="number" min="0" max="5" step="0.1" value={value.rating} onChange={e => onChange({ rating: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>عدد التقييمات</label>
-            <input type="number" min="0" value={value.reviewCount} onChange={e => onChange({ reviewCount: e.target.value })} style={{
-              width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-              fontSize: 13, fontFamily: "inherit", direction: "ltr", background: C.surface2,
-            }} />
-          </div>
-        </div>
-
-        {/* Working hours table */}
-        <div>
-          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>أوقات الدوام</label>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, background: C.surface2, borderRadius: 10, overflow: "hidden" }}>
-              <thead>
-                <tr style={{ borderBottom: `2px solid ${C.border}` }}>
-                  <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>اليوم</th>
-                  <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>من</th>
-                  <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.textSec, fontSize: 10 }}>إلى</th>
-                  <th style={{ textAlign: "center", padding: "6px 8px", fontWeight: 700, color: C.red, fontSize: 10 }}>مغلق</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ALL_DAYS_FULL.map((day, i) => {
-                  const row = value.schedule[i] || { closed: false, from: "08:00", to: "16:00" };
-                  return (
-                    <tr key={day} style={{ borderBottom: "1px solid " + C.border, background: row.closed ? "rgba(239,68,68,0.04)" : "transparent" }}>
-                      <td style={{ padding: "6px 8px", fontWeight: 700, color: row.closed ? C.textLight : C.text }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                          <span style={{
-                            width: 22, height: 22, borderRadius: 6, fontSize: 10, fontWeight: 800,
-                            display: "inline-flex", alignItems: "center", justifyContent: "center",
-                            background: row.closed ? C.surface2 : C.primaryLight,
-                            color: row.closed ? C.textLight : C.primary,
-                          }}>{ALL_DAYS_SHORT[i]}</span>
-                          <span>{day}</span>
-                        </span>
-                      </td>
-                      <td style={{ padding: "6px 8px", textAlign: "center" }}>
-                        <input type="time" value={row.from} disabled={row.closed}
-                          onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, from: e.target.value } : d) })}
-                          style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
-                      </td>
-                      <td style={{ padding: "6px 8px", textAlign: "center" }}>
-                        <input type="time" value={row.to} disabled={row.closed}
-                          onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, to: e.target.value } : d) })}
-                          style={{ padding: "4px 6px", borderRadius: 6, fontSize: 11, border: `1.5px solid ${C.border}`, fontFamily: "inherit", background: row.closed ? "#F3F4F6" : C.surface, color: row.closed ? C.textLight : C.text, width: 70 }} />
-                      </td>
-                      <td style={{ padding: "6px 8px", textAlign: "center" }}>
-                        <input type="checkbox" checked={row.closed}
-                          onChange={e => onChange({ schedule: value.schedule.map((d, idx) => idx === i ? { ...d, closed: e.target.checked } : d) })}
-                          style={{ width: 16, height: 16, accentColor: C.red, cursor: "pointer" }} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Description */}
-        <div>
-          <label style={{ fontSize: 12, fontWeight: 800, color: C.textSec, display: "block", marginBottom: 6 }}>وصف المركز</label>
-          <textarea value={value.description} onChange={e => onChange({ description: e.target.value })} placeholder="أوصف المركز..." rows={3} style={{
-            width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-            fontSize: 13, fontFamily: "inherit", background: C.surface2, resize: "vertical",
-          }} />
-        </div>
-      </>
-    );
-  }
 
   function QuickAddAreaModal({ govId, open, onClose, onAdded }: {
     govId: string; open: boolean; onClose: () => void; onAdded: (id: string) => void;
@@ -1445,6 +1435,8 @@ export default function Admin({ onBack }: Props) {
             value={addCF}
             onChange={patch => setAddCF(s => ({ ...s, ...patch }))}
             onOpenAddArea={() => setShowAddCFAreaModal(true)}
+            govs={govs}
+            areas={areas}
           />
         </div>
 
@@ -1543,6 +1535,8 @@ export default function Admin({ onBack }: Props) {
             value={editCF}
             onChange={patch => setEditCF(s => ({ ...s, ...patch }))}
             onOpenAddArea={() => setShowEditCFArea(true)}
+            govs={govs}
+            areas={areas}
           />
         </div>
 
