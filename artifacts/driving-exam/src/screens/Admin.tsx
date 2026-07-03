@@ -81,11 +81,10 @@ function Input({ label, value, onChange, placeholder, type = "text", ...rest }: 
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.textSec }}>{label}</label>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} {...rest} style={{
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} autoComplete="off" spellCheck={false} {...rest} style={{
         width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12,
         background: C.surface2, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
-        transition: "border-color .15s, box-shadow .15s",
-      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }} />
+      }} className="admin-field" />
     </div>
   );
 }
@@ -94,11 +93,10 @@ function TextArea({ label, value, onChange, placeholder, rows = 3 }: { label: st
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.textSec }}>{label}</label>
-      <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{
+      <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} autoComplete="off" spellCheck={false} style={{
         width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12,
         background: C.surface2, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none", resize: "vertical",
-        transition: "border-color .15s, box-shadow .15s",
-      }} onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryLight}`; }} onBlur={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }} />
+      }} className="admin-field" />
     </div>
   );
 }
@@ -405,11 +403,10 @@ export default function Admin({ onBack }: Props) {
         <div style={{ marginBottom: 10 }}>
           <div style={{ position: "relative", marginBottom: 8 }}>
             <i className="ph ph-magnifying-glass" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textLight, fontSize: 16 }} />
-            <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="البحث بالاسم أو الهاتف..." style={{
+            <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="البحث بالاسم أو الهاتف..." autoComplete="off" spellCheck={false} className="admin-field" style={{
               width: "100%", padding: "10px 14px 10px 40px", border: `1.5px solid ${C.border}`, borderRadius: 10,
               background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
-              transition: "border-color .15s",
-            }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+            }} />
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {(["newest", "tests", "score"] as const).map(s => (
@@ -571,7 +568,7 @@ export default function Admin({ onBack }: Props) {
             {qForm.options.map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
                 <div onClick={() => setQForm(f => ({ ...f, correct: i }))} style={{ width: 28, height: 28, borderRadius: 8, background: qForm.correct === i ? C.greenLight : C.bg, color: qForm.correct === i ? C.green : C.textLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, border: `1.5px solid ${qForm.correct === i ? C.green : C.border}`, cursor: "pointer" }}>{i + 1}</div>
-                <input value={opt} onChange={e => { const opts = [...qForm.options]; opts[i] = e.target.value; setQForm(f => ({ ...f, options: opts })); }} placeholder={`الخيار ${i + 1}`} style={{ flex: 1, padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: "inherit", outline: "none" }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+                <input value={opt} onChange={e => { const opts = [...qForm.options]; opts[i] = e.target.value; setQForm(f => ({ ...f, options: opts })); }} placeholder={`الخيار ${i + 1}`} autoComplete="off" spellCheck={false} className="admin-field" style={{ flex: 1, padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontFamily: "inherit", outline: "none" }} />
                 <button onClick={() => { const opts = qForm.options.filter((_, idx) => idx !== i); setQForm(f => ({ ...f, options: opts, correct: Math.min(f.correct, opts.length - 1) })); }} style={{ width: 32, height: 32, borderRadius: 8, border: `1.5px solid ${C.border}`, background: C.surface, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: C.red, flexShrink: 0 }}><i className="ph ph-x" /></button>
               </div>
             ))}
@@ -612,11 +609,10 @@ export default function Admin({ onBack }: Props) {
         <div style={{ marginBottom: 10 }}>
           <div style={{ position: "relative", marginBottom: 8 }}>
             <i className="ph ph-magnifying-glass" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textLight, fontSize: 16 }} />
-            <input value={qSearch} onChange={e => setQSearch(e.target.value)} placeholder="البحث بنص السؤال..." style={{
+            <input value={qSearch} onChange={e => setQSearch(e.target.value)} placeholder="البحث بنص السؤال..." autoComplete="off" spellCheck={false} className="admin-field" style={{
               width: "100%", padding: "10px 14px 10px 40px", border: `1.5px solid ${C.border}`, borderRadius: 10,
               background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
-              transition: "border-color .15s",
-            }} onFocus={e => e.currentTarget.style.borderColor = C.primary} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+            }} />
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <button onClick={() => setQCat("")} style={{
@@ -1277,14 +1273,15 @@ export default function Admin({ onBack }: Props) {
             onChange={e => { setName(e.target.value); setError(""); }}
             onKeyDown={e => { if (e.key === "Enter") save(); }}
             placeholder="أدخل اسم المنطقة..."
+            autoComplete="off"
+            spellCheck={false}
+            className="admin-field"
             style={{
               width: "100%", padding: "12px 14px", borderRadius: 12,
               border: `1.5px solid ${error ? "#DC2626" : "#E5E7EB"}`,
               background: "#F9FAFB", fontSize: 14, fontFamily: "inherit", color: "#0F172A",
               outline: "none", boxSizing: "border-box",
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = C.primary; }}
-            onBlur={e => { e.currentTarget.style.borderColor = error ? "#DC2626" : "#E5E7EB"; }}
           />
           {error && (
             <div style={{ fontSize: 12, color: "#DC2626", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
@@ -2415,13 +2412,14 @@ export default function Admin({ onBack }: Props) {
               onChange={e => setFooterAbout(e.target.value)}
               placeholder="منصة JO Driver هي دليلك الأول لاجتياز..."
               rows={4}
+              autoComplete="off"
+              spellCheck={false}
+              className="admin-field"
               style={{
                 width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10,
                 background: C.surface, fontSize: 14, fontFamily: "inherit", color: C.text, outline: "none",
                 resize: "vertical", lineHeight: 1.7,
               }}
-              onFocus={e => e.currentTarget.style.borderColor = C.primary}
-              onBlur={e => e.currentTarget.style.borderColor = C.border}
             />
           </div>
           <Btn variant="primary" onClick={async () => {

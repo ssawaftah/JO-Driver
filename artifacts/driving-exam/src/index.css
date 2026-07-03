@@ -178,13 +178,12 @@ body {
 /* Stable focus styles for mobile keyboards — replaces inline onFocus/onBlur */
 .join-field:focus,
 .review-field:focus,
-.centers-field:focus {
-  border-color: #246BFD !important;
+.centers-field:focus,
+.admin-field:focus {
+  border-color: #2563EB !important;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
 }
-.centers-field {
-  transition: border-color .15s;
-}
-.review-field {
-  transition: border-color .15s;
+.centers-field, .review-field, .admin-field {
+  transition: border-color .15s, box-shadow .15s;
 }
