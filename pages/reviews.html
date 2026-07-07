@@ -26,9 +26,12 @@
 }
 
 /* ── animations ── */
-@keyframes rvx-in  { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
-@keyframes rvx-pop { 0% { transform: scale(.94) } 60% { transform: scale(1.04) } 100% { transform: scale(1) } }
+@keyframes rvx-in    { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes rvx-pop   { 0% { transform: scale(.88); opacity:0 } 60% { transform: scale(1.03) } 100% { transform: scale(1); opacity:1 } }
+@keyframes rvx-fadein{ from { opacity:0 } to { opacity:1 } }
 @keyframes rvx-spin-kf { to { transform: rotate(360deg) } }
+@keyframes rvx-bounce{ 0%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} 70%{transform:translateY(-4px)} }
+@keyframes rvx-check { 0%{stroke-dashoffset:60} 100%{stroke-dashoffset:0} }
 
 /* ── layout ── */
 .rvx-body {
@@ -204,91 +207,6 @@
   transition: border-color .15s, color .15s;
 }
 .rvx-chip__out:hover { border-color: var(--err); color: var(--err); }
-
-/* ── welcome banner ── */
-.rvx-welcome {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 16px;
-  background: var(--ok-lt);
-  border: 1.5px solid var(--ok-bd);
-  border-radius: 12px;
-  animation: rvx-in .3s ease;
-}
-.rvx-welcome__icon {
-  font-size: 22px;
-  color: var(--ok);
-  flex-shrink: 0;
-}
-.rvx-welcome__text {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ok);
-  flex: 1;
-}
-
-/* ── phone registration step ── */
-.rvx-phone-step {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--acc-lt);
-  border: 1.5px solid var(--acc-bd);
-  border-radius: 14px;
-  animation: rvx-in .3s ease;
-}
-.rvx-phone-step__title {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--acc);
-}
-.rvx-phone-step__sub {
-  font-size: 12px;
-  color: var(--txt2);
-  margin-top: -6px;
-}
-.rvx-phone-row {
-  display: flex;
-  gap: 0;
-  border: 1.5px solid var(--acc-bd);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--card);
-  transition: box-shadow .15s, border-color .15s;
-}
-.rvx-phone-row:focus-within {
-  border-color: var(--acc);
-  box-shadow: 0 0 0 3px rgba(37,99,235,.10);
-}
-.rvx-phone-prefix {
-  padding: 0 12px;
-  background: var(--bg);
-  border-left: 1.5px solid var(--acc-bd);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--txt2);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  direction: ltr;
-  user-select: none;
-}
-.rvx-phone-input {
-  flex: 1;
-  padding: 11px 12px;
-  border: none;
-  outline: none;
-  font-size: 15px;
-  font-family: inherit;
-  color: var(--txt);
-  background: var(--card);
-  direction: ltr;
-  text-align: left;
-  letter-spacing: .5px;
-}
-.rvx-phone-input::placeholder { color: #9CA3AF; }
 
 /* ── star picker ── */
 .rvx-star-row {
@@ -537,6 +455,275 @@
   border-top-color: var(--acc);
   animation: rvx-spin-kf .75s linear infinite;
 }
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.rvx-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: rvx-fadein .2s ease;
+}
+.rvx-overlay.rvx-hide { display: none; }
+
+.rvx-modal {
+  background: #fff;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
+  animation: rvx-pop .32s cubic-bezier(.34,1.56,.64,1) both;
+  position: relative;
+}
+
+/* modal close btn */
+.rvx-modal__close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--txt2);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  z-index: 2;
+}
+.rvx-modal__close:hover { background: var(--err-lt); color: var(--err); }
+
+/* modal steps */
+.rvx-mstep { display: none; flex-direction: column; align-items: center; padding: 36px 28px 32px; gap: 0; }
+.rvx-mstep.rvx-active { display: flex; animation: rvx-in .28s ease both; }
+
+/* ── step icon circle ── */
+.rvx-mstep__ico {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+.rvx-mstep__ico--blue { background: var(--acc-lt); color: var(--acc); font-size: 30px; }
+.rvx-mstep__ico--green {
+  background: var(--ok-lt);
+  border: 2px solid var(--ok-bd);
+}
+
+/* animated check svg */
+.rvx-check-svg circle { fill: var(--ok-lt); }
+.rvx-check-svg path {
+  fill: none;
+  stroke: var(--ok);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: rvx-check .45s .15s ease forwards;
+}
+
+.rvx-mstep__title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--txt);
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.rvx-mstep__sub {
+  font-size: 13px;
+  color: var(--txt2);
+  text-align: center;
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+
+/* Google sign-in button */
+.rvx-google-btn {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: 1.5px solid var(--bdr);
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.rvx-google-btn:hover { border-color: #4285F4; box-shadow: 0 2px 12px rgba(66,133,244,.18); background: #F8FAFF; }
+.rvx-google-btn:active { transform: scale(.98); }
+.rvx-google-btn:disabled { opacity: .6; cursor: not-allowed; }
+.rvx-google-ico {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* phone input in modal */
+.rvx-mphone-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 0;
+}
+.rvx-mphone-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--txt2);
+  background: var(--bg);
+  border: 1px solid var(--bdr);
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.6;
+}
+.rvx-mphone-note i { color: var(--acc); margin-top: 1px; flex-shrink: 0; font-size: 14px; }
+
+.rvx-mphone-row {
+    display: flex;
+    border: 1.5px solid var(--bdr);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+    transition: box-shadow .15s, border-color .15s;
+    flex-direction: row-reverse;
+}
+.rvx-mphone-row:focus-within {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+}
+.rvx-mphone-prefix {
+  padding: 0 12px;
+  background: var(--bg);
+  border-left: 1.5px solid var(--bdr);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+  gap: 5px;
+}
+.rvx-mphone-input {
+  flex: 1;
+  padding: 13px 12px;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--txt);
+  background: var(--card);
+  direction: ltr;
+  text-align: left;
+  letter-spacing: .5px;
+}
+.rvx-mphone-input::placeholder { color: #9CA3AF; }
+.rvx-mphonemsg {
+  border-radius: 9px;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  display: none;
+}
+.rvx-mphonemsg.rvx-ok  { display: block; color: var(--ok);  background: var(--ok-lt);  border: 1px solid var(--ok-bd); }
+.rvx-mphonemsg.rvx-err { display: block; color: var(--err); background: var(--err-lt); border: 1px solid var(--err-bd); }
+
+/* complete btn */
+.rvx-complete-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 13px;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: opacity .15s, transform .1s, background .15s;
+  margin-top: 4px;background: #1D4ED8;
+}
+.rvx-complete-btn:hover:not(:disabled) { background: #1D4ED8; }
+.rvx-complete-btn:active:not(:disabled) { transform: scale(.98); }
+.rvx-complete-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+/* welcome-back avatar in modal */
+.rvx-mwelcome-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--ok-bd);
+  margin-bottom: 16px;
+  display: block;
+}
+.rvx-mwelcome-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--txt);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.rvx-mwelcome-msg {
+  font-size: 13px;
+  color: var(--txt2);
+  text-align: center;
+  line-height: 1.65;
+}
+.rvx-mwelcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ok-lt);
+  border: 1.5px solid var(--ok-bd);
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ok);
+  margin-top: 16px;
+}
+
+/* modal divider */
+.rvx-mdivider {
+  width: 100%;
+  height: 1px;
+  background: var(--bdr);
+  margin: 20px 0;
+}
 </style>
 
 <div id="rvx-wrap">
@@ -568,28 +755,6 @@
           <img id="rvx-photo" class="rvx-chip__photo" alt="" />
           <div class="rvx-chip__name" id="rvx-uname"></div>
           <button class="rvx-chip__out" id="rvx-signout">خروج</button>
-        </div>
-
-        <!-- welcome banner (shown for returning users) -->
-        <div class="rvx-welcome" id="rvx-welcome" style="display:none">
-          <span class="rvx-welcome__icon"><i class="ph ph-hand-waving"></i></span>
-          <span class="rvx-welcome__text" id="rvx-welcome-text"></span>
-        </div>
-
-        <!-- phone registration step (shown for new users) -->
-        <div class="rvx-phone-step" id="rvx-phone-step" style="display:none">
-          <div class="rvx-phone-step__title"><i class="ph ph-user-circle-plus"></i> أكمل تسجيلك</div>
-          <div class="rvx-phone-step__sub">أدخل رقم هاتفك الأردني لإتمام إضافة تقييمك</div>
-          <div class="rvx-phone-row">
-            <span class="rvx-phone-prefix">🇯🇴</span>
-            <input type="tel" class="rvx-phone-input" id="rvx-phone"
-              placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" />
-          </div>
-          <div class="rvx-msg" id="rvx-phone-msg"></div>
-          <button class="rvx-submit" id="rvx-phone-confirm" type="button">
-            <i class="ph ph-check-circle"></i>
-            <span>تأكيد ونشر التقييم</span>
-          </button>
         </div>
 
         <!-- stars -->
@@ -634,6 +799,87 @@
   </div>
 </div>
 
+<!-- ══ AUTH MODAL ══ -->
+<div class="rvx-overlay rvx-hide" id="rvx-overlay" role="dialog" aria-modal="true">
+  <div class="rvx-modal" id="rvx-modal">
+    <button class="rvx-modal__close" id="rvx-modal-close" title="إغلاق">
+      <i class="ph ph-x"></i>
+    </button>
+
+    <!-- STEP 1: Google Sign-in -->
+    <div class="rvx-mstep" id="rvx-mstep-auth">
+      <div class="rvx-mstep__ico rvx-mstep__ico--blue">
+        <i class="ph ph-sign-in"></i>
+      </div>
+      <div class="rvx-mstep__title">سجّل دخولك لنشر التقييم</div>
+      <div class="rvx-mstep__sub">
+        يتطلب النشر تسجيل الدخول بحسابك على جوجل
+        للحفاظ على جودة التقييمات وتجنّب التكرار
+      </div>
+      <button class="rvx-google-btn" id="rvx-google-btn">
+        <svg class="rvx-google-ico" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        تسجيل الدخول بواسطة جوجل
+      </button>
+      <div class="rvx-mphonemsg" id="rvx-auth-msg" style="margin-top:12px;width:100%"></div>
+    </div>
+
+    <!-- STEP 2: Phone Registration -->
+    <div class="rvx-mstep" id="rvx-mstep-phone">
+      <div class="rvx-mstep__ico rvx-mstep__ico--blue">
+        <i class="ph ph-phone"></i>
+      </div>
+      <div class="rvx-mstep__title">خطوة أخيرة!</div>
+      <div class="rvx-mstep__sub">أدخل رقم هاتفك لإكمال إنشاء حسابك</div>
+      <div class="rvx-mphone-wrap">
+        <div class="rvx-mphone-note">
+          <i class="ph ph-lock-simple"></i>
+          <span>رقم هاتفك خاص تماماً ولن يظهر لأي زائر — يُستخدم فقط للتحقق من الهوية</span>
+        </div>
+        <div class="rvx-mphone-row">
+          <span class="rvx-mphone-prefix">🇯🇴 +962</span>
+          <input type="tel" class="rvx-mphone-input" id="rvx-mphone"
+            placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" />
+        </div>
+        <div class="rvx-mphonemsg" id="rvx-phone-msg"></div>
+        <button class="rvx-complete-btn" id="rvx-complete-btn" type="button">
+          <i class="ph ph-check-circle"></i>
+          <span id="rvx-complete-lbl">إكمال التسجيل</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Success (new user) -->
+    <div class="rvx-mstep" id="rvx-mstep-success">
+      <div class="rvx-mstep__ico rvx-mstep__ico--green">
+        <svg class="rvx-check-svg" width="68" height="68" viewBox="0 0 68 68">
+          <circle cx="34" cy="34" r="34"/>
+          <path d="M20 34 l10 10 l18-20"/>
+        </svg>
+      </div>
+      <div class="rvx-mstep__title" id="rvx-success-title">تم التسجيل بنجاح!</div>
+      <div class="rvx-mstep__sub" id="rvx-success-sub">مرحباً بك! سيتم نشر تقييمك الآن</div>
+    </div>
+
+    <!-- STEP 4: Welcome back -->
+    <div class="rvx-mstep" id="rvx-mstep-welcome">
+      <img id="rvx-mwelcome-photo" class="rvx-mwelcome-avatar" src="" alt="" />
+      <div class="rvx-mwelcome-name" id="rvx-mwelcome-name"></div>
+      <div class="rvx-mwelcome-msg">يسعدنا تواجدك مجدداً</div>
+      <div class="rvx-mwelcome-badge">
+        <i class="ph ph-hand-waving"></i>
+        أهلاً بعودتك!
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
@@ -665,13 +911,13 @@
   var auth = fbApp.auth();
 
   /* ── state ── */
-  var currentUser    = null;
-  var selectedStars  = 0;
-  var hoverStars     = 0;
-  var saving         = false;
-  var allReviews     = [];
-  var checking       = false;   /* lock during auth/registration pre-check */
-  var welcomeShownUid = null;   /* avoid repeating welcome banner per session */
+  var currentUser       = null;
+  var selectedStars     = 0;
+  var hoverStars        = 0;
+  var saving            = false;
+  var allReviews        = [];
+  var pendingPostCb     = null;   /* callback to call after modal auth flow */
+  var welcomeShownUid   = null;   /* avoid repeating welcome per session */
 
   /* ── star labels ── */
   var HINTS = { 1: 'سيء', 2: 'مقبول', 3: 'جيد', 4: 'جيد جدا', 5: 'ممتاز' };
@@ -696,9 +942,15 @@
     return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" style="display:block;flex-shrink:0" fill="none" stroke="none"><polygon fill="' + fc + '" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
   }
 
-  /* ── Jordanian phone validation: 07[6-9]XXXXXXX (10 digits) ── */
+  /* ── Jordanian phone validation: accepts 07XXXXXXXX or 7XXXXXXXX ── */
   function isValidJoPhone(val) {
-    return /^07[6-9]\d{7}$/.test(val.trim());
+    var v = val.trim();
+    return /^07[6-9]\d{7}$/.test(v) || /^7[6-9]\d{7}$/.test(v);
+  }
+  function normalizeJoPhone(val) {
+    var v = val.trim();
+    if (/^7[6-9]\d{7}$/.test(v)) return '0' + v;
+    return v;
   }
 
   /* ══ STAR PICKER ══ */
@@ -827,6 +1079,76 @@
     });
   }
 
+  /* ══ SCHEMA.ORG JSON-LD ══
+     Injects / updates a <script type="application/ld+json"> in <head>
+     so Google can surface star ratings as Rich Results.
+  ══ */
+  function buildSchema(reviews) {
+    /* only include reviews that have a star rating */
+    var valid = reviews.filter(function (r) {
+      return parseInt(r.stars) >= 1 && parseInt(r.stars) <= 5;
+    });
+    if (!valid.length) return;
+
+    /* aggregate stats */
+    var sum = 0;
+    valid.forEach(function (r) { sum += parseInt(r.stars); });
+    var avg     = (sum / valid.length).toFixed(1);
+    var total   = valid.length;
+
+    /* top 10 most recent for the review[] array (keep JSON-LD lean) */
+    var top = valid.slice(0, 10);
+
+    var schema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      'name': 'DriverJo — أسئلة الفحص النظري في الأردن',
+      'url': 'https://www.driverjo.online',
+      'description': 'بنك شامل لأسئلة الفحص النظري للقيادة في الأردن — قواعد السير والمرور، الشواخص، الإسعافات الأولية، الميكانيك، والمخالفات.',
+      'inLanguage': 'ar',
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': avg,
+        'reviewCount': String(total),
+        'bestRating': '5',
+        'worstRating': '1'
+      },
+      'review': top.map(function (r) {
+        var obj = {
+          '@type': 'Review',
+          'author': {
+            '@type': 'Person',
+            'name': r.name || 'زائر'
+          },
+          'reviewRating': {
+            '@type': 'Rating',
+            'ratingValue': String(parseInt(r.stars)),
+            'bestRating': '5',
+            'worstRating': '1'
+          }
+        };
+        if (r.createdAt) {
+          try { obj['datePublished'] = new Date(r.createdAt).toISOString().split('T')[0]; }
+          catch (e) {}
+        }
+        if (r.comment && r.comment.trim()) {
+          obj['reviewBody'] = r.comment.trim();
+        }
+        return obj;
+      })
+    };
+
+    /* inject or update the tag */
+    var tag = document.getElementById('rvx-schema-ld');
+    if (!tag) {
+      tag = document.createElement('script');
+      tag.type = 'application/ld+json';
+      tag.id   = 'rvx-schema-ld';
+      document.head.appendChild(tag);
+    }
+    tag.textContent = JSON.stringify(schema, null, 2);
+  }
+
   function loadReviews() {
     db.ref('reviews').once('value')
       .then(function (snap) {
@@ -839,6 +1161,7 @@
         });
         buildStats(allReviews);
         renderList(allReviews);
+        buildSchema(allReviews);
       })
       .catch(function () {
         document.getElementById('rvx-list').innerHTML =
@@ -859,128 +1182,181 @@
       photoEl.src        = user.photoURL || '';
     } else {
       chip.style.display = 'none';
-      hidePhoneStep();
-      hideWelcome();
     }
   });
   document.getElementById('rvx-signout').addEventListener('click', function () {
     auth.signOut();
+    welcomeShownUid = null;
   });
 
-  /* ══ USER REGISTRATION CHECK ══ */
+  /* ══════════════════════════════════════════
+     MODAL LOGIC
+  ══════════════════════════════════════════ */
+  var overlay     = document.getElementById('rvx-overlay');
+  var modalClose  = document.getElementById('rvx-modal-close');
+  var stepAuth    = document.getElementById('rvx-mstep-auth');
+  var stepPhone   = document.getElementById('rvx-mstep-phone');
+  var stepSuccess = document.getElementById('rvx-mstep-success');
+  var stepWelcome = document.getElementById('rvx-mstep-welcome');
+  var googleBtn   = document.getElementById('rvx-google-btn');
+  var authMsg     = document.getElementById('rvx-auth-msg');
+  var phoneInput  = document.getElementById('rvx-mphone');
+  var phoneMsg    = document.getElementById('rvx-phone-msg');
+  var completeBtn = document.getElementById('rvx-complete-btn');
+  var completeLbl = document.getElementById('rvx-complete-lbl');
 
-  /**
-   * After Google sign-in: check if user exists in /users/{uid}.
-   * If yes  → show welcome banner, then call onDone()
-   * If no   → show phone registration step
-   *           onDone() will be called after phone is saved
-   */
-  function checkAndRegister(user, onDone) {
-    checking = true;
-    submitBtn.disabled = true;
+  function showStep(stepEl) {
+    [stepAuth, stepPhone, stepSuccess, stepWelcome].forEach(function (s) {
+      s.classList.remove('rvx-active');
+    });
+    stepEl.classList.add('rvx-active');
+  }
 
-    db.ref('users/' + user.uid).once('value')
-      .then(function (snap) {
-        checking = false;
-        if (snap.exists()) {
-          /* returning user */
-          var data = snap.val();
-          var name = data.name || user.displayName || 'مستخدم';
-          if (welcomeShownUid !== user.uid) {
-            welcomeShownUid = user.uid;
-            showWelcome('أهلاً بعودتك، ' + name + '!');
-            setTimeout(function () {
-              hideWelcome();
-              submitBtn.disabled = false;
-              onDone();
-            }, 1800);
-          } else {
-            submitBtn.disabled = false;
-            onDone();
-          }
-        } else {
-          /* new user – ask for phone */
-          showPhoneStep(user, onDone);
-        }
+  function openModal(stepEl) {
+    overlay.classList.remove('rvx-hide');
+    document.body.style.overflow = 'hidden';
+    showStep(stepEl);
+  }
+
+  function closeModal() {
+    overlay.classList.add('rvx-hide');
+    document.body.style.overflow = '';
+    pendingPostCb = null;
+    /* reset phone step */
+    phoneInput.value = '';
+    setPhoneMsg('', false);
+    completeBtn.disabled = false;
+    completeLbl.textContent = 'إكمال التسجيل';
+    /* reset auth msg */
+    setAuthMsg('', false);
+    googleBtn.disabled = false;
+    googleBtn.querySelector('span') && (googleBtn.querySelector('span').textContent = 'تسجيل الدخول بواسطة جوجل');
+  }
+
+  /* close on overlay backdrop click */
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeModal();
+  });
+  modalClose.addEventListener('click', closeModal);
+  /* close on Escape */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function setAuthMsg(text, ok) {
+    authMsg.className = 'rvx-mphonemsg' + (text ? (ok ? ' rvx-ok' : ' rvx-err') : '');
+    authMsg.textContent = text || '';
+    authMsg.style.display = text ? 'block' : 'none';
+    authMsg.style.marginTop = '12px';
+    authMsg.style.width = '100%';
+  }
+
+  function setPhoneMsg(text, ok) {
+    phoneMsg.className = 'rvx-mphonemsg' + (text ? (ok ? ' rvx-ok' : ' rvx-err') : '');
+    phoneMsg.textContent = text || '';
+  }
+
+  /* ── Google sign-in inside modal ── */
+  googleBtn.addEventListener('click', function () {
+    googleBtn.disabled = true;
+    setAuthMsg('', false);
+
+    var innerSpan = googleBtn.childNodes[1]; /* text node after SVG */
+    var origText = 'تسجيل الدخول بواسطة جوجل';
+    /* find the text content */
+    googleBtn.childNodes.forEach(function(n){
+      if(n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = 'جاري التحقق ...';
+    });
+
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    auth.signInWithPopup(provider)
+      .then(function (result) {
+        currentUser = result.user;
+        /* check DB */
+        return db.ref('users/' + result.user.uid).once('value')
+          .then(function (snap) {
+            googleBtn.disabled = false;
+            googleBtn.childNodes.forEach(function(n){
+              if(n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = origText;
+            });
+            if (snap.exists()) {
+              /* returning user */
+              var data = snap.val();
+              var name = data.name || result.user.displayName || 'مستخدم';
+              showWelcomeStep(result.user, name);
+            } else {
+              /* new user → phone step */
+              showStep(stepPhone);
+              setTimeout(function(){ phoneInput.focus(); }, 200);
+            }
+          });
       })
-      .catch(function () {
-        /* fail-closed: do NOT call onDone(); show error instead */
-        checking = false;
-        submitBtn.disabled = false;
-        showMsg('تعذّر التحقق من بياناتك، حاول مرة أخرى', false);
+      .catch(function (err) {
+        googleBtn.disabled = false;
+        googleBtn.childNodes.forEach(function(n){
+          if(n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = origText;
+        });
+        if (err.code !== 'auth/popup-closed-by-user') {
+          setAuthMsg('تعذّر تسجيل الدخول، حاول مرة أخرى', false);
+        }
       });
+  });
+
+  /* ── welcome step (returning user) ── */
+  function showWelcomeStep(user, name) {
+    document.getElementById('rvx-mwelcome-photo').src = user.photoURL || '';
+    document.getElementById('rvx-mwelcome-name').textContent = 'أهلاً بعودتك، ' + name + '!';
+    showStep(stepWelcome);
+    /* auto-close and post after 1.8s */
+    setTimeout(function () {
+      var cb = pendingPostCb;
+      closeModal();
+      if (cb) cb();
+    }, 1800);
   }
 
-  /* ── welcome banner ── */
-  function showWelcome(text) {
-    var el = document.getElementById('rvx-welcome');
-    document.getElementById('rvx-welcome-text').textContent = text;
-    el.style.display = 'flex';
-  }
-  function hideWelcome() {
-    document.getElementById('rvx-welcome').style.display = 'none';
-  }
-
-  /* ── phone step ── */
-  var pendingPostAfterPhone = null;
-
-  function showPhoneStep(user, onDone) {
-    pendingPostAfterPhone = onDone;
-    var step = document.getElementById('rvx-phone-step');
-    step.style.display = 'flex';
-    document.getElementById('rvx-phone').value = '';
-    showPhoneMsg('', false);
-    setSaving(false);
-    /* disable the main submit while phone step is active */
-    document.getElementById('rvx-submit').disabled = true;
-  }
-
-  function hidePhoneStep() {
-    document.getElementById('rvx-phone-step').style.display = 'none';
-    document.getElementById('rvx-submit').disabled = false;
-    pendingPostAfterPhone = null;
-  }
-
-  function showPhoneMsg(text, ok) {
-    var el = document.getElementById('rvx-phone-msg');
-    el.className = 'rvx-msg' + (text ? (ok ? ' rvx-ok' : ' rvx-err') : '');
-    el.textContent = text || '';
-  }
-
-  document.getElementById('rvx-phone-confirm').addEventListener('click', function () {
+  /* ── complete registration (phone) ── */
+  completeBtn.addEventListener('click', function () {
     if (!currentUser) return;
-    var phone = (document.getElementById('rvx-phone').value || '').trim();
+    var phone = (phoneInput.value || '').trim();
     if (!isValidJoPhone(phone)) {
-      showPhoneMsg('أدخل رقم هاتف أردني صحيح مثال: 0791234567', false);
+      setPhoneMsg('أدخل رقم صحيح مثال: 0791234567 أو 791234567', false);
       return;
     }
+    var normalizedPhone = normalizeJoPhone(phone);
 
-    var btn = document.getElementById('rvx-phone-confirm');
-    btn.disabled = true;
-    btn.querySelector('span').textContent = 'جارٍ الحفظ...';
-    showPhoneMsg('', false);
+    completeBtn.disabled = true;
+    completeLbl.textContent = 'جاري الحفظ ...';
+    setPhoneMsg('', false);
 
-    /* save new user to /users/{uid} */
     var userData = {
       name:      currentUser.displayName || '',
       email:     currentUser.email || '',
-      phone:     phone,
+      phone:     normalizedPhone,
       createdAt: new Date().toISOString()
     };
 
     db.ref('users/' + currentUser.uid).set(userData)
       .then(function () {
-        btn.disabled = false;
-        btn.querySelector('span').textContent = 'تأكيد ونشر التقييم';
-        hidePhoneStep();
-        var cb = pendingPostAfterPhone;
-        pendingPostAfterPhone = null;
-        if (cb) cb();
+        /* show success step */
+        var firstName = (currentUser.displayName || 'بك').split(' ')[0];
+        document.getElementById('rvx-success-title').textContent = 'أهلا وسهلا، ' + firstName + '!';
+        document.getElementById('rvx-success-sub').textContent = 'تم إنشاء حسابك بنجاح، سيتم نشر تقييمك الآن';
+        showStep(stepSuccess);
+        /* auto-close and post */
+        setTimeout(function () {
+          var cb = pendingPostCb;
+          closeModal();
+          if (cb) cb();
+        }, 2000);
       })
       .catch(function () {
-        btn.disabled = false;
-        btn.querySelector('span').textContent = 'تأكيد ونشر التقييم';
-        showPhoneMsg('حدث خطأ، حاول مرة أخرى', false);
+        completeBtn.disabled = false;
+        completeLbl.textContent = 'إكمال التسجيل';
+        setPhoneMsg('حدث خطأ، حاول مرة أخرى', false);
       });
   });
 
@@ -997,7 +1373,7 @@
   function setSaving(v) {
     saving = v;
     submitBtn.disabled = v;
-    submitLbl.textContent = v ? 'جاري النشر ...' : 'نشر التقييم';
+    submitLbl.textContent = v ? 'جاري النشر...' : 'نشر التقييم';
   }
 
   function postReview() {
@@ -1031,35 +1407,50 @@
   }
 
   submitBtn.addEventListener('click', function () {
-    if (saving || checking) return;
+    if (saving) return;
 
     if (selectedStars === 0) {
       showMsg('اختر تقييما بالنجوم أولا', false);
       return;
     }
 
-    if (!currentUser) {
-      /* sign in first, then check registration */
-      var provider = new firebase.auth.GoogleAuthProvider();
-      provider.addScope('email');
-      provider.setCustomParameters({ prompt: 'select_account' });
-      setSaving(true);
-      showMsg('', false);
-      auth.signInWithPopup(provider)
-        .then(function (result) {
-          currentUser = result.user;
-          setSaving(false);
-          checkAndRegister(currentUser, postReview);
+    /* Helper: check DB then open appropriate modal step or post */
+    function checkAndAct() {
+      db.ref('users/' + currentUser.uid).once('value')
+        .then(function (snap) {
+          if (snap.exists()) {
+            /* returning user */
+            var data = snap.val();
+            var name = data.name || currentUser.displayName || 'مستخدم';
+            if (welcomeShownUid !== currentUser.uid) {
+              welcomeShownUid = currentUser.uid;
+              pendingPostCb = postReview;
+              openModal(stepWelcome);
+              showWelcomeStep(currentUser, name);
+            } else {
+              /* welcome already shown this session — post directly */
+              postReview();
+            }
+          } else {
+            /* new user → open phone step */
+            pendingPostCb = postReview;
+            openModal(stepPhone);
+            setTimeout(function(){ phoneInput.focus(); }, 200);
+          }
         })
         .catch(function () {
-          setSaving(false);
-          showMsg('تعذّر تسجيل الدخول عبر جوجل، حاول مرة أخرى', false);
+          showMsg('تعذر التحقق من بياناتك، حاول مرة أخرى', false);
         });
-      return;
     }
 
-    /* already signed in: check registration then post */
-    checkAndRegister(currentUser, postReview);
+    if (!currentUser) {
+      /* not signed in → open auth step */
+      pendingPostCb = postReview;
+      openModal(stepAuth);
+    } else {
+      /* signed in → check if registered */
+      checkAndAct();
+    }
   });
 
   } /* end rvxMain */
