@@ -1,9 +1,9 @@
-
-      <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
       <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
       <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
       <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  
+      <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
 <style>
   /* === القاعدة العامة === */
   .dex {
@@ -48,7 +48,7 @@
   }
 
   .dex-info-card {
-     
+
     border-radius: 16px;
     padding: 16px 18px;
     border: 1.5px solid #E5E7EB;
@@ -72,7 +72,7 @@
   .dex-info-sub { font-size: 12px; color: #6B7280; margin-top: 2px; }
 
   .dex-notice {
-     
+
     border-radius: 14px;
     border: 1.5px solid #DBEAFE;
     padding: 12px 14px;
@@ -110,7 +110,7 @@
     gap: 9px;
   }
   .dex-rule-item {
-     
+
     border-radius: 14px;
     border: 1.5px solid #E5E7EB;
     padding: 12px 14px;
@@ -180,7 +180,7 @@
   /* === شاشة الامتحان === */
   .dex-statusbar {
     flex-shrink: 0;
-     
+
     border-bottom: 1.5px solid #F3F4F6;
   }
   .dex-statusbar-row {
@@ -266,7 +266,7 @@
     gap: 12px;
     padding: 13px 14px;
     border-radius: 14px;
-     
+
     border: 1.5px solid #E5E7EB;
     cursor: pointer;
     font-family: inherit;
@@ -301,7 +301,7 @@
     flex-shrink: 0;
     padding: 10px 14px 14px;
     border-top: 1.5px solid #F3F4F6;
-     
+
     display: flex;
     gap: 8px;
   }
@@ -357,7 +357,7 @@
     padding: 16px;
   }
   .dex-milestone-card {
-     
+
     border-radius: 24px;
     padding: 24px 20px 20px;
     width: 100%;
@@ -426,7 +426,7 @@
     padding: 13px;
     border-radius: 14px;
     border: 1.5px solid #E5E7EB;
-     
+
     color: #374151;
     font-size: 15px;
     font-weight: 700;
@@ -572,36 +572,164 @@
 
   /* أداة مساعدة */
   .dex-hidden { display: none !important; }
+
+  /* === فقرة SEO التعريفية === */
+  .dex-intro-para {
+    background: #fff;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .dex-intro-para p {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.85;
+    margin: 0;
+  }
+  .dex-intro-para b { color: #246BFD; font-weight: 700; }
+
+  /* ══ AUTH MODAL ══ */
+  @keyframes dex-fadein { from{opacity:0} to{opacity:1} }
+  @keyframes dex-pop    { 0%{transform:scale(.88);opacity:0} 60%{transform:scale(1.03)} 100%{transform:scale(1);opacity:1} }
+  @keyframes dex-step-in{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes dex-check  { 0%{stroke-dashoffset:60} 100%{stroke-dashoffset:0} }
+
+  .dex-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: dex-fadein .2s ease;
+  }
+  .dex-overlay.dex-hide { display: none; }
+
+  .dex-modal {
+    background: #fff; border-radius: 22px;
+    width: 100%; max-width: 380px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
+    animation: dex-pop .32s cubic-bezier(.34,1.56,.64,1) both;
+    position: relative;
+  }
+  .dex-modal__close {
+    position: absolute; top: 14px; left: 14px;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: none; background: #F9FAFB; color: #6B7280;
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s; z-index: 2;
+  }
+  .dex-modal__close:hover { background: #FEE2E2; color: #DC2626; }
+
+  .dex-mstep { display: none; flex-direction: column; align-items: center; padding: 36px 28px 32px; gap: 0; }
+  .dex-mstep.dex-mactive { display: flex; animation: dex-step-in .28s ease both; }
+
+  .dex-mstep__ico {
+    width: 68px; height: 68px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px; flex-shrink: 0;
+  }
+  .dex-mstep__ico--blue { background: #EFF6FF; color: #2563EB; font-size: 30px; }
+  .dex-mstep__ico--green { background: #F0FDF4; border: 2px solid #86EFAC; }
+
+  .dex-check-svg circle { fill: #F0FDF4; }
+  .dex-check-svg path {
+    fill: none; stroke: #16A34A; stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 60; stroke-dashoffset: 60;
+    animation: dex-check .45s .15s ease forwards;
+  }
+
+  .dex-mstep__title { font-size: 18px; font-weight: 900; color: #111827; text-align: center; margin-bottom: 8px; line-height: 1.35; }
+  .dex-mstep__sub   { font-size: 13px; color: #6B7280; text-align: center; line-height: 1.65; margin-bottom: 24px; }
+
+  .dex-google-btn {
+    width: 100%; height: 50px; border-radius: 14px;
+    border: 1.5px solid #E5E7EB; background: #fff;
+    font-size: 14px; font-weight: 700; color: #111827;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .dex-google-btn:hover { border-color: #4285F4; box-shadow: 0 2px 12px rgba(66,133,244,.18); background: #F8FAFF; }
+  .dex-google-btn:active { transform: scale(.98); }
+  .dex-google-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .dex-google-ico { width: 22px; height: 22px; flex-shrink: 0; }
+
+  .dex-mphone-wrap { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .dex-mphone-note {
+    display: flex; align-items: flex-start; gap: 7px;
+    font-size: 12px; color: #6B7280;
+    background: #F9FAFB; border: 1px solid #E5E7EB;
+    border-radius: 10px; padding: 10px 12px; line-height: 1.6;
+  }
+  .dex-mphone-note i { color: #2563EB; margin-top: 1px; flex-shrink: 0; font-size: 14px; }
+  .dex-mphone-row {
+    display: flex; border: 1.5px solid #E5E7EB; border-radius: 12px;
+    overflow: hidden; background: #fff;
+    transition: box-shadow .15s, border-color .15s;
+  }
+  .dex-mphone-row:focus-within { border-color: #246BFD; box-shadow: 0 0 0 3px rgba(36,107,253,.10); }
+  .dex-mphone-prefix {
+    padding: 0 12px; background: #F9FAFB;
+    border-left: 1.5px solid #E5E7EB;
+    font-size: 13px; font-weight: 700; color: #6B7280;
+    display: flex; align-items: center; flex-shrink: 0;
+    direction: ltr; user-select: none; gap: 5px;
+  }
+  .dex-mphone-input {
+    flex: 1; padding: 13px 12px; border: none; outline: none;
+    font-size: 15px; font-family: inherit; color: #111827;
+    background: #fff; direction: ltr; text-align: left; letter-spacing: .5px;
+  }
+  .dex-mphone-input::placeholder { color: #9CA3AF; }
+  .dex-mphonemsg {
+    border-radius: 9px; padding: 9px 13px;
+    font-size: 12px; font-weight: 700; text-align: center; display: none;
+  }
+  .dex-mphonemsg.dex-ok  { display:block; color:#16A34A; background:#F0FDF4; border:1px solid #86EFAC; }
+  .dex-mphonemsg.dex-err { display:block; color:#DC2626; background:#FEF2F2; border:1px solid #FECACA; }
+
+  .dex-complete-btn {
+    width: 100%; height: 48px; border-radius: 13px; border: none;
+    background: #246BFD; color: #fff;
+    font-size: 14px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: opacity .15s, transform .1s, background .15s; margin-top: 4px;
+  }
+  .dex-complete-btn:hover:not(:disabled) { background: #1D4ED8; }
+  .dex-complete-btn:active:not(:disabled) { transform: scale(.98); }
+  .dex-complete-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .dex-mwelcome-avatar {
+    width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+    border: 3px solid #86EFAC; margin-bottom: 16px; display: block;
+  }
+  .dex-mwelcome-name { font-size: 20px; font-weight: 900; color: #111827; text-align: center; margin-bottom: 6px; }
+  .dex-mwelcome-msg  { font-size: 13px; color: #6B7280; text-align: center; line-height: 1.65; }
+  .dex-mwelcome-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #F0FDF4; border: 1.5px solid #86EFAC;
+    border-radius: 99px; padding: 6px 16px;
+    font-size: 13px; font-weight: 700; color: #16A34A; margin-top: 16px;
+  }
 </style>
 
 
 <!-- ==================== HTML ==================== -->
 <div id="dex" class="dex">
-
-  <!-- شاشة التحميل -->
-  <div id="dex-loading" class="dex-screen dex-active">
-    <div class="dex-loading-wrap">
-      <i class="ph ph-circle-notch dex-spin dex-loading-icon"></i>
-      <span class="dex-loading-text">جارٍ تحميل الأسئلة...</span>
-    </div>
-  </div>
+  <!-- شاشة التحميل (مخفية - لا تستخدم بعد الآن) -->
+  <div id="dex-loading" class="dex-screen"></div>
 
   <!-- شاشة القواعد -->
-  <div id="dex-rules" class="dex-screen">
+  <div id="dex-rules" class="dex-screen dex-active">
     <div class="dex-rules-bg">
       <div class="dex-rules-body">
-
-        <!-- بطاقة المعلومات -->
-        <div class="dex-info-card">
-          <div class="dex-info-icon">
-            <i class="ph ph-exam"></i>
-          </div>
-          <div>
-            <div class="dex-info-title">الامتحان النظري</div>
-            <div class="dex-info-sub">60 سؤال من جميع الأقسام بشكل عشوائي — 60 دقيقة — 51 إجابة للنجاح</div>
-          </div>
-        </div>
-
+<p>استعد لاجتياز <b>الفحص النظري 2026</b> من المرة الأولى! يُقدّم هذا المحاكي تجربةً كاملة تطابق آلية <b>الفحص النظري</b> المعتمدة في دائرة الترخيص الأردنية، ويشمل جميع أقسام <b>كتاب الفحص النظري</b>: <b>قواعد السير والمرور</b>، <b>الشواخص والخطوط والعلامات</b>، <b>السلامة على الطريق</b>، <b>الإسعافات الأولية</b>، <b>الميكانيك</b>، و<b>المخالفات واحتساب النقاط</b>. تدرّب على <b>أسئلة الفحص النظري</b> الحقيقية وابدأ <b>الفحص النظري</b> التجريبي الآن — مجاناً!</p>
+        
         <!-- إشعار رسمي -->
         <div class="dex-notice">
           <div class="dex-notice-icon">
@@ -644,7 +772,7 @@
 <div class='alert warning'><b>تححذير</b>
  بمجرد بدء الاختبار يبدأ العد التنازلي ولا يمكن إيقافه. تأكد من جهوزيتك قبل الضغط على بدء.
 </div>
-        
+
 
         <!-- رسالة لا توجد أسئلة — مخفية افتراضياً -->
         <div id="dex-no-qs" class="dex-no-qs dex-hidden">
@@ -816,6 +944,74 @@
 
 </div>
 
+<!-- ══ AUTH MODAL ══ -->
+<div class="dex-overlay dex-hide" id="dex-overlay">
+  <div class="dex-modal" id="dex-modal">
+    <button class="dex-modal__close" id="dex-modal-close"><i class="ph ph-x"></i></button>
+
+    <!-- الخطوة 1: تسجيل الدخول -->
+    <div class="dex-mstep" id="dex-mstep-auth">
+      <div class="dex-mstep__ico dex-mstep__ico--blue"><i class="ph ph-sign-in"></i></div>
+      <div class="dex-mstep__title">سجّل دخولك لبدء الاختبار</div>
+      <div class="dex-mstep__sub">يُحفظ تقدّمك ونتائجك تلقائياً بعد تسجيل الدخول</div>
+      <button class="dex-google-btn" id="dex-google-btn">
+        <svg class="dex-google-ico" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        تسجيل الدخول بواسطة جوجل
+      </button>
+      <div class="dex-mphonemsg" id="dex-auth-msg" style="margin-top:12px;width:100%"></div>
+    </div>
+
+    <!-- الخطوة 2: رقم الهاتف -->
+    <div class="dex-mstep" id="dex-mstep-phone">
+      <div class="dex-mstep__ico dex-mstep__ico--blue"><i class="ph ph-phone"></i></div>
+      <div class="dex-mstep__title">خطوة أخيرة!</div>
+      <div class="dex-mstep__sub">أدخل رقم هاتفك لإكمال إنشاء حسابك</div>
+      <div class="dex-mphone-wrap">
+        <div class="dex-mphone-note">
+          <i class="ph ph-lock-simple"></i>
+          <span>رقم هاتفك خاص تماماً ولن يظهر لأي زائر</span>
+        </div>
+        <div class="dex-mphone-row">
+          <span class="dex-mphone-prefix">🇯🇴 +962</span>
+          <input type="tel" class="dex-mphone-input" id="dex-mphone"
+            placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" />
+        </div>
+        <div class="dex-mphonemsg" id="dex-phone-msg"></div>
+        <button class="dex-complete-btn" id="dex-complete-btn" type="button">
+          <i class="ph ph-check-circle"></i>
+          <span id="dex-complete-lbl">إكمال التسجيل وبدء الاختبار</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- الخطوة 3: نجاح (مستخدم جديد) -->
+    <div class="dex-mstep" id="dex-mstep-success">
+      <div class="dex-mstep__ico dex-mstep__ico--green">
+        <svg class="dex-check-svg" width="68" height="68" viewBox="0 0 68 68">
+          <circle cx="34" cy="34" r="34"/>
+          <path d="M20 34 l10 10 l18-20"/>
+        </svg>
+      </div>
+      <div class="dex-mstep__title" id="dex-success-title">تم التسجيل بنجاح!</div>
+      <div class="dex-mstep__sub" id="dex-success-sub">سيبدأ الاختبار الآن...</div>
+    </div>
+
+    <!-- الخطوة 4: أهلاً بعودتك -->
+    <div class="dex-mstep" id="dex-mstep-welcome">
+      <img id="dex-mwelcome-photo" class="dex-mwelcome-avatar" src="" alt="" />
+      <div class="dex-mwelcome-name" id="dex-mwelcome-name"></div>
+      <div class="dex-mwelcome-msg">يسعدنا تواجدك مجددا، اختبارك ينتظرك!</div>
+      <div class="dex-mwelcome-badge"><i class="ph ph-hand-waving"></i> أهلا بعودتك!</div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ==================== JavaScript ==================== -->
 <script>
@@ -826,10 +1022,7 @@
     apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
     authDomain: "driverjo.firebaseapp.com",
     databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-    projectId: "driverjo",
-    storageBucket: "driverjo.firebasestorage.app",
-    messagingSenderId: "716209135475",
-    appId: "1:716209135475:web:0a8188a18017c5880aaf06"
+    projectId: "driverjo"
   };
 
   /* ——— ثوابت الامتحان ——— */
@@ -891,6 +1084,24 @@
   var elStartBtn     = document.getElementById('dex-start-btn');
   var elRetryBtn     = document.getElementById('dex-retry-btn');
 
+  /* ——— متغيرات Auth والمودال ——— */
+  var currentUser     = null;
+  var welcomeShownUid = null;
+  var db              = null;
+  var auth            = null;
+  var overlay         = document.getElementById('dex-overlay');
+  var modalClose      = document.getElementById('dex-modal-close');
+  var stepAuth        = document.getElementById('dex-mstep-auth');
+  var stepPhone       = document.getElementById('dex-mstep-phone');
+  var stepSuccess     = document.getElementById('dex-mstep-success');
+  var stepWelcome     = document.getElementById('dex-mstep-welcome');
+  var googleBtn       = document.getElementById('dex-google-btn');
+  var authMsg         = document.getElementById('dex-auth-msg');
+  var phoneInput      = document.getElementById('dex-mphone');
+  var phoneMsg        = document.getElementById('dex-phone-msg');
+  var completeBtn     = document.getElementById('dex-complete-btn');
+  var completeLbl     = document.getElementById('dex-complete-lbl');
+
   /* ——— إدارة الشاشات ——— */
   function showScreen(screen) {
     [screenLoading, screenRules, screenExam, screenResult].forEach(function (s) {
@@ -899,29 +1110,26 @@
     screen.classList.add('dex-active');
   }
 
-  /* ——— تنسيق الوقت ——— */
   function pad(n) { return String(n).padStart(2, '0'); }
 
   /* ——— تهيئة Firebase ——— */
   function initFirebase() {
-    if (!window.firebase) return null;
-    if (!firebase.apps || !firebase.apps.length) {
-      firebase.initializeApp(FIREBASE_CONFIG);
-    } else {
-      try { firebase.app(); } catch (e) { firebase.initializeApp(FIREBASE_CONFIG); }
-    }
-    return firebase.database();
+    if (!window.firebase) return false;
+    var app;
+    try { app = firebase.app(); } catch(e) { app = firebase.initializeApp(FIREBASE_CONFIG); }
+    db   = firebase.database(app);
+    auth = firebase.auth(app);
+    return true;
   }
 
   /* ——— كاش محلي ——— */
-  var DEX_CACHE_KEY='dex_questions_v1';
-  var DEX_CACHE_TTL=24*60*60*1000;
+  var DEX_CACHE_KEY = 'dex_questions_v1';
+  var DEX_CACHE_TTL = 24*60*60*1000;
   function dexSaveCache(d){try{localStorage.setItem(DEX_CACHE_KEY,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}}
   function dexLoadCache(){try{var r=localStorage.getItem(DEX_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>DEX_CACHE_TTL){localStorage.removeItem(DEX_CACHE_KEY);return null}return o.data}catch(e){return null}}
 
   /* ——— تحميل الأسئلة (تحديث خلفي) ——— */
   function loadData() {
-    var db = initFirebase();
     if (!db) { setTimeout(loadData, 300); return; }
     db.ref('questions').once('value')
       .then(function (snap) {
@@ -931,21 +1139,120 @@
         });
         dexSaveCache(fresh);
         allQuestions = fresh;
-        showRules();
+        refreshStartBtn();
       })
-      .catch(function () { if(!allQuestions.length) showRules(); });
+      .catch(function () { refreshStartBtn(); });
   }
 
-  /* ——— شاشة القواعد ——— */
-  function showRules() {
+  function refreshStartBtn() {
     if (allQuestions.length === 0) {
       elNoQs.classList.remove('dex-hidden');
       elStartBtn.disabled = true;
+      elStartBtn.querySelector('span').textContent = 'لا توجد أسئلة';
     } else {
       elNoQs.classList.add('dex-hidden');
       elStartBtn.disabled = false;
+      elStartBtn.querySelector('span').textContent = 'بدء الاختبار';
     }
-    showScreen(screenRules);
+  }
+
+  /* ══════════════════════════════════════════
+     AUTH MODAL
+  ══════════════════════════════════════════ */
+  function isValidJoPhone(v) { return /^07[6-9]\d{7}$/.test(v) || /^7[6-9]\d{7}$/.test(v); }
+  function normalizePhone(v) { return /^7[6-9]\d{7}$/.test(v) ? '0' + v : v; }
+
+  function showModalStep(step) {
+    [stepAuth, stepPhone, stepSuccess, stepWelcome].forEach(function(s){ s.classList.remove('dex-mactive'); });
+    step.classList.add('dex-mactive');
+  }
+  function openModal(step) {
+    overlay.classList.remove('dex-hide');
+    document.body.style.overflow = 'hidden';
+    showModalStep(step);
+  }
+  function closeModal() {
+    overlay.classList.add('dex-hide');
+    document.body.style.overflow = '';
+    phoneInput.value = '';
+    phoneMsg.className = 'dex-mphonemsg'; phoneMsg.textContent = '';
+    completeBtn.disabled = false; completeLbl.textContent = 'إكمال التسجيل وبدء الاختبار';
+    authMsg.style.display = 'none'; authMsg.textContent = '';
+    googleBtn.disabled = false;
+  }
+  function setAuthMsg(t, ok) {
+    authMsg.className = 'dex-mphonemsg' + (t ? (ok ? ' dex-ok' : ' dex-err') : '');
+    authMsg.textContent = t || ''; authMsg.style.display = t ? 'block' : 'none';
+  }
+  function setPhoneMsg(t, ok) {
+    phoneMsg.className = 'dex-mphonemsg' + (t ? (ok ? ' dex-ok' : ' dex-err') : '');
+    phoneMsg.textContent = t || '';
+  }
+
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+  modalClose.addEventListener('click', closeModal);
+
+  googleBtn.addEventListener('click', function () {
+    googleBtn.disabled = true; setAuthMsg('', false);
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email'); provider.setCustomParameters({ prompt: 'select_account' });
+    auth.signInWithPopup(provider)
+      .then(function (r) {
+        currentUser = r.user;
+        return db.ref('users/' + r.user.uid).once('value').then(function (snap) {
+          googleBtn.disabled = false;
+          if (snap.exists()) { showWelcomeBack(r.user, snap.val().name || r.user.displayName || 'مستخدم'); }
+          else { showModalStep(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
+        });
+      })
+      .catch(function (err) {
+        googleBtn.disabled = false;
+        if (err.code !== 'auth/popup-closed-by-user') setAuthMsg('تعذّر تسجيل الدخول، حاول مرة أخرى', false);
+      });
+  });
+
+  function showWelcomeBack(user, name) {
+    document.getElementById('dex-mwelcome-photo').src = user.photoURL || '';
+    document.getElementById('dex-mwelcome-name').textContent = 'أهلا بعودتك ,' + name + '!';
+    showModalStep(stepWelcome);
+    setTimeout(function(){ closeModal(); startExam(); }, 1800);
+  }
+
+  completeBtn.addEventListener('click', function () {
+    if (!currentUser) return;
+    var phone = (phoneInput.value || '').trim();
+    if (!isValidJoPhone(phone)) { setPhoneMsg('أدخل رقم صحيح مثال: 0791234567 أو 791234567', false); return; }
+    completeBtn.disabled = true; completeLbl.textContent = 'جارٍ الحفظ...'; setPhoneMsg('', false);
+    db.ref('users/' + currentUser.uid).set({
+      name: currentUser.displayName || '', email: currentUser.email || '',
+      phone: normalizePhone(phone), createdAt: new Date().toISOString()
+    }).then(function () {
+      var firstName = (currentUser.displayName || 'بك').split(' ')[0];
+      document.getElementById('dex-success-title').textContent = 'أهلا وسهلا، ' + firstName + '!';
+      document.getElementById('dex-success-sub').textContent = 'تم إنشاء حسابك، سيبدأ الاختبار الآن...';
+      showModalStep(stepSuccess);
+      setTimeout(function(){ closeModal(); startExam(); }, 2000);
+    }).catch(function () {
+      completeBtn.disabled = false; completeLbl.textContent = 'إكمال التسجيل وبدء الاختبار';
+      setPhoneMsg('حدث خطأ، حاول مرة أخرى', false);
+    });
+  });
+
+  function handleStartClick() {
+    if (!currentUser) { openModal(stepAuth); return; }
+    db.ref('users/' + currentUser.uid).once('value')
+      .then(function (snap) {
+        if (snap.exists()) {
+          var name = snap.val().name || currentUser.displayName || 'مستخدم';
+          if (welcomeShownUid !== currentUser.uid) {
+            welcomeShownUid = currentUser.uid;
+            openModal(stepWelcome);
+            showWelcomeBack(currentUser, name);
+          } else { startExam(); }
+        } else { openModal(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
+      })
+      .catch(function () { startExam(); });
   }
 
   /* ——— بدء الامتحان ——— */
@@ -1149,7 +1456,25 @@
     resWrong   = wr;
     resTotal   = queue.length;
     resSkipped = sk;
+    saveExamStats(ok, queue.length, wr <= 9 && ok >= 51);
     showResult();
+  }
+
+  /* ——— حفظ نتائج الاختبار في Firebase ——— */
+  function saveExamStats(ok, total, passed) {
+    if (!currentUser || !db) return;
+    var ref = db.ref('users/' + currentUser.uid + '/stats');
+    ref.once('value').then(function (snap) {
+      var s = snap.val() || { examCount: 0, bestScore: 0, totalCorrect: 0, totalAnswered: 0 };
+      ref.set({
+        examCount:     (s.examCount || 0) + 1,
+        bestScore:     Math.max(s.bestScore || 0, ok),
+        totalCorrect:  (s.totalCorrect || 0) + ok,
+        totalAnswered: (s.totalAnswered || 0) + total,
+        lastExamAt:    new Date().toISOString(),
+        lastPassed:    passed
+      });
+    }).catch(function () {});
   }
 
   /* ——— شاشة النتيجة ——— */
@@ -1177,7 +1502,7 @@
       ? 'أداء ممتاز! أنت مؤهل لاجتياز الفحص النظري الرسمي'
       : (resWrong > 9
         ? 'تم إيقاف الاختبار لتجاوز الحد الأقصى للإجابات الخاطئة'
-        : 'راجع المزيد من الأسئلة وحاول مجدداً');
+        : 'راجع المزيد من الأسئلة وحاول مجددا');
 
     /* دائرة النسبة */
     elResultPct.textContent = pct + '%';
@@ -1200,19 +1525,29 @@
   }
 
   /* ——— ربط الأحداث ——— */
-  elStartBtn.addEventListener('click', startExam);
+  elStartBtn.addEventListener('click', handleStartClick);
   elSkipBtn.addEventListener('click', skipQuestion);
   elConfirmBtn.addEventListener('click', confirmAnswer);
   elMsFinish.addEventListener('click', milestoneFinish);
   elMsContinue.addEventListener('click', milestoneContinue);
-  elRetryBtn.addEventListener('click', function () {
-    showRules();
-  });
+  elRetryBtn.addEventListener('click', function () { showScreen(screenRules); });
 
   /* ——— تشغيل التطبيق ——— */
-  var _dexCached=dexLoadCache();
-  if(_dexCached){allQuestions=_dexCached;showRules();setTimeout(loadData,0);}
-  else{loadData();}
+  function boot() {
+    if (!initFirebase()) { setTimeout(boot, 300); return; }
+    auth.onAuthStateChanged(function (user) { currentUser = user; });
+    var cached = dexLoadCache();
+    if (cached) {
+      allQuestions = cached;
+      refreshStartBtn();
+      setTimeout(loadData, 0);
+    } else {
+      elStartBtn.disabled = true;
+      elStartBtn.querySelector('span').textContent = 'جارٍ تحميل الأسئلة...';
+      loadData();
+    }
+  }
+  boot();
 
 }());
 </script>
