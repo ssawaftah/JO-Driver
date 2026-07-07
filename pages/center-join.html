@@ -161,9 +161,7 @@
 .jf-field-err.show { display: block; }
 </style>
 
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- Firebase محمل من القالب -->
 
 <div class="jf-wrap">
 
@@ -306,15 +304,12 @@
 (function () {
   'use strict';
 
-  /* ——— Firebase ——— */
-  var FB_CONFIG = {
-    apiKey: 'AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ',
-    authDomain: 'driverjo.firebaseapp.com',
-    databaseURL: 'https://driverjo-default-rtdb.firebaseio.com',
-    projectId: 'driverjo'
-  };
-  var app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FB_CONFIG);
-  var db  = firebase.database(app);
+  /* ——— Firebase من JDAuth المشترك ——— */
+  if (typeof JDAuth === 'undefined' || !JDAuth.db) {
+    setTimeout(function(){ location.reload(); }, 500);
+    return;
+  }
+  var db = JDAuth.db;
 
   /* ——— أيام الأسبوع ——— */
   var DAYS = [
