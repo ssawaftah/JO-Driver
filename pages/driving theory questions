@@ -421,14 +421,14 @@
 <!-- ═══════════════════════ HTML ═══════════════════════ -->
 <div id="qax-wrap">
 
-  <!-- LOADING -->
-  <div id="qax-loading">
+  <!-- LOADING (مخفي — يُعرض المحتوى فوراً) -->
+  <div id="qax-loading" class="qax-hide">
     <div class="qax-spin"></div>
     <span class="qax-loading-txt">جارٍ تحميل الأسئلة…</span>
   </div>
 
   <!-- ══ CATEGORIES ══ -->
-  <div id="qax-page-cats" class="qax-hide">
+  <div id="qax-page-cats">
     <div class="qax-ph">
       
     </div>
@@ -599,6 +599,23 @@ var CATS=[
   {name:"الصور المتحركة",             icon:"ph-film-strip"}
 ];
 
+/* ── cache ── */
+var CACHE_KEY='qax_questions_v1';
+var CACHE_TTL=24*60*60*1000; // 24 ساعة
+
+function saveCache(data){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify({ts:Date.now(),data:data}))}catch(e){}
+}
+function loadCache(){
+  try{
+    var raw=localStorage.getItem(CACHE_KEY);
+    if(!raw)return null;
+    var obj=JSON.parse(raw);
+    if(Date.now()-obj.ts>CACHE_TTL){localStorage.removeItem(CACHE_KEY);return null}
+    return obj.data;
+  }catch(e){return null}
+}
+
 /* ── state ── */
 var allQ={},catName=null,qs=[],idx=0,score=0,answered=false;
 
@@ -665,17 +682,50 @@ function initFB(){
   else try{firebase.app()}catch(e){firebase.initializeApp(FB)}
   return firebase.database();
 }
+
+function parseRaw(raw){
+  var result={};
+  Object.values(raw).forEach(function(q){
+    var c=matchCat(q.category||CATS[0].name);
+    if(!result[c])result[c]=[];result[c].push(q);
+  });
+  return result;
+}
+
+function fetchAndRefresh(silent){
+  function tryFetch(){
+    var db=initFB();
+    if(!db){setTimeout(tryFetch,300);return}
+    db.ref('questions').once('value').then(function(snap){
+      var raw=snap.val()||{};
+      var fresh=parseRaw(raw);
+      saveCache(fresh);
+      // تحديث واجهة المستخدم إذا كان المستخدم لا يزال في صفحة الأقسام
+      if(!silent||document.getElementById('qax-page-cats').classList.contains('qax-hide')===false){
+        allQ=fresh;buildCats();
+      }else{
+        allQ=fresh; // تحديث البيانات في الذاكرة فقط
+      }
+    }).catch(function(){/* صامت عند الفشل */});
+  }
+  tryFetch();
+}
+
 function load(){
-  var db=initFB();
-  if(!db){setTimeout(load,300);return}
-  db.ref('questions').once('value').then(function(snap){
-    var raw=snap.val()||{};
-    Object.values(raw).forEach(function(q){
-      var c=matchCat(q.category||CATS[0].name);
-      if(!allQ[c])allQ[c]=[];allQ[c].push(q);
-    });
-    buildCats();qaxGo('cats');
-  }).catch(function(){buildCats();qaxGo('cats')});
+  var cached=loadCache();
+  if(cached){
+    // عرض فوري من الكاش
+    allQ=cached;
+    buildCats();
+    qaxGo('cats');
+    // تحديث صامت في الخلفية
+    fetchAndRefresh(true);
+  }else{
+    // أول زيارة: إخفاء شاشة التحميل وعرض الأقسام فارغة ثم التحديث
+    buildCats();
+    qaxGo('cats');
+    fetchAndRefresh(false);
+  }
 }
 
 /* ── build cats ── */
