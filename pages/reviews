@@ -1,0 +1,577 @@
+<style>
+  #rv-page {
+    font-family: inherit;
+    direction: rtl;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    box-sizing: border-box;
+    line-height: 1.4;
+  }
+  #rv-page *,
+  #rv-page *::before,
+  #rv-page *::after {
+    box-sizing: border-box;
+    line-height: inherit;
+  }
+  #rv-page svg {
+    width: auto;
+    height: auto;
+    display: block;
+  }
+  #rv-page .rv-body {
+    flex: 1;
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  #rv-page .rv-info {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px 18px;
+    border: 1.5px solid #e5e7eb;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  #rv-page .rv-info__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    background: #f59e0b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  #rv-page .rv-info__title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+  }
+  #rv-page .rv-info__desc {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  #rv-page .rv-form {
+    background: #fff;
+    border: 1.5px solid #f0f1f3;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  #rv-page .rv-form__title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  #rv-page .rv-user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  #rv-page .rv-user-chip__photo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    object-fit: cover;
+  }
+  #rv-page .rv-user-chip__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  #rv-page .rv-user-chip__info span {
+    font-size: 13px;
+    font-weight: 800;
+    color: #111827;
+  }
+  #rv-page .rv-user-chip__info button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 11px;
+    color: #9ca3af;
+    cursor: pointer;
+    text-align: right;
+    width: fit-content;
+  }
+  #rv-page .rv-user-chip__info button:hover {
+    color: #dc2626;
+    text-decoration: underline;
+  }
+  #rv-page .rv-stars {
+    margin-bottom: 12px;
+    display: flex;
+    gap: 6px;
+    direction: ltr;
+    justify-content: center;
+  }
+  #rv-page .rv-stars button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    font-family: inherit;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #rv-page input[type="text"],
+  #rv-page textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+    font-size: 14px;
+    font-family: inherit;
+    color: #111827;
+    outline: none;
+    resize: vertical;
+    margin-bottom: 12px;
+  }
+  #rv-page label.rv-anon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 12px;
+  }
+  #rv-page label.rv-anon input {
+    width: 18px;
+    height: 18px;
+    accent-color: #f59e0b;
+  }
+  #rv-page .rv-submit {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  #rv-page .rv-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  #rv-page .rv-msg {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+  #rv-page .rv-msg.success {
+    color: #16a34a;
+    background: #dcfce7;
+  }
+  #rv-page .rv-msg.error {
+    color: #dc2626;
+    background: #fee2e2;
+  }
+  #rv-page .rv-list-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #9ca3af;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #rv-page .rv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #rv-page .rv-card {
+    background: #fff;
+    border: 1.5px solid #f0f1f3;
+    border-radius: 14px;
+    padding: 14px;
+  }
+  #rv-page .rv-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  #rv-page .rv-card__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #rv-page .rv-card__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  #rv-page .rv-card__name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #111827;
+  }
+  #rv-page .rv-card__date {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  #rv-page .rv-card__stars {
+    display: flex;
+    gap: 3px;
+    direction: ltr;
+  }
+  #rv-page .rv-card__comment {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.7;
+    margin-top: 4px;
+  }
+  #rv-page .rv-empty,
+  #rv-page .rv-loading {
+    text-align: center;
+    padding: 24px;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+
+</style>
+
+<div id="rv-page">
+  <div class="rv-body">
+    <div class="rv-info">
+      <div class="rv-info__icon"><i class="ph ph-star"></i></div>
+      <div>
+        <div class="rv-info__title">سجل الزوار</div>
+        <div class="rv-info__desc">شاركنا تجربتك وقيّم خدماتنا — رأيك يهمنا</div>
+      </div>
+    </div>
+
+    <div class="rv-form">
+      <div class="rv-form__title">أضف تقييمك</div>
+
+      <div class="rv-user-chip" id="rv-user-chip" style="display: none">
+        <img id="rv-user-photo" class="rv-user-chip__photo" alt="" />
+        <div class="rv-user-chip__info">
+          <span id="rv-user-name"></span>
+          <button type="button" id="rv-signout-btn">تسجيل الخروج</button>
+        </div>
+      </div>
+
+      <div class="rv-stars" id="rv-stars"></div>
+      <textarea id="rv-comment" placeholder="اكتب رأيك هنا..." rows="3"></textarea>
+      <label class="rv-anon">
+        <input type="checkbox" id="rv-anon" />
+        التعليق كمجهول
+      </label>
+      <button class="rv-submit" id="rv-submit">
+        <i class="ph ph-paper-plane-right"></i>
+        <span id="rv-submit-label">نشر الرأي</span>
+      </button>
+      <div id="rv-msg"></div>
+    </div>
+
+    <div class="rv-list-title">آخر التقييمات</div>
+    <div class="rv-list" id="rv-list">
+      <div class="rv-loading">جارٍ التحميل...</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script>
+  (function () {
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+        authDomain: "al3arbicv.firebaseapp.com",
+        databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "al3arbicv",
+      });
+    }
+    var db = firebase.database();
+    var auth = firebase.auth();
+    var currentUser = null;
+
+    var selectedStars = 0;
+    var hoverStars = 0;
+    var saving = false;
+
+    function escapeHtml(s) {
+      var div = document.createElement("div");
+      div.textContent = s == null ? "" : String(s);
+      return div.innerHTML;
+    }
+
+    function starSvg(filled, size) {
+      size = size || 32;
+      return (
+        '<svg width="' +
+        size +
+        '" height="' +
+        size +
+        '" viewBox="0 0 24 24" style="width:' +
+        size +
+        "px;height:" +
+        size +
+        "px;fill:" +
+        (filled ? "#F59E0B" : "none") +
+        ';stroke:#F59E0B;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;display:block" fill="' +
+        (filled ? "#F59E0B" : "none") +
+        '" stroke="#F59E0B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />' +
+        "</svg>"
+      );
+    }
+
+    var starsWrap = document.getElementById("rv-stars");
+    var starButtons = [];
+    function buildStars() {
+      starsWrap.innerHTML = "";
+      starButtons = [];
+      for (var n = 1; n <= 5; n++) {
+        (function (n) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.innerHTML = starSvg(false, 36);
+          btn.addEventListener("click", function () {
+            selectedStars = n;
+            updateStars();
+          });
+          btn.addEventListener("mouseenter", function () {
+            hoverStars = n;
+            updateStars();
+          });
+          btn.addEventListener("mouseleave", function () {
+            hoverStars = 0;
+            updateStars();
+          });
+          starsWrap.appendChild(btn);
+          starButtons.push(btn);
+        })(n);
+      }
+    }
+    function updateStars() {
+      var current = hoverStars || selectedStars;
+      starButtons.forEach(function (btn, idx) {
+        btn.innerHTML = starSvg(idx + 1 <= current, 36);
+      });
+    }
+    buildStars();
+    updateStars();
+
+    var listEl = document.getElementById("rv-list");
+    function renderList(list) {
+      listEl.innerHTML = "";
+      if (!list || list.length === 0) {
+        var empty = document.createElement("div");
+        empty.className = "rv-empty";
+        empty.textContent = "لا توجد تقييمات بعد — كن أول من يشارك رأيه";
+        listEl.appendChild(empty);
+        return;
+      }
+      list.forEach(function (r) {
+        var card = document.createElement("div");
+        card.className = "rv-card";
+
+        var head = document.createElement("div");
+        head.className = "rv-card__head";
+
+        var user = document.createElement("div");
+        user.className = "rv-card__user";
+        var name = r.name || "زائر";
+        user.innerHTML =
+          '<div class="rv-card__avatar">' +
+          escapeHtml(name.charAt(0)) +
+          '</div><div><div class="rv-card__name">' +
+          escapeHtml(name) +
+          '</div><div class="rv-card__date">' +
+          (r.createdAt ? new Date(r.createdAt).toLocaleDateString("ar-JO") : "-") +
+          "</div></div>";
+        head.appendChild(user);
+
+        var starsDiv = document.createElement("div");
+        starsDiv.className = "rv-card__stars";
+        var html = "";
+        for (var i = 0; i < 5; i++) {
+          html += starSvg(i < (r.stars || 0), 16);
+        }
+        starsDiv.innerHTML = html;
+        head.appendChild(starsDiv);
+        card.appendChild(head);
+
+        if (r.comment) {
+          var comment = document.createElement("div");
+          comment.className = "rv-card__comment";
+          comment.textContent = r.comment;
+          card.appendChild(comment);
+        }
+
+        listEl.appendChild(card);
+      });
+    }
+
+    function loadReviews() {
+      db.ref("reviews")
+        .once("value")
+        .then(function (snap) {
+          var val = snap.val() || {};
+          var arr = Object.keys(val).map(function (id) {
+            return Object.assign({ id: id }, val[id]);
+          });
+          arr.sort(function (a, b) {
+            return (b.createdAt || "").localeCompare(a.createdAt || "");
+          });
+          renderList(arr);
+        })
+        .catch(function () {
+          listEl.innerHTML = '<div class="rv-empty">تعذر تحميل التقييمات، حاول لاحقاً</div>';
+        });
+    }
+    loadReviews();
+
+    var commentInput = document.getElementById("rv-comment");
+    var anonInput = document.getElementById("rv-anon");
+    var submitBtn = document.getElementById("rv-submit");
+    var submitLabel = document.getElementById("rv-submit-label");
+    var msgBox = document.getElementById("rv-msg");
+    var msgTimer = null;
+
+    var userChip = document.getElementById("rv-user-chip");
+    var signOutBtn = document.getElementById("rv-signout-btn");
+    var userPhoto = document.getElementById("rv-user-photo");
+    var userNameEl = document.getElementById("rv-user-name");
+
+    function showMsg(text, ok) {
+      msgBox.innerHTML = "";
+      if (!text) return;
+      var box = document.createElement("div");
+      box.className = "rv-msg " + (ok ? "success" : "error");
+      box.textContent = text;
+      msgBox.appendChild(box);
+    }
+
+    function setSaving(v) {
+      saving = v;
+      submitBtn.disabled = v;
+      submitLabel.textContent = v ? "جارٍ النشر..." : "نشر الرأي";
+    }
+
+    function renderAuthState() {
+      if (currentUser) {
+        userChip.style.display = "flex";
+        userNameEl.textContent = currentUser.displayName || currentUser.email || "مستخدم Google";
+        userPhoto.src = currentUser.photoURL || "";
+      } else {
+        userChip.style.display = "none";
+      }
+    }
+
+    auth.onAuthStateChanged(function (user) {
+      currentUser = user;
+      renderAuthState();
+    });
+
+    signOutBtn.addEventListener("click", function () {
+      auth.signOut();
+    });
+
+    function postReview() {
+      var displayName = anonInput.checked ? "مجهول" : currentUser.displayName || "مستخدم Google";
+      var comment = commentInput.value.trim();
+
+      setSaving(true);
+      showMsg("", false);
+
+      db.ref("reviews")
+        .push({
+          name: displayName,
+          stars: selectedStars,
+          comment: comment,
+          createdAt: new Date().toISOString(),
+          uid: currentUser.uid,
+        })
+        .then(function () {
+          selectedStars = 0;
+          hoverStars = 0;
+          updateStars();
+          commentInput.value = "";
+          anonInput.checked = false;
+          setSaving(false);
+          showMsg("شكراً! تم نشر رأيك بنجاح", true);
+          if (msgTimer) clearTimeout(msgTimer);
+          msgTimer = setTimeout(function () {
+            showMsg("", false);
+          }, 3000);
+          loadReviews();
+        })
+        .catch(function () {
+          setSaving(false);
+          showMsg("حدث خطأ أثناء النشر", false);
+        });
+    }
+
+    submitBtn.addEventListener("click", function () {
+      if (saving) return;
+
+      if (selectedStars === 0) {
+        showMsg("اختر تقييماً بالنجوم", false);
+        return;
+      }
+
+      if (!currentUser) {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope("email");
+        provider.setCustomParameters({ prompt: "select_account" });
+        setSaving(true);
+        showMsg("", false);
+        auth
+          .signInWithPopup(provider)
+          .then(function (result) {
+            currentUser = result.user;
+            renderAuthState();
+            setSaving(false);
+            postReview();
+          })
+          .catch(function () {
+            setSaving(false);
+            showMsg("تعذر تسجيل الدخول عبر جوجل، حاول مرة أخرى", false);
+          });
+        return;
+      }
+
+      postReview();
+    });
+  })();
+</script>
