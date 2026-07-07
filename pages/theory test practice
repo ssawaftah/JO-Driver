@@ -823,10 +823,10 @@
 
   /* ——— إعداد Firebase ——— */
   var FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
-    authDomain: "al3arbicv.firebaseapp.com",
-    databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "al3arbicv"
+    apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
+    authDomain: "driverjo.firebaseapp.com",
+    databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
+    projectId: "driverjo"
   };
 
   /* ——— ثوابت الامتحان ——— */
@@ -910,19 +910,27 @@
     return firebase.database();
   }
 
-  /* ——— تحميل الأسئلة ——— */
+  /* ——— كاش محلي ——— */
+  var DEX_CACHE_KEY='dex_questions_v1';
+  var DEX_CACHE_TTL=24*60*60*1000;
+  function dexSaveCache(d){try{localStorage.setItem(DEX_CACHE_KEY,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}}
+  function dexLoadCache(){try{var r=localStorage.getItem(DEX_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>DEX_CACHE_TTL){localStorage.removeItem(DEX_CACHE_KEY);return null}return o.data}catch(e){return null}}
+
+  /* ——— تحميل الأسئلة (تحديث خلفي) ——— */
   function loadData() {
     var db = initFirebase();
     if (!db) { setTimeout(loadData, 300); return; }
     db.ref('questions').once('value')
       .then(function (snap) {
         var raw = snap.val() || {};
-        allQuestions = Object.values(raw).filter(function (q) {
+        var fresh = Object.values(raw).filter(function (q) {
           return q.question && q.options && q.options.length >= 2;
         });
+        dexSaveCache(fresh);
+        allQuestions = fresh;
         showRules();
       })
-      .catch(function () { showRules(); });
+      .catch(function () { if(!allQuestions.length) showRules(); });
   }
 
   /* ——— شاشة القواعد ——— */
@@ -1199,7 +1207,9 @@
   });
 
   /* ——— تشغيل التطبيق ——— */
-  loadData();
+  var _dexCached=dexLoadCache();
+  if(_dexCached){allQuestions=_dexCached;showRules();setTimeout(loadData,0);}
+  else{loadData();}
 
 }());
 </script>
