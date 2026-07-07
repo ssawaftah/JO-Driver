@@ -1,8 +1,4 @@
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
-      <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
-      <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-      <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-      <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<!-- Firebase + Phosphor Icons محملة من القالب -->
 
 <style>
   /* === القاعدة العامة === */
@@ -1017,14 +1013,6 @@
 <script>
 (function () {
 
-  /* ——— إعداد Firebase ——— */
-  var FIREBASE_CONFIG = {
-    apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
-    authDomain: "driverjo.firebaseapp.com",
-    databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-    projectId: "driverjo"
-  };
-
   /* ——— ثوابت الامتحان ——— */
   var EXAM_TOTAL = 60;
   var EXAM_MINS  = 60;
@@ -1085,10 +1073,9 @@
   var elRetryBtn     = document.getElementById('dex-retry-btn');
 
   /* ——— متغيرات Auth والمودال ——— */
-  var currentUser     = null;
-  var welcomeShownUid = null;
-  var db              = null;
-  var auth            = null;
+  var currentUser = null;
+  var db          = null;
+  var auth        = null;
   var overlay         = document.getElementById('dex-overlay');
   var modalClose      = document.getElementById('dex-modal-close');
   var stepAuth        = document.getElementById('dex-mstep-auth');
@@ -1114,11 +1101,9 @@
 
   /* ——— تهيئة Firebase ——— */
   function initFirebase() {
-    if (!window.firebase) return false;
-    var app;
-    try { app = firebase.app(); } catch(e) { app = firebase.initializeApp(FIREBASE_CONFIG); }
-    db   = firebase.database(app);
-    auth = firebase.auth(app);
+    if (!window.JDAuth) return false;
+    db   = JDAuth.db;
+    auth = JDAuth.auth;
     return true;
   }
 
@@ -1240,19 +1225,22 @@
   });
 
   function handleStartClick() {
-    if (!currentUser) { openModal(stepAuth); return; }
-    db.ref('users/' + currentUser.uid).once('value')
-      .then(function (snap) {
-        if (snap.exists()) {
-          var name = snap.val().name || currentUser.displayName || 'مستخدم';
-          if (welcomeShownUid !== currentUser.uid) {
-            welcomeShownUid = currentUser.uid;
-            openModal(stepWelcome);
-            showWelcomeBack(currentUser, name);
-          } else { startExam(); }
-        } else { openModal(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
-      })
-      .catch(function () { startExam(); });
+    JDAuth.onReady(function(user) {
+      if (user) currentUser = user;
+      if (!currentUser) { openModal(stepAuth); return; }
+      db.ref('users/' + currentUser.uid).once('value')
+        .then(function (snap) {
+          if (snap.exists()) {
+            var name = snap.val().name || currentUser.displayName || 'مستخدم';
+            if (!JDAuth.wasWelcomeShown(currentUser.uid)) {
+              JDAuth.markWelcomeShown(currentUser.uid);
+              openModal(stepWelcome);
+              showWelcomeBack(currentUser, name);
+            } else { startExam(); }
+          } else { openModal(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
+        })
+        .catch(function () { startExam(); });
+    });
   }
 
   /* ——— بدء الامتحان ——— */
@@ -1535,6 +1523,7 @@
   /* ——— تشغيل التطبيق ——— */
   function boot() {
     if (!initFirebase()) { setTimeout(boot, 300); return; }
+    JDAuth.onReady(function(user) { currentUser = user; });
     auth.onAuthStateChanged(function (user) { currentUser = user; });
     var cached = dexLoadCache();
     if (cached) {
