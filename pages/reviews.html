@@ -884,40 +884,19 @@
 (function () {
   'use strict';
 
-  var FB_VER = '9.23.0';
-  function loadScript(src, cb) {
-    if (document.querySelector('script[src="' + src + '"]')) { cb && cb(); return; }
-    var s = document.createElement('script');
-    s.src = src; s.onload = cb || null;
-    document.head.appendChild(s);
-  }
-
   function rvxMain() {
 
-  /* ── Firebase ── */
-  var FB_CFG = {
-    apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
-    authDomain: "driverjo.firebaseapp.com",
-    databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-    projectId: "driverjo",
-    storageBucket: "driverjo.firebasestorage.app",
-    messagingSenderId: "716209135475",
-    appId: "1:716209135475:web:0a8188a18017c5880aaf06"
-  };
-  var fbApp;
-  try { fbApp = firebase.app('rvx'); }
-  catch (e) { fbApp = firebase.initializeApp(FB_CFG, 'rvx'); }
-  var db   = fbApp.database();
-  var auth = fbApp.auth();
+  /* ── Firebase (من JDAuth المشترك) ── */
+  var db   = JDAuth.db;
+  var auth = JDAuth.auth;
 
   /* ── state ── */
-  var currentUser       = null;
-  var selectedStars     = 0;
-  var hoverStars        = 0;
-  var saving            = false;
-  var allReviews        = [];
-  var pendingPostCb     = null;   /* callback to call after modal auth flow */
-  var welcomeShownUid   = null;   /* avoid repeating welcome per session */
+  var currentUser   = null;
+  var selectedStars = 0;
+  var hoverStars    = 0;
+  var saving        = false;
+  var allReviews    = [];
+  var pendingPostCb = null;   /* callback to call after modal auth flow */
 
   /* ── star labels ── */
   var HINTS = { 1: 'سيء', 2: 'مقبول', 3: 'جيد', 4: 'جيد جدا', 5: 'ممتاز' };
@@ -997,7 +976,7 @@
       avg = (sum / validCount).toFixed(1);
     }
 
-    document.getElementById('rvx-avg').textContent = total ? avg : '—';
+    document.getElementById('rvx-avg').textContent = total ? avg : '-';
     document.getElementById('rvx-total-label').textContent = total
       ? total + ' تقييم'
       : 'لا يوجد تقييمات بعد';
@@ -1185,8 +1164,7 @@
     }
   });
   document.getElementById('rvx-signout').addEventListener('click', function () {
-    auth.signOut();
-    welcomeShownUid = null;
+    JDAuth.signOut();
   });
 
   /* ══════════════════════════════════════════
@@ -1422,8 +1400,8 @@
             /* returning user */
             var data = snap.val();
             var name = data.name || currentUser.displayName || 'مستخدم';
-            if (welcomeShownUid !== currentUser.uid) {
-              welcomeShownUid = currentUser.uid;
+            if (!JDAuth.wasWelcomeShown(currentUser.uid)) {
+              JDAuth.markWelcomeShown(currentUser.uid);
               pendingPostCb = postReview;
               openModal(stepWelcome);
               showWelcomeStep(currentUser, name);
@@ -1443,26 +1421,21 @@
         });
     }
 
-    if (!currentUser) {
-      /* not signed in → open auth step */
-      pendingPostCb = postReview;
-      openModal(stepAuth);
-    } else {
-      /* signed in → check if registered */
-      checkAndAct();
-    }
+    JDAuth.onReady(function(user) {
+      if (user) currentUser = user;
+      if (!currentUser) {
+        pendingPostCb = postReview;
+        openModal(stepAuth);
+      } else {
+        checkAndAct();
+      }
+    });
   });
 
   } /* end rvxMain */
 
-  var BASE = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
-  loadScript(BASE + 'firebase-app-compat.js', function () {
-    loadScript(BASE + 'firebase-database-compat.js', function () {
-      loadScript(BASE + 'firebase-auth-compat.js', function () {
-        rvxMain();
-      });
-    });
-  });
+  /* Firebase محمل من القالب — نشغّل مباشرة */
+  rvxMain();
 
 })();
 </script>
