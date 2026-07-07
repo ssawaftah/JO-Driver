@@ -260,8 +260,16 @@ function spin(txt){
   return '<div class="qsr-spin"><div class="qsr-spin-ring"></div>'
         +'<span class="qsr-spin-txt">'+(txt||'جارٍ التحميل…')+'</span></div>';
 }
-revRoot.innerHTML =spin('جارٍ تحميل الأسئلة…');
-quizRoot.innerHTML=spin('جارٍ تحميل الأسئلة…');
+/* ── كاش محلي ── */
+var QSR_CACHE_KEY='qsr_'+CAT_NAME+'_v1';
+var QSR_CACHE_TTL=24*60*60*1000;
+function qsrSaveCache(d){try{localStorage.setItem(QSR_CACHE_KEY,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}}
+function qsrLoadCache(){try{var r=localStorage.getItem(QSR_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>QSR_CACHE_TTL){localStorage.removeItem(QSR_CACHE_KEY);return null}return o.data}catch(e){return null}}
+
+/* ── عرض فوري من الكاش إن وُجد ── */
+var _qsrCached=qsrLoadCache();
+if(_qsrCached){allQ=_qsrCached;renderReview();startQuiz();}
+else{revRoot.innerHTML=spin('جارٍ تحميل الأسئلة…');quizRoot.innerHTML=spin('جارٍ تحميل الأسئلة…');}
 
 /* ── normalize category ── */
 function norm(s){
@@ -460,15 +468,19 @@ function qsrInit(){
   }catch(e){}
   firebase.database().ref('questions').once('value').then(function(snap){
     var raw=snap.val()||{};
-    allQ=[];
+    var fresh=[];
     Object.values(raw).forEach(function(q){
-      if(norm(q.category||'')=== norm(CAT_NAME))allQ.push(q);
+      if(norm(q.category||'')=== norm(CAT_NAME))fresh.push(q);
     });
+    qsrSaveCache(fresh);
+    allQ=fresh;
     renderReview();
     startQuiz();
   }).catch(function(e){
-    revRoot.innerHTML='<div class="qsr-spin"><span class="qsr-spin-txt">تعذّر تحميل الأسئلة</span></div>';
-    quizRoot.innerHTML=revRoot.innerHTML;
+    if(!allQ.length){
+      revRoot.innerHTML='<div class="qsr-spin"><span class="qsr-spin-txt">تعذّر تحميل الأسئلة</span></div>';
+      quizRoot.innerHTML=revRoot.innerHTML;
+    }
   });
 }
 
