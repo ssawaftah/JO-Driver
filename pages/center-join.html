@@ -69,28 +69,19 @@
 }
 .jf-wa-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 
-/* ——— AREAS ——— */
-.jf-areas-box {
-  border: 1.5px solid #e2e8f0; border-radius: 10px;
-  padding: 14px; min-height: 60px; background: #f8fafc;
+/* ——— MULTI SELECT ——— */
+.jf-select-multi {
+  height: auto; min-height: 130px; padding: 6px 0;
+  overflow-y: auto; cursor: pointer;
 }
-.jf-areas-loading { color: #64748b; font-size: 0.88rem; text-align: center; padding: 10px 0; }
-.jf-areas-grid {
-  display: flex; flex-wrap: wrap; gap: 8px;
+.jf-select-multi option {
+  padding: 9px 14px; font-size: 0.93rem; cursor: pointer;
 }
-.jf-area-chip {
-  display: flex; align-items: center; gap: 6px;
-  background: #fff; border: 1.5px solid #e2e8f0;
-  border-radius: 20px; padding: 5px 12px; cursor: pointer;
-  font-size: 0.875rem; color: #374151; transition: all .15s; user-select: none;
+.jf-select-multi option:checked {
+  background: #2563eb; color: #fff;
 }
-.jf-area-chip input[type=checkbox] { display: none; }
-.jf-area-chip.checked {
-  background: #eff6ff; border-color: #2563eb; color: #2563eb; font-weight: 600;
-}
-.jf-area-chip.checked::before {
-  content: '\2713'; font-weight: 700; font-size: 0.8rem;
-}
+
+/* ——— ADD AREA ——— */
 .jf-add-area {
   display: flex; gap: 8px; margin-top: 12px;
 }
@@ -252,20 +243,16 @@
         </div>
 
         <div class="jf-field" id="jfAreasField" style="display:none">
-          <label class="jf-label">المناطق التي يخدمها المركز</label>
-          <div class="jf-areas-box">
-            <div class="jf-areas-loading" id="jfAreasLoading">
-              <i class="ph ph-circle-notch"></i> جارٍ تحميل المناطق...
-            </div>
-            <div class="jf-areas-grid" id="jfAreasGrid" style="display:none"></div>
-          </div>
+          <label class="jf-label" for="jfAreaSelect">المناطق التي يخدمها المركز</label>
+          <select class="jf-select jf-select-multi" id="jfAreaSelect" multiple disabled>
+          </select>
+          <div class="jf-hint" id="jfAreasHint" style="display:none">اضغط على المنطقة لتحديدها، واضغط مرة أخرى لإلغاء التحديد. يمكنك اختيار أكثر من منطقة.</div>
           <div class="jf-add-area" id="jfAddAreaRow" style="display:none">
-            <input class="jf-input" type="text" id="jfNewArea" placeholder="أضف منطقة غير موجودة...">
+            <input class="jf-input" type="text" id="jfNewArea" placeholder="منطقتك غير موجودة؟ أضفها هنا...">
             <button type="button" class="jf-add-area-btn" id="jfAddAreaBtn">
               <i class="ph ph-plus"></i> إضافة
             </button>
           </div>
-          <div class="jf-hint" id="jfAreasHint" style="display:none">اختر كل المناطق التي يغطيها مركزك. لا تجد منطقتك؟ أضفها بالحقل أدناه.</div>
         </div>
 
       </div>
@@ -344,25 +331,22 @@
   var GOV_ORDER = ['عمان','اربد','الزرقاء','البلقاء','المفرق','الكرك','جرش','مادبا','عجلون','العقبة','معان','الطفيلة'];
 
   /* ——— حالة ——— */
-  var govsMap   = {};   // { key: { id, name } }
-  var areasMap  = {};   // { areaKey: { id, name } }
-  var selectedAreas = {};  // { areaKey: name }
-  var currentGovId  = null;
+  var govsMap      = {};   // { key: { id, name } }
+  var areasMap     = {};   // { areaKey: { id, name } }
+  var currentGovId = null;
 
   /* ——— مراجع DOM ——— */
-  var elForm        = document.getElementById('jfForm');
-  var elSuccess     = document.getElementById('jfSuccess');
-  var elGov         = document.getElementById('jfGov');
-  var elAreasField  = document.getElementById('jfAreasField');
-  var elAreasLoading= document.getElementById('jfAreasLoading');
-  var elAreasGrid   = document.getElementById('jfAreasGrid');
-  var elAddAreaRow  = document.getElementById('jfAddAreaRow');
-  var elAreasHint   = document.getElementById('jfAreasHint');
-  var elNewArea     = document.getElementById('jfNewArea');
-  var elAddAreaBtn  = document.getElementById('jfAddAreaBtn');
-  var elWaCopy      = document.getElementById('jfWaCopy');
-  var elSchedule    = document.getElementById('jfSchedule');
-  var elSubmitBtn   = document.getElementById('jfSubmitBtn');
+  var elForm       = document.getElementById('jfForm');
+  var elSuccess    = document.getElementById('jfSuccess');
+  var elGov        = document.getElementById('jfGov');
+  var elAreasField = document.getElementById('jfAreasField');
+  var elAreaSelect = document.getElementById('jfAreaSelect');
+  var elAddAreaRow = document.getElementById('jfAddAreaRow');
+  var elNewArea    = document.getElementById('jfNewArea');
+  var elAddAreaBtn = document.getElementById('jfAddAreaBtn');
+  var elWaCopy     = document.getElementById('jfWaCopy');
+  var elSchedule   = document.getElementById('jfSchedule');
+  var elSubmitBtn  = document.getElementById('jfSubmitBtn');
 
   /* ══════════════════════════════════════
      1. بناء قائمة الساعات
@@ -477,55 +461,36 @@
   ══════════════════════════════════════ */
   function loadAreas(govId) {
     currentGovId = govId;
-    selectedAreas = {};
     areasMap = {};
-    elAreasGrid.innerHTML = '';
-    elAreasGrid.style.display = 'none';
+    elAreaSelect.innerHTML = '<option value="">— جارٍ تحميل المناطق... —</option>';
+    elAreaSelect.disabled = true;
     elAddAreaRow.style.display = 'none';
-    elAreasHint.style.display = 'none';
-    elAreasLoading.style.display = 'block';
     elAreasField.style.display = 'block';
 
-    db.ref('areas/' + govId).once('value').then(function (snap) {
-      elAreasLoading.style.display = 'none';
+    db.ref('areas').orderByChild('governorateId').equalTo(govId).once('value').then(function (snap) {
+      elAreaSelect.innerHTML = '<option value="">— اختر المنطقة —</option>';
       var raw = snap.val() || {};
       Object.keys(raw).forEach(function (key) {
         var val  = raw[key];
         var name = (typeof val === 'object' && val !== null) ? (val.name || val.nameAr || key) : String(val);
         areasMap[key] = { id: key, name: name };
-        addAreaChip(key, name);
+        addAreaOption(key, name);
       });
-      elAreasGrid.style.display = 'flex';
+      elAreaSelect.disabled = false;
       elAddAreaRow.style.display = 'flex';
-      elAreasHint.style.display = 'block';
+      document.getElementById('jfAreasHint').style.display = 'block';
     }).catch(function () {
-      elAreasLoading.style.display = 'none';
-      elAreasGrid.style.display = 'flex';
+      elAreaSelect.disabled = false;
       elAddAreaRow.style.display = 'flex';
-      elAreasHint.style.display = 'block';
+      document.getElementById('jfAreasHint').style.display = 'block';
     });
   }
 
-  function addAreaChip(key, name) {
-    var chip = document.createElement('label');
-    chip.className = 'jf-area-chip';
-    chip.title = name;
-    var cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = key;
-    cb.addEventListener('change', function () {
-      if (this.checked) {
-        selectedAreas[key] = name;
-        chip.classList.add('checked');
-      } else {
-        delete selectedAreas[key];
-        chip.classList.remove('checked');
-      }
-    });
-    chip.appendChild(cb);
-    chip.appendChild(document.createTextNode(name));
-    elAreasGrid.appendChild(chip);
-    return chip;
+  function addAreaOption(key, name) {
+    var opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = name;
+    elAreaSelect.appendChild(opt);
   }
 
   /* ——— إضافة منطقة جديدة ——— */
@@ -537,16 +502,12 @@
     elAddAreaBtn.disabled = true;
     elAddAreaBtn.innerHTML = '<i class="ph ph-circle-notch"></i>';
 
-    var newRef = db.ref('areas/' + currentGovId).push();
-    newRef.set({ name: name }).then(function () {
+    var newRef = db.ref('areas').push();
+    newRef.set({ name: name, governorateId: currentGovId }).then(function () {
       var key = newRef.key;
       areasMap[key] = { id: key, name: name };
-      var chip = addAreaChip(key, name);
-      // auto-select the new area
-      var cb = chip.querySelector('input[type=checkbox]');
-      cb.checked = true;
-      selectedAreas[key] = name;
-      chip.classList.add('checked');
+      addAreaOption(key, name);
+      elAreaSelect.value = key;
       elNewArea.value = '';
       elAddAreaBtn.disabled = false;
       elAddAreaBtn.innerHTML = '<i class="ph ph-plus"></i> إضافة';
@@ -573,7 +534,6 @@
     var govId = this.value;
     if (!govId) {
       elAreasField.style.display = 'none';
-      selectedAreas = {};
       return;
     }
     loadAreas(govId);
@@ -667,7 +627,7 @@
       phone:       document.getElementById('jfPhone').value.trim(),
       whatsapp:    document.getElementById('jfWhatsapp').value.trim() || null,
       governorate: { id: govId, name: govName },
-      areas:       selectedAreas,
+      areas:       (function() { var res = {}; Array.prototype.forEach.call(elAreaSelect.selectedOptions, function(opt) { res[opt.value] = areasMap[opt.value] ? areasMap[opt.value].name : opt.text; }); return res; }()),
       googleRating: parseFloat(document.getElementById('jfRating').value) || null,
       reviewCount:  parseInt(document.getElementById('jfReviewCount').value, 10) || null,
       schedule:    readSchedule(),
