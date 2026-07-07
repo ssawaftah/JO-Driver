@@ -205,6 +205,91 @@
 }
 .rvx-chip__out:hover { border-color: var(--err); color: var(--err); }
 
+/* ── welcome banner ── */
+.rvx-welcome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: var(--ok-lt);
+  border: 1.5px solid var(--ok-bd);
+  border-radius: 12px;
+  animation: rvx-in .3s ease;
+}
+.rvx-welcome__icon {
+  font-size: 22px;
+  color: var(--ok);
+  flex-shrink: 0;
+}
+.rvx-welcome__text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ok);
+  flex: 1;
+}
+
+/* ── phone registration step ── */
+.rvx-phone-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--acc-lt);
+  border: 1.5px solid var(--acc-bd);
+  border-radius: 14px;
+  animation: rvx-in .3s ease;
+}
+.rvx-phone-step__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--acc);
+}
+.rvx-phone-step__sub {
+  font-size: 12px;
+  color: var(--txt2);
+  margin-top: -6px;
+}
+.rvx-phone-row {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--acc-bd);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+  transition: box-shadow .15s, border-color .15s;
+}
+.rvx-phone-row:focus-within {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+}
+.rvx-phone-prefix {
+  padding: 0 12px;
+  background: var(--bg);
+  border-left: 1.5px solid var(--acc-bd);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  direction: ltr;
+  user-select: none;
+}
+.rvx-phone-input {
+  flex: 1;
+  padding: 11px 12px;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--txt);
+  background: var(--card);
+  direction: ltr;
+  text-align: left;
+  letter-spacing: .5px;
+}
+.rvx-phone-input::placeholder { color: #9CA3AF; }
+
 /* ── star picker ── */
 .rvx-star-row {
   display: flex;
@@ -485,6 +570,28 @@
           <button class="rvx-chip__out" id="rvx-signout">خروج</button>
         </div>
 
+        <!-- welcome banner (shown for returning users) -->
+        <div class="rvx-welcome" id="rvx-welcome" style="display:none">
+          <span class="rvx-welcome__icon"><i class="ph ph-hand-waving"></i></span>
+          <span class="rvx-welcome__text" id="rvx-welcome-text"></span>
+        </div>
+
+        <!-- phone registration step (shown for new users) -->
+        <div class="rvx-phone-step" id="rvx-phone-step" style="display:none">
+          <div class="rvx-phone-step__title"><i class="ph ph-user-circle-plus"></i> أكمل تسجيلك</div>
+          <div class="rvx-phone-step__sub">أدخل رقم هاتفك الأردني لإتمام إضافة تقييمك</div>
+          <div class="rvx-phone-row">
+            <span class="rvx-phone-prefix">🇯🇴</span>
+            <input type="tel" class="rvx-phone-input" id="rvx-phone"
+              placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" />
+          </div>
+          <div class="rvx-msg" id="rvx-phone-msg"></div>
+          <button class="rvx-submit" id="rvx-phone-confirm" type="button">
+            <i class="ph ph-check-circle"></i>
+            <span>تأكيد ونشر التقييم</span>
+          </button>
+        </div>
+
         <!-- stars -->
         <div class="rvx-star-row">
           <div class="rvx-star-label">قيّم تجربتك</div>
@@ -546,7 +653,10 @@
     apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
     authDomain: "driverjo.firebaseapp.com",
     databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-    projectId: "driverjo"
+    projectId: "driverjo",
+    storageBucket: "driverjo.firebasestorage.app",
+    messagingSenderId: "716209135475",
+    appId: "1:716209135475:web:0a8188a18017c5880aaf06"
   };
   var fbApp;
   try { fbApp = firebase.app('rvx'); }
@@ -555,11 +665,13 @@
   var auth = fbApp.auth();
 
   /* ── state ── */
-  var currentUser   = null;
-  var selectedStars = 0;
-  var hoverStars    = 0;
-  var saving        = false;
-  var allReviews    = [];
+  var currentUser    = null;
+  var selectedStars  = 0;
+  var hoverStars     = 0;
+  var saving         = false;
+  var allReviews     = [];
+  var checking       = false;   /* lock during auth/registration pre-check */
+  var welcomeShownUid = null;   /* avoid repeating welcome banner per session */
 
   /* ── star labels ── */
   var HINTS = { 1: 'سيء', 2: 'مقبول', 3: 'جيد', 4: 'جيد جدا', 5: 'ممتاز' };
@@ -582,6 +694,11 @@
     var s = size || 20;
     var fc = filled ? '#F59E0B' : 'none';
     return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" style="display:block;flex-shrink:0" fill="none" stroke="none"><polygon fill="' + fc + '" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  }
+
+  /* ── Jordanian phone validation: 07[6-9]XXXXXXX (10 digits) ── */
+  function isValidJoPhone(val) {
+    return /^07[6-9]\d{7}$/.test(val.trim());
   }
 
   /* ══ STAR PICKER ══ */
@@ -628,19 +745,16 @@
       avg = (sum / validCount).toFixed(1);
     }
 
-    /* avg number */
     document.getElementById('rvx-avg').textContent = total ? avg : '—';
     document.getElementById('rvx-total-label').textContent = total
       ? total + ' تقييم'
       : 'لا يوجد تقييمات بعد';
 
-    /* avg stars row */
     var avgStarsEl = document.getElementById('rvx-avg-stars');
     avgStarsEl.innerHTML = '';
     var filled = Math.round(parseFloat(avg) || 0);
     for (var i = 0; i < 5; i++) avgStarsEl.innerHTML += starSvg(i < filled, 14);
 
-    /* bars */
     var barsEl = document.getElementById('rvx-bars');
     barsEl.innerHTML = '';
     for (var star = 5; star >= 1; star--) {
@@ -652,7 +766,6 @@
         '<div class="rvx-bar-track"><div class="rvx-bar-fill rvx-bar-' + star + '" style="width:0%"></div></div>' +
         '<span class="rvx-bar-pct">' + pct + '%</span>';
       barsEl.appendChild(row);
-      /* animate fill after paint */
       (function (el, p) {
         setTimeout(function () { el.style.width = p + '%'; }, 60);
       })(row.querySelector('.rvx-bar-fill'), pct);
@@ -714,7 +827,6 @@
     });
   }
 
-  /* ── load ── */
   function loadReviews() {
     db.ref('reviews').once('value')
       .then(function (snap) {
@@ -735,7 +847,7 @@
   }
   loadReviews();
 
-  /* ══ AUTH ══ */
+  /* ══ AUTH STATE ══ */
   auth.onAuthStateChanged(function (user) {
     currentUser = user;
     var chip    = document.getElementById('rvx-chip');
@@ -747,10 +859,129 @@
       photoEl.src        = user.photoURL || '';
     } else {
       chip.style.display = 'none';
+      hidePhoneStep();
+      hideWelcome();
     }
   });
   document.getElementById('rvx-signout').addEventListener('click', function () {
     auth.signOut();
+  });
+
+  /* ══ USER REGISTRATION CHECK ══ */
+
+  /**
+   * After Google sign-in: check if user exists in /users/{uid}.
+   * If yes  → show welcome banner, then call onDone()
+   * If no   → show phone registration step
+   *           onDone() will be called after phone is saved
+   */
+  function checkAndRegister(user, onDone) {
+    checking = true;
+    submitBtn.disabled = true;
+
+    db.ref('users/' + user.uid).once('value')
+      .then(function (snap) {
+        checking = false;
+        if (snap.exists()) {
+          /* returning user */
+          var data = snap.val();
+          var name = data.name || user.displayName || 'مستخدم';
+          if (welcomeShownUid !== user.uid) {
+            welcomeShownUid = user.uid;
+            showWelcome('أهلاً بعودتك، ' + name + '!');
+            setTimeout(function () {
+              hideWelcome();
+              submitBtn.disabled = false;
+              onDone();
+            }, 1800);
+          } else {
+            submitBtn.disabled = false;
+            onDone();
+          }
+        } else {
+          /* new user – ask for phone */
+          showPhoneStep(user, onDone);
+        }
+      })
+      .catch(function () {
+        /* fail-closed: do NOT call onDone(); show error instead */
+        checking = false;
+        submitBtn.disabled = false;
+        showMsg('تعذّر التحقق من بياناتك، حاول مرة أخرى', false);
+      });
+  }
+
+  /* ── welcome banner ── */
+  function showWelcome(text) {
+    var el = document.getElementById('rvx-welcome');
+    document.getElementById('rvx-welcome-text').textContent = text;
+    el.style.display = 'flex';
+  }
+  function hideWelcome() {
+    document.getElementById('rvx-welcome').style.display = 'none';
+  }
+
+  /* ── phone step ── */
+  var pendingPostAfterPhone = null;
+
+  function showPhoneStep(user, onDone) {
+    pendingPostAfterPhone = onDone;
+    var step = document.getElementById('rvx-phone-step');
+    step.style.display = 'flex';
+    document.getElementById('rvx-phone').value = '';
+    showPhoneMsg('', false);
+    setSaving(false);
+    /* disable the main submit while phone step is active */
+    document.getElementById('rvx-submit').disabled = true;
+  }
+
+  function hidePhoneStep() {
+    document.getElementById('rvx-phone-step').style.display = 'none';
+    document.getElementById('rvx-submit').disabled = false;
+    pendingPostAfterPhone = null;
+  }
+
+  function showPhoneMsg(text, ok) {
+    var el = document.getElementById('rvx-phone-msg');
+    el.className = 'rvx-msg' + (text ? (ok ? ' rvx-ok' : ' rvx-err') : '');
+    el.textContent = text || '';
+  }
+
+  document.getElementById('rvx-phone-confirm').addEventListener('click', function () {
+    if (!currentUser) return;
+    var phone = (document.getElementById('rvx-phone').value || '').trim();
+    if (!isValidJoPhone(phone)) {
+      showPhoneMsg('أدخل رقم هاتف أردني صحيح مثال: 0791234567', false);
+      return;
+    }
+
+    var btn = document.getElementById('rvx-phone-confirm');
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'جارٍ الحفظ...';
+    showPhoneMsg('', false);
+
+    /* save new user to /users/{uid} */
+    var userData = {
+      name:      currentUser.displayName || '',
+      email:     currentUser.email || '',
+      phone:     phone,
+      createdAt: new Date().toISOString()
+    };
+
+    db.ref('users/' + currentUser.uid).set(userData)
+      .then(function () {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'تأكيد ونشر التقييم';
+        hidePhoneStep();
+        var cb = pendingPostAfterPhone;
+        pendingPostAfterPhone = null;
+        if (cb) cb();
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'تأكيد ونشر التقييم';
+        showPhoneMsg('حدث خطأ، حاول مرة أخرى', false);
+      });
   });
 
   /* ══ SUBMIT ══ */
@@ -800,7 +1031,7 @@
   }
 
   submitBtn.addEventListener('click', function () {
-    if (saving) return;
+    if (saving || checking) return;
 
     if (selectedStars === 0) {
       showMsg('اختر تقييما بالنجوم أولا', false);
@@ -808,6 +1039,7 @@
     }
 
     if (!currentUser) {
+      /* sign in first, then check registration */
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
@@ -817,7 +1049,7 @@
         .then(function (result) {
           currentUser = result.user;
           setSaving(false);
-          postReview();
+          checkAndRegister(currentUser, postReview);
         })
         .catch(function () {
           setSaving(false);
@@ -826,7 +1058,8 @@
       return;
     }
 
-    postReview();
+    /* already signed in: check registration then post */
+    checkAndRegister(currentUser, postReview);
   });
 
   } /* end rvxMain */
