@@ -1,0 +1,344 @@
+<style>
+/* ══ prefix: pp- ══════════════════════════════════════════════════ */
+#pp-wrap {
+  --acc: #2563EB;
+  --acc-lt: #EFF6FF;
+  --acc-bd: #BFDBFE;
+  --txt: #111827;
+  --txt2: #6B7280;
+  --bdr: #E5E7EB;
+  --bg: #F9FAFB;
+  --card: #FFFFFF;
+  font-family: inherit;
+  direction: rtl;
+  box-sizing: border-box;
+}
+#pp-wrap *, #pp-wrap *::before, #pp-wrap *::after { box-sizing: border-box; }
+
+@keyframes pp-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+
+.pp-body {
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 4px 0 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: pp-in .35s ease;
+}
+
+/* ── hero ── */
+.pp-hero {
+  background: var(--acc);
+  border-radius: 20px;
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #fff;
+}
+.pp-hero__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.pp-hero__title { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+.pp-hero__sub   { font-size: 13px; opacity: .82; font-weight: 500; }
+
+/* ── section card ── */
+.pp-card {
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.pp-card__head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bdr);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+}
+.pp-card__ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--acc-lt);
+  color: var(--acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.pp-card__title { font-size: 14px; font-weight: 800; color: var(--txt); }
+.pp-card__body  { padding: 18px 20px; }
+
+/* ── text elements ── */
+.pp-p {
+  font-size: 14px;
+  color: var(--txt2);
+  line-height: 1.85;
+  margin: 0 0 12px;
+}
+.pp-p:last-child { margin-bottom: 0; }
+.pp-p b { color: var(--txt); }
+
+.pp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pp-list:last-child { margin-bottom: 0; }
+.pp-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--txt2);
+  line-height: 1.7;
+}
+.pp-list li::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acc);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.pp-list li b { color: var(--txt); }
+
+/* ── highlight box ── */
+.pp-note {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 13px;
+  color: #92400E;
+  line-height: 1.7;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+.pp-note i { font-size: 18px; color: #D97706; flex-shrink: 0; margin-top: 1px; }
+
+/* ── footer card ── */
+.pp-footer {
+  background: var(--acc-lt);
+  border: 1.5px solid var(--acc-bd);
+  border-radius: 18px;
+  padding: 20px;
+  text-align: center;
+}
+.pp-footer__title { font-size: 14px; font-weight: 800; color: var(--acc); margin-bottom: 6px; }
+.pp-footer__sub   { font-size: 13px; color: var(--txt2); margin-bottom: 14px; line-height: 1.7; }
+.pp-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 22px;
+  background: var(--acc);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background .15s;
+}
+.pp-footer a:hover { background: #1D4ED8; }
+
+/* ── date chip ── */
+.pp-date {
+  text-align: center;
+  font-size: 12px;
+  color: var(--txt2);
+  padding: 4px 0 2px;
+}
+</style>
+
+<div id="pp-wrap">
+  <div class="pp-body">
+
+    <!-- Hero -->
+    <div class="pp-hero">
+      <div class="pp-hero__icon"><i class="ph ph-shield-check"></i></div>
+      <div>
+        <div class="pp-hero__title">سياسة الخصوصية</div>
+        <div class="pp-hero__sub">كيف نجمع بياناتك ونستخدمها ونحميها — نقرأها معك بوضوح</div>
+      </div>
+    </div>
+
+    <div class="pp-date">آخر تحديث: يوليو 2025</div>
+
+    <!-- 1 - Overview -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-info"></i></div>
+        <div class="pp-card__title">نظرة عامة</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">
+          يوضّح هذا المستند سياسة الخصوصية المتّبعة في موقع <b>driverjo.online</b>،
+          المنصة الأردنية المتخصصة في التحضير لاختبار الفحص النظري لرخصة القيادة.
+          باستخدامك للموقع أو أيٍّ من خدماته فإنك تقرّ بقراءة هذه السياسة والموافقة عليها.
+        </p>
+        <p class="pp-p">
+          نحن ملتزمون بحماية خصوصيتك، وهذه الصفحة توضّح بدقة ما الذي نجمعه، ولماذا،
+          ومع من قد نشاركه.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2 - Data collected -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-database"></i></div>
+        <div class="pp-card__title">البيانات التي نجمعها</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">عند استخدام الموقع قد نجمع البيانات التالية:</p>
+        <ul class="pp-list">
+          <li><b>بيانات الحساب:</b> الاسم الكامل وعنوان البريد الإلكتروني والصورة الشخصية — يتم الحصول عليها عند تسجيل الدخول بحساب Google.</li>
+          <li><b>المحتوى الذي تنشره:</b> التقييمات والتعليقات التي تضيفها على المنصة.</li>
+          <li><b>بيانات الاستخدام:</b> الصفحات التي تزورها، والمدة، ونوع الجهاز — بشكل مجمّع وغير مرتبط بهويتك الشخصية.</li>
+          <li><b>رقم الهاتف:</b> في حال قدّمته طوعاً عبر نماذج التواصل أو الاشتراك في خدماتنا.</li>
+        </ul>
+        <p class="pp-p">لا نجمع بيانات الدفع ولا بيانات الموقع الجغرافي الدقيق.</p>
+      </div>
+    </div>
+
+    <!-- 3 - Usage -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-gear"></i></div>
+        <div class="pp-card__title">كيف نستخدم بياناتك</div>
+      </div>
+      <div class="pp-card__body">
+        <ul class="pp-list">
+          <li>عرض اسمك وصورتك بجانب تقييماتك ومشاركاتك على الموقع.</li>
+          <li>تحسين جودة المحتوى التعليمي وتطوير تجربة المستخدم.</li>
+          <li><b>التواصل معك لتقييم خدماتنا</b> أو للاستفسار عن تجربتك، عبر البريد الإلكتروني أو الهاتف.</li>
+          <li>إرسال إشعارات مفيدة تتعلق بتحديثات الموقع أو محتوى الاختبار النظري — يمكنك إلغاء الاشتراك في أي وقت.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4 - Third party sharing -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-share-network"></i></div>
+        <div class="pp-card__title">مشاركة البيانات مع أطراف ثالثة</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">
+          في سياق تطوير خدماتنا وربط المتدربين بالجهات المعتمدة، قد نشارك بعض بياناتك مع أطراف ثالثة وفق الضوابط التالية:
+        </p>
+        <ul class="pp-list">
+          <li>
+            <b>مراكز تعليم القيادة المعتمدة:</b> قد نشارك الاسم وعنوان البريد الإلكتروني ورقم الهاتف (إن توفّر) مع مراكز تدريب القيادة الشريكة، بهدف تسهيل التواصل وتقديم عروض وخدمات متعلقة بالترخيص.
+          </li>
+          <li>
+            <b>مزودو الخدمات التقنية:</b> كـ Google Firebase لتخزين البيانات والمصادقة، وهم ملزمون بالحفاظ على سرية البيانات.
+          </li>
+          <li>
+            <b>الجهات القانونية:</b> نُفصح عن البيانات عند الاقتضاء القانوني أو بأمر قضائي فقط.
+          </li>
+        </ul>
+        <div class="pp-note">
+          <i class="ph ph-warning"></i>
+          <span>لن نبيع بياناتك الشخصية لأي جهة تجارية لأغراض إعلانية غير مرتبطة بخدمات القيادة والترخيص.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 - Retention -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-clock-countdown"></i></div>
+        <div class="pp-card__title">مدة الاحتفاظ بالبيانات</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">
+          نحتفظ ببياناتك طالما حسابك نشط أو طالما هي ضرورية لتقديم الخدمة.
+          يمكنك في أي وقت طلب حذف بياناتك بالتواصل معنا، وسنعالج طلبك خلال <b>14 يوم عمل</b>.
+        </p>
+        <p class="pp-p">
+          التقييمات المنشورة بشكل عام قد تبقى على الموقع بعد حذف الحساب بصيغة مجهولة الهوية.
+        </p>
+      </div>
+    </div>
+
+    <!-- 6 - Rights -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-hand-heart"></i></div>
+        <div class="pp-card__title">حقوقك</div>
+      </div>
+      <div class="pp-card__body">
+        <ul class="pp-list">
+          <li>الاطلاع على البيانات التي نحتفظ بها عنك.</li>
+          <li>طلب تصحيح أي بيانات غير دقيقة.</li>
+          <li>طلب حذف حسابك وبياناتك الشخصية.</li>
+          <li>الاعتراض على استخدام بياناتك للتسويق أو التواصل.</li>
+          <li>إلغاء الاشتراك في أي رسائل تسويقية في أي وقت.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 7 - Cookies -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-cookie"></i></div>
+        <div class="pp-card__title">ملفات تعريف الارتباط (Cookies)</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">
+          يستخدم الموقع ملفات تعريف ارتباط ضرورية لتشغيل الجلسة وتذكّر تفضيلاتك،
+          إلى جانب تخزين مؤقت في <b>localStorage</b> لتسريع تحميل الأسئلة وتحسين الأداء.
+          لا نستخدم ملفات تعريف ارتباط لأغراض إعلانية.
+        </p>
+      </div>
+    </div>
+
+    <!-- 8 - Changes -->
+    <div class="pp-card">
+      <div class="pp-card__head">
+        <div class="pp-card__ico"><i class="ph ph-pencil-simple"></i></div>
+        <div class="pp-card__title">تعديلات على السياسة</div>
+      </div>
+      <div class="pp-card__body">
+        <p class="pp-p">
+          نحتفظ بحق تعديل هذه السياسة في أي وقت. في حال إجراء تغييرات جوهرية،
+          سنُعلمك عبر البريد الإلكتروني أو بإشعار واضح على الموقع.
+          تاريخ "آخر تحديث" في أعلى الصفحة يعكس دائماً آخر نسخة سارية.
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="pp-footer">
+      <div class="pp-footer__title">هل لديك استفسار حول خصوصيتك؟</div>
+      <div class="pp-footer__sub">تواصل معنا مباشرةً وسنردّ على استفساراتك في أقرب وقت ممكن.</div>
+      <a href="https://www.driverjo.online/p/contact-us.html" target="_blank" rel="noopener">
+        <i class="ph ph-envelope-simple"></i>
+        تواصل معنا
+      </a>
+    </div>
+
+  </div>
+</div>
