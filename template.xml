@@ -49,7 +49,216 @@
 
   <b:comment><!--[ <head> | <!> [below] Custom codes (Global) ]--></b:comment>
 
+  <!-- Firebase SDK 9.23.0 (مشترك بين جميع الصفحات) -->
+  <script src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'/>
+  <script src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'/>
+  <script src='https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js'/>
 
+  <!-- JDAuth: مدير الجلسة المشترك بين الصفحات -->
+  <script>
+  //<![CDATA[
+  (function(){
+    var FB_CFG={
+      apiKey:'AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ',
+      authDomain:'driverjo.firebaseapp.com',
+      databaseURL:'https://driverjo-default-rtdb.firebaseio.com',
+      projectId:'driverjo',
+      storageBucket:'driverjo.firebasestorage.app',
+      messagingSenderId:'716209135475',
+      appId:'1:716209135475:web:0a8188a18017c5880aaf06'
+    };
+    var app=firebase.apps.length?firebase.app():firebase.initializeApp(FB_CFG);
+    var db=firebase.database(app);
+    var auth=firebase.auth(app);
+    var _user=null,_ready=false,_cbs=[];
+    function _fire(){
+      _ready=true;
+      var list=_cbs.splice(0);
+      list.forEach(function(cb){try{cb(_user);}catch(e){}});
+    }
+    auth.onAuthStateChanged(function(u){_user=u;if(!_ready)_fire();});
+    window.JDAuth={
+      get user(){return _user;},
+      get db(){return db;},
+      get app(){return app;},
+      get auth(){return auth;},
+      onReady:function(cb){if(_ready){try{cb(_user);}catch(e){}}else{_cbs.push(cb);}},
+      wasWelcomeShown:function(uid){try{return sessionStorage.getItem('jd_wuid')===uid;}catch(e){return false;}},
+      markWelcomeShown:function(uid){try{sessionStorage.setItem('jd_wuid',uid);}catch(e){}},
+      signOut:function(){try{sessionStorage.removeItem('jd_wuid');}catch(e){}return auth.signOut();}
+    };
+  }());
+  //]]>
+  </script>
+
+  <!-- QSR Engine: CSS + JS مشترك لصفحات المراجعة والاختبار (7 صفحات) -->
+  <style>
+.qsr-spin{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 16px;gap:12px}
+.qsr-spin-ring{width:34px;height:34px;border-radius:50%;border:3px solid #E5E7EB;border-top-color:#2563EB;animation:qsr-rotate .75s linear infinite}
+@keyframes qsr-rotate{to{transform:rotate(360deg)}}
+.qsr-spin-txt{font-size:13px;color:#9CA3AF;font-weight:600;font-family:inherit}
+.qsr-rev-list{display:flex;flex-direction:column;gap:18px}
+.qsr-qcard{border:1px solid #E5E7EB;border-radius:14px;overflow:hidden}
+.qsr-qhead{background:#F8FAFC;border-bottom:1px solid #F1F5F9;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.qsr-qnum{flex-shrink:0;width:28px;height:28px;border-radius:8px;background:#EFF6FF;color:#2563EB;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;margin-top:1px}
+.qsr-qtxt{font-size:14px;font-weight:700;color:#111827;line-height:1.75;flex:1}
+.qsr-opts{padding:10px 14px 14px;display:flex;flex-direction:column;gap:7px}
+.qsr-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px}
+.qsr-opt.qsr-plain{background:#F9FAFB;border:1px solid #F3F4F6}
+.qsr-opt.qsr-ok{background:#F0FDF4;border:1px solid #BBF7D0}
+.qsr-opt-dot{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.qsr-plain .qsr-opt-dot{background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB}
+.qsr-ok .qsr-opt-dot{background:#16A34A;color:#fff;border:none}
+.qsr-opt-lbl{font-size:13px;line-height:1.6}
+.qsr-plain .qsr-opt-lbl{color:#9CA3AF}
+.qsr-ok .qsr-opt-lbl{color:#15803D;font-weight:700}
+.qsr-media{margin:0 14px 10px;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;background:#F8FAFC;display:flex;align-items:center;justify-content:center;max-height:220px}
+.qsr-media img,.qsr-media video{width:100%;max-height:220px;object-fit:contain;display:block}
+.qsr-expl{margin:0 14px 14px;padding:9px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:9px;font-size:12px;color:#92400E;line-height:1.7;display:flex;gap:8px;align-items:flex-start}
+.qsr-expl-ico{flex-shrink:0;margin-top:1px;font-size:14px;color:#D97706}
+.qsr-qz-media{border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;background:#F8FAFC;display:flex;align-items:center;justify-content:center;max-height:200px;margin-bottom:10px}
+.qsr-qz-media img,.qsr-qz-media video{width:100%;max-height:200px;object-fit:contain;display:block}
+.qsr-quiz-wrap{margin-bottom:10px}
+.qsr-qz-bar-wrap{border:1px solid #E5E7EB;border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.qsr-qz-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.qsr-qz-idx{font-size:12px;font-weight:800;color:#6B7280}
+.qsr-qz-score{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#16A34A}
+.qsr-qz-prog{height:5px;background:#F1F5F9;border-radius:99px;overflow:hidden}
+.qsr-qz-fill{height:100%;background:#2563EB;border-radius:99px;transition:width .4s ease}
+.qsr-qz-qtxt{border:1px solid #E5E7EB;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#111827;line-height:1.8;margin-bottom:12px}
+.qsr-qz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.qsr-qz-opt{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;border:1.5px solid #E5E7EB;cursor:pointer;width:100%;font-family:inherit;text-align:right;transition:border-color .15s,background .15s}
+.qsr-qz-opt:hover:not(:disabled){border-color:#BFDBFE;background:#EFF6FF}
+.qsr-qz-opt:disabled{cursor:default}
+.qsr-qz-opt.qsr-qz-ok{background:#F0FDF4!important;border-color:#86EFAC!important}
+.qsr-qz-opt.qsr-qz-bad{background:#FEF2F2!important;border-color:#FECACA!important}
+.qsr-qz-opt.qsr-qz-show{background:#F0FDF4!important;border-color:#86EFAC!important}
+.qsr-qz-opt.qsr-qz-dim{opacity:.35}
+.qsr-qz-dot{flex-shrink:0;width:27px;height:27px;border-radius:50%;background:#F3F4F6;color:#6B7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:1px solid #E5E7EB;transition:all .15s}
+.qsr-qz-ok .qsr-qz-dot{background:#16A34A;color:#fff;border-color:#16A34A}
+.qsr-qz-bad .qsr-qz-dot{background:#DC2626;color:#fff;border-color:#DC2626}
+.qsr-qz-show .qsr-qz-dot{background:#16A34A;color:#fff;border-color:#16A34A}
+.qsr-qz-lbl{font-size:13px;color:#374151;font-weight:500}
+.qsr-qz-ok .qsr-qz-lbl{font-weight:700;color:#15803D}
+.qsr-qz-bad .qsr-qz-lbl{font-weight:700;color:#DC2626}
+.qsr-qz-show .qsr-qz-lbl{font-weight:700;color:#15803D}
+.qsr-fb{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:9px;font-size:13px;font-weight:700;margin-bottom:10px;border:1px solid;animation:qsr-in .2s ease}
+@keyframes qsr-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.qsr-fb-ok{background:#F0FDF4;color:#16A34A;border-color:#86EFAC}
+.qsr-fb-bad{background:#FEF2F2;color:#DC2626;border-color:#FECACA}
+.qsr-qz-nxt{width:100%;padding:13px;border-radius:11px;border:none;background:#2563EB;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.qsr-qz-nxt:hover{opacity:.88}
+.qsr-qz-nxt.qsr-last{background:#16A34A}
+.qsr-result{padding:40px 16px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;font-family:&#39;Segoe UI&#39;,Tahoma,system-ui,Arial,sans-serif;direction:rtl}
+.qsr-ring-outer{position:relative;width:120px;height:120px}
+.qsr-ring-svg{transform:rotate(-90deg)}
+.qsr-ring-track{fill:none;stroke:#E5E7EB;stroke-width:9}
+.qsr-ring-arc{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)}
+.qsr-ring-lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.qsr-ring-pct{font-size:24px;font-weight:900;color:#111827}
+.qsr-ring-sub{font-size:11px;color:#9CA3AF;font-weight:600;margin-top:1px}
+.qsr-res-h{font-size:18px;font-weight:900;color:#111827}
+.qsr-res-p{font-size:13px;color:#6B7280;line-height:1.8}
+.qsr-res-p strong{color:#111827;font-weight:800}
+.qsr-res-retry{padding:12px 32px;border-radius:11px;border:none;background:#2563EB;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;transition:opacity .15s}
+.qsr-res-retry:hover{opacity:.88}
+  </style>
+  <script>
+  //<![CDATA[
+  (function(){
+  'use strict';
+  var LETTERS=['أ','ب','ج','د','هـ','و'];
+  var QSR_CACHE_TTL=24*60*60*1000;
+  var allQ=[],qzQ=[],qzIdx=0,qzScore=0,qzAnswered=false;
+  var revRoot,quizRoot,_CAT,_CKEY;
+  function spin(t){return '<div class="qsr-spin"><div class="qsr-spin-ring"></div><span class="qsr-spin-txt">'+(t||'جارٍ التحميل…')+'</span></div>';}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function norm(s){return String(s||'').replace(/[إأآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[\u064B-\u065F\u0670]/g,'').trim();}
+  function saveC(d){try{localStorage.setItem(_CKEY,JSON.stringify({ts:Date.now(),data:d}));}catch(e){}}
+  function loadC(){try{var r=localStorage.getItem(_CKEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>QSR_CACHE_TTL){localStorage.removeItem(_CKEY);return null;}return o.data;}catch(e){return null;}}
+  var _ac=null;
+  function ac(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return _ac;}
+  function sndOk(){var c=ac();if(!c)return;[[523,0],[659,.1],[784,.2],[1047,.32]].forEach(function(p){var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=p[0];g.gain.setValueAtTime(0,c.currentTime+p[1]);g.gain.linearRampToValueAtTime(.16,c.currentTime+p[1]+.03);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+p[1]+.32);o.start(c.currentTime+p[1]);o.stop(c.currentTime+p[1]+.36);});}
+  function sndBad(){var c=ac();if(!c)return;[[220,0],[165,.1],[110,.2]].forEach(function(p){var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.value=p[0];g.gain.setValueAtTime(.16,c.currentTime+p[1]);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+p[1]+.2);o.start(c.currentTime+p[1]);o.stop(c.currentTime+p[1]+.23);});}
+  function renderReview(){
+    if(!allQ.length){revRoot.innerHTML='<div class="qsr-spin"><span class="qsr-spin-txt">لا توجد أسئلة في هذا القسم</span></div>';return;}
+    var h='<div class="qsr-rev-list">';
+    allQ.forEach(function(q,i){
+      h+='<div class="qsr-qcard"><div class="qsr-qhead"><div class="qsr-qnum">'+(i+1)+'</div><div class="qsr-qtxt">'+esc(q.question)+'</div></div>';
+      if(q.mediaUrl&&q.mediaType!=='text'){h+='<div class="qsr-media">'+(q.mediaType==='video'?'<video src="'+esc(q.mediaUrl)+'" controls></video>':'<img src="'+esc(q.mediaUrl)+'" alt="صورة السؤال" loading="lazy"/>')+'</div>';}
+      h+='<div class="qsr-opts">';
+      (q.options||[]).forEach(function(opt,j){var ok=(j===q.correctAnswer);h+='<div class="qsr-opt '+(ok?'qsr-ok':'qsr-plain')+'"><div class="qsr-opt-dot">'+(ok?'<i class="ph ph-check"></i>':LETTERS[j]||String(j+1))+'</div><span class="qsr-opt-lbl">'+esc(opt)+'</span></div>';});
+      h+='</div>';
+      if(q.explanation){h+='<div class="qsr-expl"><span class="qsr-expl-ico">💡</span><span>'+esc(q.explanation)+'</span></div>';}
+      h+='</div>';
+    });
+    revRoot.innerHTML=h+'</div>';
+  }
+  function shuffle(a){var r=a.slice();for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;}return r;}
+  function startQuiz(){qzQ=shuffle(allQ.slice());qzIdx=0;qzScore=0;qzAnswered=false;renderQuizQ();}
+  function renderQuizQ(){
+    var q=qzQ[qzIdx],total=qzQ.length,last=(qzIdx>=total-1);
+    qzAnswered=false;
+    var h='<div class="qsr-quiz-wrap"><div class="qsr-qz-bar-wrap"><div class="qsr-qz-top"><span class="qsr-qz-idx">السؤال '+(qzIdx+1)+' من '+total+'</span><span class="qsr-qz-score"><i class="ph ph-check"></i> '+qzScore+'</span></div><div class="qsr-qz-prog"><div id="qsr-fill" class="qsr-qz-fill" style="width:'+Math.round((qzIdx/total)*100)+'%"></div></div></div>';
+    h+='<div class="qsr-qz-qtxt">'+esc(q.question)+'</div>';
+    if(q.mediaUrl&&q.mediaType!=='text'){h+='<div class="qsr-qz-media">'+(q.mediaType==='video'?'<video src="'+esc(q.mediaUrl)+'" controls></video>':'<img src="'+esc(q.mediaUrl)+'" alt="صورة السؤال" loading="lazy"/>')+'</div>';}
+    h+='<div class="qsr-qz-opts" id="qsr-opts">';
+    (q.options||[]).forEach(function(opt,j){h+='<button class="qsr-qz-opt" onclick="qsrAns('+j+','+q.correctAnswer+')"><div class="qsr-qz-dot">'+(LETTERS[j]||String(j+1))+'</div><span class="qsr-qz-lbl">'+esc(opt)+'</span></button>';});
+    h+='</div><div id="qsr-fb"></div><div id="qsr-nxt-wrap" style="display:none"><button class="qsr-qz-nxt'+(last?' qsr-last':'')+'" onclick="qsrNext()">'+(last?'عرض النتيجة 🏁':'السؤال التالي ←')+'</button></div></div>';
+    quizRoot.innerHTML=h;
+  }
+  window.qsrAns=function(chosen,correct){
+    if(qzAnswered)return;qzAnswered=true;
+    var ok=(chosen===correct);
+    if(ok){qzScore++;sndOk();}else sndBad();
+    var btns=document.querySelectorAll('#qsr-opts .qsr-qz-opt');
+    btns.forEach(function(b,i){
+      b.disabled=true;
+      if(i===chosen&&ok)b.classList.add('qsr-qz-ok');else if(i===chosen)b.classList.add('qsr-qz-bad');else if(i===correct)b.classList.add('qsr-qz-show');else b.classList.add('qsr-qz-dim');
+      var dot=b.querySelector('.qsr-qz-dot');
+      if(i===chosen&&ok)dot.innerHTML='<i class="ph ph-check"></i>';else if(i===chosen)dot.innerHTML='<i class="ph ph-x"></i>';else if(i===correct)dot.innerHTML='<i class="ph ph-check"></i>';
+    });
+    var fb=document.getElementById('qsr-fb');
+    fb.className='qsr-fb '+(ok?'qsr-fb-ok':'qsr-fb-bad');
+    fb.innerHTML=(ok?'<i class="ph ph-check"></i> إجابة صحيحة':'<i class="ph ph-x"></i> إجابة خاطئة - الصحيحة باللون الأخضر');
+    document.getElementById('qsr-nxt-wrap').style.display='block';
+    var fill=document.getElementById('qsr-fill');
+    if(fill)fill.style.width=Math.round(((qzIdx+1)/qzQ.length)*100)+'%';
+  };
+  window.qsrNext=function(){if(qzIdx<qzQ.length-1){qzIdx++;renderQuizQ();}else renderResult();};
+  function renderResult(){
+    var total=qzQ.length,pct=total?Math.round(qzScore/total*100):0;
+    var circ=2*Math.PI*50,dash=circ-circ*pct/100;
+    var clr=pct>=90?'#16A34A':pct>=70?'#2563EB':pct>=50?'#D97706':'#DC2626';
+    var hd=pct>=90?'ممتاز 🎉':pct>=70?'جيد جداً 👍':pct>=50?'مقبول':'تحتاج مزيداً من المراجعة';
+    var h='<div class="qsr-result"><div class="qsr-ring-outer"><svg class="qsr-ring-svg" width="120" height="120" viewBox="0 0 120 120"><circle class="qsr-ring-track" cx="60" cy="60" r="50"/><circle class="qsr-ring-arc" cx="60" cy="60" r="50" stroke="'+clr+'" stroke-dasharray="'+circ+'" stroke-dashoffset="'+circ+'" id="qsr-arc"/></svg><div class="qsr-ring-lbl"><span class="qsr-ring-pct">'+pct+'%</span><span class="qsr-ring-sub">نتيجتك</span></div></div><div class="qsr-res-h">'+hd+'</div><p class="qsr-res-p">أجبت على <strong>'+qzScore+'</strong> من <strong>'+total+'</strong> سؤالاً بشكل صحيح</p><button class="qsr-res-retry" onclick="qsrRetry()"><i class="ph ph-arrows-clockwise"></i> إعادة الاختبار</button></div>';
+    quizRoot.innerHTML=h;
+    setTimeout(function(){var a=document.getElementById('qsr-arc');if(a)a.setAttribute('stroke-dashoffset',String(dash));},80);
+  }
+  window.qsrRetry=function(){startQuiz();};
+  window.qsrInit=function(){
+    _CAT=window.QSR_CAT||'';
+    _CKEY='qsr_'+_CAT+'_v1';
+    revRoot=document.getElementById('qsr-rev-root');
+    quizRoot=document.getElementById('qsr-quiz-root');
+    if(!revRoot||!quizRoot){setTimeout(window.qsrInit,100);return;}
+    allQ=[];qzQ=[];qzIdx=0;qzScore=0;
+    var cached=loadC();
+    if(cached){allQ=cached;renderReview();startQuiz();}
+    else{revRoot.innerHTML=spin('جارٍ تحميل الأسئلة…');quizRoot.innerHTML=spin('جارٍ تحميل الأسئلة…');}
+    if(typeof JDAuth==='undefined'||!JDAuth.db){setTimeout(window.qsrInit,200);return;}
+    JDAuth.db.ref('questions').once('value').then(function(snap){
+      var raw=snap.val()||{};
+      var fresh=[];
+      Object.values(raw).forEach(function(q){if(norm(q.category||'')===norm(_CAT))fresh.push(q);});
+      saveC(fresh);allQ=fresh;renderReview();startQuiz();
+    }).catch(function(){
+      if(!allQ.length){revRoot.innerHTML='<div class="qsr-spin"><span class="qsr-spin-txt">تعذّر تحميل الأسئلة</span></div>';quizRoot.innerHTML=revRoot.innerHTML;}
+    });
+  };
+  }());
+  //]]>
+  </script>
 
   <b:comment><!--[ <head> | <!> [above] Custom codes (Global) ]--></b:comment>
   <b:if cond='data:story.active'>
@@ -5740,7 +5949,7 @@ const PlusUIConfig = () => ({});
                   <b:section class='bl-hide-title' id='sec_Nav_Widgets_2' showaddelement='false'>
                     <b:widget id='PageList02' locked='true' title='Additional Links' type='PageList' version='2' visible='true'>
                       <b:widget-settings>
-                        <b:widget-setting name='pageListJson'><![CDATA[{"link1":{"href":"#","position":1,"title":"Disclaimer"},"link0":{"href":"/p/sitemap.html","position":0,"title":"Sitemap"},"46217882925552263":{"href":"https://www.driverjo.online/p/privacy-policy.html","position":2,"title":"privacy policy"}}]]></b:widget-setting>
+                        <b:widget-setting name='pageListJson'><![CDATA[{"8688708985507569325":{"href":"https://www.driverjo.online/p/terms-and-conditions.html","position":1,"title":"الشروط والأحكام"},"link0":{"href":"/p/sitemap.html","position":0,"title":"خريطة الموقع"},"46217882925552263":{"href":"https://www.driverjo.online/p/privacy-policy.html","position":2,"title":"سياسة الخصوصية"}}]]></b:widget-setting>
                         <b:widget-setting name='homeTitle'>الصفحة الرئيسية</b:widget-setting>
                       </b:widget-settings>
                       <b:includable id='main'>
@@ -5774,20 +5983,10 @@ const PlusUIConfig = () => ({});
                     </b:widget>
                     <b:widget id='LinkList04' locked='true' title='Social Links' type='LinkList' version='2' visible='true'>
                       <b:widget-settings>
-                        <b:widget-setting name='link-5'>#</b:widget-setting>
-                        <b:widget-setting name='link-3'>#</b:widget-setting>
-                        <b:widget-setting name='link-4'>#</b:widget-setting>
-                        <b:widget-setting name='text-1'>Instagram</b:widget-setting>
-                        <b:widget-setting name='text-0'>Facebook</b:widget-setting>
-                        <b:widget-setting name='text-3'>Threads</b:widget-setting>
-                        <b:widget-setting name='text-2'>Twitter</b:widget-setting>
-                        <b:widget-setting name='text-5'>Whatsapp</b:widget-setting>
-                        <b:widget-setting name='text-4'>Bluesky</b:widget-setting>
                         <b:widget-setting name='shownum'>6</b:widget-setting>
                         <b:widget-setting name='sorting'>NONE</b:widget-setting>
-                        <b:widget-setting name='link-1'>#</b:widget-setting>
-                        <b:widget-setting name='link-2'>#</b:widget-setting>
-                        <b:widget-setting name='link-0'>#</b:widget-setting>
+                        <b:widget-setting name='text-0'>Whatsapp</b:widget-setting>
+                        <b:widget-setting name='link-0'>https://wa.me/962778244772</b:widget-setting>
                       </b:widget-settings>
                       <b:includable id='main'>
                         <b:include name='content'/>
@@ -8037,19 +8236,9 @@ jo_items.map(item => `
                   </b:widget>
                   <b:widget id='LinkList21' locked='true' title='Social Media Links' type='LinkList' version='2' visible='true'>
                     <b:widget-settings>
-                      <b:widget-setting name='link-5'>#</b:widget-setting>
-                      <b:widget-setting name='link-3'>#</b:widget-setting>
-                      <b:widget-setting name='link-4'>#</b:widget-setting>
-                      <b:widget-setting name='text-1'>Instagram</b:widget-setting>
-                      <b:widget-setting name='text-0'>Facebook</b:widget-setting>
-                      <b:widget-setting name='text-3'>Threads</b:widget-setting>
-                      <b:widget-setting name='text-2'>Twitter</b:widget-setting>
-                      <b:widget-setting name='text-5'>Whatsapp</b:widget-setting>
-                      <b:widget-setting name='text-4'>Bluesky</b:widget-setting>
                       <b:widget-setting name='sorting'>NONE</b:widget-setting>
-                      <b:widget-setting name='link-1'>#</b:widget-setting>
-                      <b:widget-setting name='link-2'>#</b:widget-setting>
-                      <b:widget-setting name='link-0'>#</b:widget-setting>
+                      <b:widget-setting name='text-0'>Whatsapp</b:widget-setting>
+                      <b:widget-setting name='link-0'>https://wa.me/962778244772</b:widget-setting>
                     </b:widget-settings>
                     <b:includable id='main'>
                       <b:include name='content'/>
@@ -8181,7 +8370,7 @@ jo_items.map(item => `
                     <b:widget-settings>
                       <b:widget-setting name='sorting'>NONE</b:widget-setting>
                       <b:widget-setting name='text-1'>    الشروط والأحكام</b:widget-setting>
-                      <b:widget-setting name='link-1'>#</b:widget-setting>
+                      <b:widget-setting name='link-1'>/p/terms-and-conditions.html</b:widget-setting>
                       <b:widget-setting name='text-0'>سياسة الخصوصية</b:widget-setting>
                       <b:widget-setting name='link-0'>/p/privacy-policy.html</b:widget-setting>
                     </b:widget-settings>
@@ -8229,11 +8418,13 @@ jo_items.map(item => `
                   </b:widget>
                   <b:widget id='LinkList25' locked='true' title='صفحات مهمة' type='LinkList' version='2' visible='true'>
                     <b:widget-settings>
+                      <b:widget-setting name='link-3'>/p/center-join.html</b:widget-setting>
                       <b:widget-setting name='sorting'>NONE</b:widget-setting>
                       <b:widget-setting name='text-1'>خريطة الموقع</b:widget-setting>
-                      <b:widget-setting name='link-1'>#</b:widget-setting>
+                      <b:widget-setting name='link-1'>/p/sitemap.html</b:widget-setting>
                       <b:widget-setting name='text-0'>من نحن</b:widget-setting>
-                      <b:widget-setting name='link-2'>#</b:widget-setting>
+                      <b:widget-setting name='link-2'>/p/contact-us.html</b:widget-setting>
+                      <b:widget-setting name='text-3'>اضافة مركزك للمنصة</b:widget-setting>
                       <b:widget-setting name='link-0'>/p/about.html</b:widget-setting>
                       <b:widget-setting name='text-2'>كن راعي للمنصة</b:widget-setting>
                     </b:widget-settings>
