@@ -8661,7 +8661,7 @@ jo_items.map(item => `
       <b:includable id='main'><script id='json:firebaseconfig' type='application/json'><b:include data='{ links: (data:links filter (l =&gt; l.target not in [&quot;#&quot;, &quot;https://&quot;] and (l.target + &quot;&quot;) not contains &quot;_goes_here&quot;)) }' name='LinkList.json'/></script></b:includable>
       <b:includable id='content'><!--[ removed ]--></b:includable>
     </b:widget>
-    <b:widget cond='!data:amp.active' id='LinkList62' locked='true' title='Progressive Web App' type='LinkList' version='2' visible='true'>
+    <b:widget cond='!data:amp.active' id='LinkList62' locked='true' title='Progressive Web App' type='LinkList' version='2' visible='false'>
       <b:widget-settings>
         <b:widget-setting name='link-7'>https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgfmE071mkOsMFsRM_ndYJHDzDKhi267EMW-nDDBjfS2tfV5E6sMTZvdypOkaQoxo6iGxFwAUBVV3F54vD1vO44ppaKlEvplWAo0TrTpIf9wFMjRUCAmRJSoYXo8sSIXvIKf4xA0ZFgcZuCzL8jcwow3dKQc4xAhKCbvxqkzdgAJfJfUdIlG4fp3YRTwIw/s0/wide-screen.png</b:widget-setting>
         <b:widget-setting name='link-5'>https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgfmE071mkOsMFsRM_ndYJHDzDKhi267EMW-nDDBjfS2tfV5E6sMTZvdypOkaQoxo6iGxFwAUBVV3F54vD1vO44ppaKlEvplWAo0TrTpIf9wFMjRUCAmRJSoYXo8sSIXvIKf4xA0ZFgcZuCzL8jcwow3dKQc4xAhKCbvxqkzdgAJfJfUdIlG4fp3YRTwIw/s0/wide-screen.png</b:widget-setting>
@@ -8687,16 +8687,16 @@ jo_items.map(item => `
     <b:widget cond='!data:amp.active and !data:view.isPreview and !data:view.isError' id='LinkList63' locked='true' title='Cookie Consent [NoTitle]' type='LinkList' version='2' visible='true'>
       <b:widget-settings>
         <b:widget-setting name='shownum'>300</b:widget-setting>
-        <b:widget-setting name='link-3'>https://policies.google.com/technologies/cookies</b:widget-setting>
+        <b:widget-setting name='link-3'>/p/terms-and-conditions.html</b:widget-setting>
         <b:widget-setting name='sorting'>NONE</b:widget-setting>
         <b:widget-setting name='link-4'>2592000</b:widget-setting>
         <b:widget-setting name='text-1'>accept</b:widget-setting>
-        <b:widget-setting name='link-1'>OK, got it.</b:widget-setting>
+        <b:widget-setting name='link-1'>موافق</b:widget-setting>
         <b:widget-setting name='text-0'>description</b:widget-setting>
         <b:widget-setting name='link-2'>Cookie Policy</b:widget-setting>
         <b:widget-setting name='text-3'>link</b:widget-setting>
-        <b:widget-setting name='link-0'>We use cookies to understand preferences and optimize your experience using our site, this includes advertising affiliated with Google.</b:widget-setting>
-        <b:widget-setting name='text-2'>more</b:widget-setting>
+        <b:widget-setting name='link-0'>    باستخدامك منصة JO Driver&#1548; فإنك توافق على استخدام ملفات تعريف الارتباط لتحسين التجربة وتحليل الاستخدام.</b:widget-setting>
+        <b:widget-setting name='text-2'>معرفة المزيد</b:widget-setting>
         <b:widget-setting name='text-4'>maxAge</b:widget-setting>
       </b:widget-settings>
       <b:includable id='main'>
@@ -8754,11 +8754,11 @@ jo_items.map(item => `
     </b:widget>
     <b:widget cond='data:view.isLayoutMode' id='Image61' locked='true' title='Image Uploader' type='Image' version='2' visible='true'>
       <b:widget-settings>
-        <b:widget-setting name='displayUrl'>https://blogger.googleusercontent.com/img/a/AVvXsEhquf4dR1_JEdTnDlVkGQKYrLhgHcATkDMFlv8d9CV6gOMGO6CCsUS6kTMPtXCGmovmcoq_E5kSibdGLaQhyAJh_BrPY5uxtkZQv7MPiIKMhIgpSRcU_LPR-R-JQknGmgiGvXwpvDtgyd0lMVv0xYjMkENoPX6jA9Yul1eoxeTpVqqAJsL2LEUrwJLvPfM=s1600</b:widget-setting>
-        <b:widget-setting name='displayHeight'>900</b:widget-setting>
+        <b:widget-setting name='displayUrl'>https://blogger.googleusercontent.com/img/a/AVvXsEgG0bwMsTG61R5v0eMLjkBB4jvZVc-fYY7kA-R0jB2C26_e_IOF7QF9GKYlVIWitpSZpIGQtwrpZXvrOmmAxMcyffEDmAryyk-p2XX5DQa4qsOyScjKWFGCNT6JdpCaoZZufujA5Q6x_vTSbnpwIOK9rdSsdVvvT3g9slQiba2leqQzZYdE6gK07380a5o=s234</b:widget-setting>
+        <b:widget-setting name='displayHeight'>204</b:widget-setting>
         <b:widget-setting name='sectionWidth'>150</b:widget-setting>
         <b:widget-setting name='shrinkToFit'>false</b:widget-setting>
-        <b:widget-setting name='displayWidth'>1600</b:widget-setting>
+        <b:widget-setting name='displayWidth'>234</b:widget-setting>
         <b:widget-setting name='link'/>
         <b:widget-setting name='caption'><![CDATA[Select "Upload image from computer" > Save > Edit Again > Get URL]]></b:widget-setting>
       </b:widget-settings>
