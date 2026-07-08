@@ -1,3 +1,4 @@
+<!-- الكود المحدث -->
 <style>
 /* ── faqdrive ── */
 #faqdrive-page { margin-bottom: 20px; }
@@ -244,7 +245,7 @@
 #ctr-page .ctr-card__promoted {
   position: absolute;
   top: 0; left: 15px;
-  background: linear-gradient(135deg, var(--p), var(--star));
+  background: var(--star);
   color: #fff;
   font-size: 11px;
   font-weight: 900;
@@ -256,6 +257,17 @@
   box-shadow: 0 2px 8px rgba(25,118,210,.20);
   z-index: 2;
 }
+
+/* حدود ذهبية للمركز المميز */
+#ctr-page .ctr-card.is-promoted {
+  border-color: var(--star);
+  box-shadow: 0 2px 12px rgba(245,158,11,.18);
+}
+#ctr-page .ctr-card.is-promoted:hover {
+  border-color: var(--star);
+  box-shadow: 0 4px 16px rgba(245,158,11,.26);
+}
+
 
 /* رأس البطاقة */
 #ctr-page .ctr-card__head {
@@ -282,17 +294,6 @@
   border: 1px solid var(--bl);
 }
 #ctr-page .ctr-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* حلقة المميز */
-#ctr-page .ctr-card.is-promoted .ctr-card__img { background: var(--pl); color: var(--p); }
-#ctr-page .ctr-card.is-promoted .ctr-card__img::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border: 2px solid var(--p);
-  border-radius: 13px;
-  pointer-events: none;
-}
 
 /* جسم البطاقة */
 #ctr-page .ctr-card__body {
@@ -757,19 +758,23 @@
 
   // ══ بناء بطاقة واحدة ══
   function fillCard(card, c) {
+    var now   = Date.now();
     var st    = getStatus(c);
     var gName = c.governorateId && govs[c.governorateId] ? govs[c.governorateId].name : '';
 
+    // التمييز — يحترم تاريخ الانتهاء، حدود ذهبية فقط بدون شارة
+    var isPromoted = !!c.promoted && (!c.promotedUntil || c.promotedUntil > now);
+    var isPinned   = !!c.pinned;
+
+    if (isPromoted) card.classList.add('is-promoted');
+
     var promoBadge = card.querySelector('.ctr-card__promoted');
-    promoBadge.hidden = !c.promoted;
-    if (c.promoted) card.classList.add('is-promoted');
+    promoBadge.hidden = !isPromoted;
 
     var img = card.querySelector('.ctr-card__img img');
     var ico = card.querySelector('.ctr-card__img i');
     if (c.imageUrl) { img.src = c.imageUrl; img.hidden = false; ico.hidden = true; }
     else            { img.hidden = true; ico.hidden = false; }
-
-    if (c.promoted) card.querySelector('.ctr-card__info').style.paddingLeft = '68px';
 
     card.querySelector('.ctr-card__name').textContent = c.name || '';
 
@@ -833,8 +838,8 @@
     else           { mapEl.hidden = true; }
 
     var footerRow = card.querySelector('.ctr-footer-row');
-    footerRow.hidden = !c.promoted;
-    if (c.promoted) {
+    footerRow.hidden = !isPromoted;
+    if (isPromoted) {
       card.querySelector('.ctr-share-btn').onclick = function() {
         var url = window.location.origin + DETAIL_URL + '?id=' + encodeURIComponent(c.publicId || c._fbKey);
         if (navigator.share) navigator.share({ title: c.name, url: url });
@@ -853,7 +858,7 @@
   }
 
   function renderList() {
-    var list = Object.keys(centers).map(function(k) {
+    var all = Object.keys(centers).map(function(k) {
       var c = Object.assign({ _fbKey: k }, centers[k]);
       if (userCoords) {
         var co = getCoords(c);
@@ -862,7 +867,12 @@
       return c;
     });
 
-    list = list.filter(function(c) { return !c.suspended; });
+    /* ── المراكز المثبّتة: تُعرض دائماً في الأعلى بغض النظر عن الفلاتر ── */
+    var pinned = all.filter(function(c) { return !!c.pinned && !c.suspended; });
+
+    /* ── بقية المراكز: تخضع للفلترة العادية ── */
+    var list = all.filter(function(c) { return !c.pinned && !c.suspended; });
+
     if (searchQ.trim()) {
       var q = searchQ.toLowerCase();
       list = list.filter(function(c) {
@@ -880,16 +890,20 @@
     if (sortMode === 'newest')  list.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
     if (sortMode === 'nearest') list.sort(function(a,b){ return (a._dist??Infinity)-(b._dist??Infinity); });
 
+    /* المثبّتة تأتي أولاً مع نفس الترتيب */
+    if (sortMode === 'nearest') pinned.sort(function(a,b){ return (a._dist??Infinity)-(b._dist??Infinity); });
+    var combined = pinned.concat(list);
+
     Array.from(listEl.querySelectorAll('.ctr-card')).forEach(function(el){ el.remove(); });
 
-    if (list.length === 0) {
+    if (combined.length === 0) {
       setState('empty', 'لا توجد نتائج، جرّب كلمة بحث أخرى أو غيّر المحافظة');
       return;
     }
     setState(null);
 
     var frag = document.createDocumentFragment();
-    list.forEach(function(c) {
+    combined.forEach(function(c) {
       var node = cardTpl.content.firstElementChild.cloneNode(true);
       fillCard(node, c);
       frag.appendChild(node);
