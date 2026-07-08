@@ -1,0 +1,1761 @@
+<!-- Firebase + Phosphor Icons محملة من القالب -->
+
+<style>
+  /* === القاعدة العامة === */
+  .dex {
+    font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    direction: rtl;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+  .dex *, .dex *::before, .dex *::after {
+    box-sizing: border-box;
+  }
+
+  /* === الشاشات === */
+  .dex-screen { display: none; }
+  .dex-active { display: flex; flex-direction: column; min-height: 600px; }
+
+  /* === شاشة التحميل === */
+  .dex-loading-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 80px 20px;
+    color: #9CA3AF;
+  }
+  .dex-loading-icon { font-size: 36px; color: #246BFD; }
+  .dex-loading-text { font-size: 14px; }
+  @keyframes dex-spin { to { transform: rotate(360deg); } }
+  .dex-spin { animation: dex-spin 1s linear infinite; }
+
+  /* === شاشة القواعد === */
+  .dex-rules-bg { flex: 1; overflow-y: auto; }
+  .dex-rules-body {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .dex-info-card {
+
+    border-radius: 16px;
+    padding: 16px 18px;
+    border: 1.5px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .dex-info-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: #DC2626;
+    color: #fff;
+  }
+  .dex-info-title { font-size: 15px; font-weight: 800; color: #111827; }
+  .dex-info-sub { font-size: 12px; color: #6B7280; margin-top: 2px; }
+
+  .dex-notice {
+
+    border-radius: 14px;
+    border: 1.5px solid #DBEAFE;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dex-notice-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #DBEAFE;
+    color: #2563EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .dex-notice-text { font-size: 12px; color: #475569; line-height: 1.6; margin: 0; }
+
+  .dex-rules-heading {
+    font-size: 14px;
+    font-weight: 900;
+    color: #374151;
+    margin: 0;
+    padding-right: 4px;
+  }
+  .dex-rules-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .dex-rule-item {
+
+    border-radius: 14px;
+    border: 1.5px solid #E5E7EB;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dex-rule-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .dex-rule-item[data-color="blue"]   .dex-rule-icon { background: #DBEAFE; color: #2563EB; }
+  .dex-rule-item[data-color="amber"]  .dex-rule-icon { background: #FEF3C7; color: #D97706; }
+  .dex-rule-item[data-color="green"]  .dex-rule-icon { background: #DCFCE7; color: #16A34A; }
+  .dex-rule-item[data-color="red"]    .dex-rule-icon { background: #FEE2E2; color: #DC2626; }
+  .dex-rule-item[data-color="purple"] .dex-rule-icon { background: #EDE9FE; color: #7C3AED; }
+  .dex-rule-item[data-color="cyan"]   .dex-rule-icon { background: #CFFAFE; color: #0891B2; }
+  .dex-rule-text { font-size: 13px; color: #374151; line-height: 1.6; margin: 0; flex: 1; }
+
+  .dex-warn-box {
+    background: #FFFBEB;
+    border: 1.5px solid #FDE68A;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .dex-warn-icon { font-size: 20px; color: #D97706; flex-shrink: 0; margin-top: 1px; }
+  .dex-warn-text { font-size: 13px; color: #92400E; line-height: 1.7; margin: 0; }
+
+  .dex-no-qs {
+    background: #FEE2E2;
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    color: #DC2626;
+    font-weight: 700;
+  }
+
+  .dex-start-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 16px;
+    border: none;
+    background: #246BFD;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .dex-start-btn i { font-size: 24px; }
+  .dex-start-btn:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+  /* === شاشة الامتحان === */
+  .dex-statusbar {
+    flex-shrink: 0;
+
+    border-bottom: 1.5px solid #F3F4F6;
+  }
+  .dex-statusbar-row {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dex-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #F3F6FF;
+    border-radius: 12px;
+    padding: 7px 12px;
+    flex-shrink: 0;
+  }
+  .dex-timer i { font-size: 16px; color: #246BFD; }
+  .dex-timer-text { font-weight: 900; font-size: 16px; font-variant-numeric: tabular-nums; color: #111827; }
+  .dex-timer-warn { background: #FEE2E2; }
+  .dex-timer-warn i { color: #DC2626; }
+  .dex-timer-warn .dex-timer-text { color: #DC2626; }
+
+  .dex-qnum-wrap { flex: 1; text-align: center; }
+  .dex-qnum { font-size: 14px; font-weight: 900; color: #111827; }
+
+  .dex-wrong-ctr {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f3f6ff;
+    border-radius: 12px;
+    padding: 7px 12px;
+    flex-shrink: 0;
+  }
+  .dex-wrong-ctr i { font-size: 16px; color: #9CA3AF; }
+  .dex-wrong-text { font-weight: 900; font-size: 15px; color: #374151; }
+  .dex-wrong-danger { background: #FEE2E2; }
+  .dex-wrong-danger i { color: #DC2626; }
+  .dex-wrong-danger .dex-wrong-text { color: #DC2626; }
+
+  .dex-progress { height: 5px; border-radius: 12px; background: #F3F4F6; }
+  .dex-progress-fill { height: 100%; background: #246BFD; transition: width 0.3s ease; width: 0%; }
+  .dex-progress-fill-danger { background: #DC2626; }
+
+  .dex-exam-body { flex: 1; overflow-y: auto; padding: 14px; }
+
+  .dex-media-wrap {
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid #E5E7EB;
+    background: #ffff;
+    max-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dex-media-img,
+  .dex-media-video {
+    width: 100%;
+    max-height: 240px;
+    display: block;
+    object-fit: contain;
+  }
+
+  .dex-question-box {
+    background: #F3F6FF;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.75;
+  }
+
+  .dex-options { display: flex; flex-direction: column; gap: 10px; }
+
+  .dex-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 14px;
+
+    border: 1.5px solid #E5E7EB;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: right;
+    width: 100%;
+  }
+  .dex-option-selected { background: #EEF4FF; border-color: #246BFD; }
+  .dex-option-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #F3F4F6;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .dex-option-selected .dex-option-badge { background: #246BFD; color: #fff; }
+
+  .dex-badge-check { font-size: 15px; display: none; }
+  .dex-badge-letter { display: inline; }
+  .dex-option-selected .dex-badge-check { display: inline; }
+  .dex-option-selected .dex-badge-letter { display: none; }
+
+  .dex-option-text { font-size: 14px; font-weight: 500; color: #374151; }
+  .dex-option-selected .dex-option-text { font-weight: 700; }
+
+  .dex-exam-footer {
+    flex-shrink: 0;
+    padding: 10px 14px 14px;
+    border-top: 1.5px solid #F3F4F6;
+
+    display: flex;
+    gap: 8px;
+  }
+  .dex-skip-btn {
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 13px;
+    flex-shrink: 0;
+    border: 1.5px solid #E5E7EB;
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .dex-skip-btn i { font-size: 16px; }
+  .dex-confirm-btn {
+    flex: 1;
+    height: 46px;
+    border-radius: 13px;
+    border: none;
+    background: #246BFD;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .dex-confirm-btn:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+  /* آخر سؤال — لون أخضر */
+  .dex-confirm-last { background: #16A34A; }
+  .dex-confirm-icon { font-size: 20px; }
+
+  /* === إشعار تجاوز حد النجاح === */
+  .dex-milestone-overlay {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+  .dex-milestone-card {
+
+    border-radius: 24px;
+    padding: 24px 20px 20px;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: dex-slide-up 0.3s ease;
+  }
+  @keyframes dex-slide-up {
+    from { transform: translateY(60px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .dex-milestone-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: #DCFCE7;
+    color: #16A34A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+  }
+  .dex-milestone-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #111827;
+    text-align: center;
+    margin: 0;
+  }
+  .dex-milestone-msg {
+    font-size: 13px;
+    color: #6B7280;
+    text-align: center;
+    line-height: 1.7;
+    margin: 0;
+  }
+  .dex-milestone-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .dex-milestone-finish {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    border: none;
+    background: #16A34A;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .dex-milestone-finish i { font-size: 18px; }
+  .dex-milestone-continue {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    border: 1.5px solid #E5E7EB;
+
+    color: #374151;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .dex-milestone-continue i { font-size: 18px; }
+
+  /* === شاشة النتيجة === */
+  .dex-result-accent { height: 6px; flex-shrink: 0; }
+  .dex-result-passed .dex-result-accent { background: #16A34A; }
+  .dex-result-failed .dex-result-accent { background: #DC2626; }
+
+  .dex-result-hero {
+    padding: 30px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid #F3F4F6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dex-result-icon-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 24px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dex-result-icon-wrap i { font-size: 38px; }
+  .dex-result-passed .dex-result-icon-wrap { background: #DCFCE7; color: #16A34A; }
+  .dex-result-failed .dex-result-icon-wrap { background: #FEE2E2; color: #DC2626; }
+
+  .dex-result-title { font-size: 24px; font-weight: 900; margin-bottom: 6px; margin-top: 0; }
+  .dex-result-passed .dex-result-title { color: #16A34A; }
+  .dex-result-failed .dex-result-title { color: #DC2626; }
+  .dex-result-sub { font-size: 14px; color: #6B7280; margin-bottom: 20px; margin-top: 0; }
+
+  .dex-circle-wrap { position: relative; display: inline-flex; margin-bottom: 8px; }
+  .dex-circle-svg { width: 130px; height: 130px; transform: rotate(-90deg); display: block; }
+  .dex-circle-bg { fill: none; stroke: #E5E7EB; stroke-width: 9; }
+  .dex-circle-arc {
+    fill: none;
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-dasharray: 326.73;
+    stroke-dashoffset: 326.73;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  .dex-result-passed .dex-circle-arc { stroke: #16A34A; }
+  .dex-result-failed .dex-circle-arc { stroke: #DC2626; }
+
+  .dex-circle-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .dex-result-pct { font-size: 26px; font-weight: 900; line-height: 1; }
+  .dex-result-passed .dex-result-pct { color: #16A34A; }
+  .dex-result-failed .dex-result-pct { color: #DC2626; }
+  .dex-result-pct-label { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+
+  .dex-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 16px 14px;
+    flex-shrink: 0;
+  }
+  .dex-stat-card { border-radius: 14px; padding: 12px 6px; text-align: center; }
+  .dex-stat-correct  { background: #DCFCE7; }
+  .dex-stat-wrong    { background: #FEE2E2; }
+  .dex-stat-skip     { background: #FEF3C7; }
+  .dex-stat-total    { background: #DBEAFE; }
+  .dex-stat-val { font-size: 22px; font-weight: 900; }
+  .dex-stat-correct  .dex-stat-val { color: #16A34A; }
+  .dex-stat-wrong    .dex-stat-val { color: #DC2626; }
+  .dex-stat-skip     .dex-stat-val { color: #D97706; }
+  .dex-stat-total    .dex-stat-val { color: #2563EB; }
+  .dex-stat-label { font-size: 11px; font-weight: 700; margin-top: 2px; }
+  .dex-stat-correct  .dex-stat-label { color: #16A34A; }
+  .dex-stat-wrong    .dex-stat-label { color: #DC2626; }
+  .dex-stat-skip     .dex-stat-label { color: #D97706; }
+  .dex-stat-total    .dex-stat-label { color: #2563EB; }
+
+  .dex-result-detail-wrap {
+    margin: 0 14px 16px;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .dex-result-passed .dex-result-detail-wrap { background: #DCFCE7; }
+  .dex-result-failed .dex-result-detail-wrap { background: #FEE2E2; }
+  .dex-detail-icon-el { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .dex-result-passed .dex-detail-icon-el { color: #16A34A; }
+  .dex-result-failed .dex-detail-icon-el { color: #DC2626; }
+
+  /* نصوص التفاصيل — مخفية بالكامل أولاً */
+  .dex-detail-variant { display: none; font-size: 13px; line-height: 1.7; margin: 0; }
+  /* إظهار النوع المناسب حسب حالة النجاح/الرسوب */
+  .dex-result-passed  .dex-detail-passed   { display: block; color: #15803D; }
+  .dex-result-failed  .dex-detail-fail-wr  { display: none; color: #DC2626; }
+  .dex-result-failed  .dex-detail-fail-low { display: none; color: #DC2626; }
+  .dex-fail-wrongs    .dex-detail-fail-wr  { display: block; }
+  .dex-fail-low       .dex-detail-fail-low { display: block; }
+
+  .dex-result-btns {
+    padding: 0 14px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .dex-retry-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: #246BFD;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .dex-retry-btn i { font-size: 20px; }
+
+  /* أداة مساعدة */
+  .dex-hidden { display: none !important; }
+
+  /* === فقرة SEO التعريفية === */
+  .dex-intro-para {
+    background: #fff;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .dex-intro-para p {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.85;
+    margin: 0;
+  }
+  .dex-intro-para b { color: #246BFD; font-weight: 700; }
+
+  /* ══ AUTH MODAL ══ */
+  @keyframes dex-check  { 0%{stroke-dashoffset:60} 100%{stroke-dashoffset:0} }
+  .dex-overlay.dex-hide { display: none; }
+
+  .dex-mstep { display: none; flex-direction: column; align-items: center; padding: 36px 28px 32px; gap: 0; }
+  .dex-mstep.dex-mactive { display: flex; animation: jd-step-in .28s ease both; }
+
+  .dex-mstep__ico {
+    width: 68px; height: 68px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px; flex-shrink: 0;
+  }
+  .dex-mstep__ico--blue { background: #EFF6FF; color: #2563EB; font-size: 30px; }
+  .dex-mstep__ico--green { background: #F0FDF4; border: 2px solid #86EFAC; }
+
+  .dex-check-svg circle { fill: #F0FDF4; }
+  .dex-check-svg path {
+    fill: none; stroke: #16A34A; stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 60; stroke-dashoffset: 60;
+    animation: dex-check .45s .15s ease forwards;
+  }
+
+  .dex-mstep__title { font-size: 18px; font-weight: 900; color: #111827; text-align: center; margin-bottom: 8px; line-height: 1.35; }
+  .dex-mstep__sub   { font-size: 13px; color: #6B7280; text-align: center; line-height: 1.65; margin-bottom: 24px; }
+
+  .dex-google-btn {
+    width: 100%; height: 50px; border-radius: 14px;
+    border: 1.5px solid #E5E7EB; background: #fff;
+    font-size: 14px; font-weight: 700; color: #111827;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .dex-google-btn:hover { border-color: #4285F4; box-shadow: 0 2px 12px rgba(66,133,244,.18); background: #F8FAFF; }
+  .dex-google-btn:active { transform: scale(.98); }
+  .dex-google-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .dex-google-ico { width: 22px; height: 22px; flex-shrink: 0; }
+
+  .dex-mphone-wrap { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .dex-mphone-note {
+    display: flex; align-items: flex-start; gap: 7px;
+    font-size: 12px; color: #6B7280;
+    background: #F9FAFB; border: 1px solid #E5E7EB;
+    border-radius: 10px; padding: 10px 12px; line-height: 1.6;
+  }
+  .dex-mphone-note i { color: #2563EB; margin-top: 1px; flex-shrink: 0; font-size: 14px; }
+  .dex-mphone-row {
+    display: flex; border: 1.5px solid #E5E7EB; border-radius: 12px;
+    overflow: hidden; background: #fff;
+    transition: box-shadow .15s, border-color .15s;
+  }
+  .dex-mphone-row:focus-within { border-color: #246BFD; box-shadow: 0 0 0 3px rgba(36,107,253,.10); }
+  .dex-mphone-prefix {
+    padding: 0 12px; background: #F9FAFB;
+    border-left: 1.5px solid #E5E7EB;
+    font-size: 13px; font-weight: 700; color: #6B7280;
+    display: flex; align-items: center; flex-shrink: 0;
+    direction: ltr; user-select: none; gap: 5px;
+  }
+  .dex-mphone-input {
+    flex: 1; padding: 13px 12px; border: none; outline: none;
+    font-size: 15px; font-family: inherit; color: #111827;
+    background: #fff; direction: ltr; text-align: left; letter-spacing: .5px;
+  }
+  .dex-mphone-input::placeholder { color: #9CA3AF; }
+  .dex-mphonemsg {
+    border-radius: 9px; padding: 9px 13px;
+    font-size: 12px; font-weight: 700; text-align: center; display: none;
+  }
+  .dex-mphonemsg.dex-ok  { display:block; color:#16A34A; background:#F0FDF4; border:1px solid #86EFAC; }
+  .dex-mphonemsg.dex-err { display:block; color:#DC2626; background:#FEF2F2; border:1px solid #FECACA; }
+
+  .dex-complete-btn {
+    width: 100%; height: 48px; border-radius: 13px; border: none;
+    background: #246BFD; color: #fff;
+    font-size: 14px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: opacity .15s, transform .1s, background .15s; margin-top: 4px;
+  }
+  .dex-complete-btn:hover:not(:disabled) { background: #1D4ED8; }
+  .dex-complete-btn:active:not(:disabled) { transform: scale(.98); }
+  .dex-complete-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .dex-mwelcome-avatar {
+    width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+    border: 3px solid #86EFAC; margin-bottom: 16px; display: block;
+  }
+  .dex-mwelcome-name { font-size: 20px; font-weight: 900; color: #111827; text-align: center; margin-bottom: 6px; }
+  .dex-mwelcome-msg  { font-size: 13px; color: #6B7280; text-align: center; line-height: 1.65; }
+  .dex-mwelcome-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #F0FDF4; border: 1.5px solid #86EFAC;
+    border-radius: 99px; padding: 6px 16px;
+    font-size: 13px; font-weight: 700; color: #16A34A; margin-top: 16px;
+  }
+
+  .dex-goto-btn {
+    width: 100%; height: 50px; border-radius: 14px; border: none;
+    background: #246BFD; color: #fff;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .15s, transform .1s, background .15s;
+  }
+  .dex-goto-btn:hover { background: #1D4ED8; }
+  .dex-goto-btn:active { transform: scale(.98); }
+  .dex-goto-btn i { font-size: 20px; }
+
+  /* ══ REVIEW POPUP (after exam) ══ */
+  @keyframes dex-rv-up { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .dex-rv-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    z-index: 99999;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 16px;
+    animation: jd-fadein .2s ease;
+  }
+  .dex-rv-overlay.dex-hide { display: none; }
+  .dex-rv-card {
+    background: #fff; border-radius: 24px;
+    width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,.18);
+    animation: dex-rv-up .35s cubic-bezier(.34,1.3,.64,1) both;
+    padding: 22px 20px 26px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .dex-rv-head { display: flex; align-items: center; justify-content: space-between; }
+  .dex-rv-title { font-size: 17px; font-weight: 900; color: #111827; }
+  .dex-rv-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: none; background: #F9FAFB; color: #6B7280;
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .dex-rv-close:hover { background: #FEE2E2; color: #DC2626; }
+  .dex-rv-sub { font-size: 13px; color: #6B7280; line-height: 1.6; margin: -4px 0 0; }
+  .dex-rv-stars { display: flex; gap: 4px; direction: ltr; justify-content: center; }
+  .dex-rv-stars button {
+    background: none; border: none; cursor: pointer; padding: 2px;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    transition: transform .1s;
+  }
+  .dex-rv-stars button:active { transform: scale(.85); }
+  .dex-rv-hint { font-size: 13px; font-weight: 700; color: #246BFD; text-align: center; min-height: 20px; }
+  .dex-rv-textarea {
+    width: 100%; padding: 12px 14px;
+    border: 1.5px solid #E5E7EB; border-radius: 12px;
+    background: #F9FAFB; font-size: 14px; font-family: inherit;
+    color: #111827; outline: none; resize: vertical; min-height: 80px;
+    direction: rtl; transition: border-color .15s, box-shadow .15s;
+  }
+  .dex-rv-textarea:focus {
+    border-color: #BFDBFE; box-shadow: 0 0 0 3px rgba(36,107,253,.08); background: #fff;
+  }
+  .dex-rv-textarea::placeholder { color: #9CA3AF; }
+  .dex-rv-anon {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: #6B7280; cursor: pointer; user-select: none;
+  }
+  .dex-rv-anon input { width: 16px; height: 16px; accent-color: #246BFD; cursor: pointer; flex-shrink: 0; }
+  .dex-rv-submit {
+    width: 100%; height: 48px; border-radius: 13px; border: none;
+    background: #246BFD; color: #fff;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .15s, transform .1s, background .15s;
+  }
+  .dex-rv-submit:hover:not(:disabled) { background: #1D4ED8; }
+  .dex-rv-submit:active:not(:disabled) { transform: scale(.98); }
+  .dex-rv-submit:disabled { opacity: .45; cursor: not-allowed; }
+  .dex-rv-submit i { font-size: 18px; }
+  .dex-rv-msg {
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; font-weight: 700; text-align: center; display: none;
+  }
+  .dex-rv-msg.dex-rv-ok  { display:block; color:#16A34A; background:#F0FDF4; border:1px solid #86EFAC; }
+  .dex-rv-msg.dex-rv-err { display:block; color:#DC2626; background:#FEF2F2; border:1px solid #FECACA; }
+  .dex-rv-skip {
+    background: none; border: none; width: 100%;
+    font-size: 13px; color: #9CA3AF; cursor: pointer; font-family: inherit;
+    padding: 4px; transition: color .15s;
+  }
+  .dex-rv-skip:hover { color: #6B7280; }
+</style>
+
+
+<!-- ==================== HTML ==================== -->
+<div id="dex" class="dex">
+  <!-- شاشة التحميل (مخفية - لا تستخدم بعد الآن) -->
+  <div id="dex-loading" class="dex-screen"></div>
+
+  <!-- شاشة القواعد -->
+  <div id="dex-rules" class="dex-screen dex-active">
+    <div class="dex-rules-bg">
+      <div class="dex-rules-body">
+<p>استعد لاجتياز <b>الفحص النظري 2026</b> من المرة الأولى! يُقدّم هذا المحاكي تجربةً كاملة تطابق آلية <b>الفحص النظري</b> المعتمدة في دائرة الترخيص الأردنية، ويشمل جميع أقسام <b>كتاب الفحص النظري</b>: <b>قواعد السير والمرور</b>، <b>الشواخص والخطوط والعلامات</b>، <b>السلامة على الطريق</b>، <b>الإسعافات الأولية</b>، <b>الميكانيك</b>، و<b>المخالفات واحتساب النقاط</b>. تدرّب على <b>أسئلة الفحص النظري</b> الحقيقية وابدأ <b>الفحص النظري</b> التجريبي الآن — مجاناً!</p>
+        
+        <!-- إشعار رسمي -->
+        <div class="dex-notice">
+          <div class="dex-notice-icon">
+            <i class="ph ph-seal-check"></i>
+          </div>
+          <p class="dex-notice-text">هذا الاختبار يُطابق آلية الفحص النظري المعتمدة في دائرة الترخيص الأردنية</p>
+        </div>
+
+        <!-- قواعد الاختبار -->
+        <h3 class="dex-rules-heading">قواعد الاختبار:</h3>
+        <ul class="dex-rules-list">
+          <li class="dex-rule-item" data-color="blue">
+            <div class="dex-rule-icon"><i class="ph ph-list-numbers"></i></div>
+            <p class="dex-rule-text">عدد الأسئلة: 60 سؤالاً من جميع الأقسام ( قواعد السير والمرور - الميكانيك - السلامة على الطريق - أسعافات أولية - الشواخص والخطوط والعلامات - المخالفات واحتساب النقاط - الصور المتحركة ).</p>
+          </li>
+          <li class="dex-rule-item" data-color="amber">
+            <div class="dex-rule-icon"><i class="ph ph-clock"></i></div>
+            <p class="dex-rule-text">مدة الاختبار: 60 دقيقة</p>
+          </li>
+          <li class="dex-rule-item" data-color="green">
+            <div class="dex-rule-icon"><i class="ph ph-check-circle"></i></div>
+            <p class="dex-rule-text">شرط النجاح: الإجابة الصحيحة على 51 سؤالاً أو أكثر</p>
+          </li>
+          <li class="dex-rule-item" data-color="red">
+            <div class="dex-rule-icon"><i class="ph ph-x-circle"></i></div>
+            <p class="dex-rule-text">الرسوب الفوري: عند الإجابة الخاطئة على 10 أسئلة أو أكثر يُوقف الاختبار</p>
+          </li>
+          <li class="dex-rule-item" data-color="purple">
+            <div class="dex-rule-icon"><i class="ph ph-arrow-u-up-left"></i></div>
+            <p class="dex-rule-text"><b>لا يمكنك</b> الرجوع للسؤال السابق وتغيير إجابتك</p>
+          </li>
+          <li class="dex-rule-item" data-color="cyan">
+            <div class="dex-rule-icon"><i class="ph ph-skip-forward"></i></div>
+            <p class="dex-rule-text">يمكنك تخطي السؤال وسيعود في نهاية الاختبار تلقائياً</p>
+          </li>
+        </ul>
+
+        <!-- تحذير -->
+        <!--[ Alert variant warning ]-->
+<div class='alert warning'><b>تححذير</b>
+ بمجرد بدء الاختبار يبدأ العد التنازلي ولا يمكن إيقافه. تأكد من جهوزيتك قبل الضغط على بدء.
+</div>
+
+
+        <!-- رسالة لا توجد أسئلة — مخفية افتراضياً -->
+        <div id="dex-no-qs" class="dex-no-qs dex-hidden">
+          لا توجد أسئلة متاحة حالياً. يرجى المحاولة لاحقاً.
+        </div>
+
+        <!-- زر البدء -->
+        <button id="dex-start-btn" class="dex-start-btn">
+          <i class="ph ph-play-circle"></i>
+          <span>بدء الاختبار</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- شاشة الامتحان -->
+  <div id="dex-exam" class="dex-screen">
+
+    <!-- شريط الحالة -->
+    <div class="dex-statusbar">
+      <div class="dex-statusbar-row">
+        <!-- المؤقت -->
+        <div id="dex-timer" class="dex-timer">
+          <i class="ph ph-clock"></i>
+          <span id="dex-timer-text" class="dex-timer-text">60:00</span>
+        </div>
+        <!-- رقم السؤال -->
+        <div class="dex-qnum-wrap">
+          <span id="dex-qnum" class="dex-qnum">1 / 60</span>
+        </div>
+        <!-- عداد الأخطاء -->
+        <div id="dex-wrong-ctr" class="dex-wrong-ctr">
+          <i class="ph ph-x-circle"></i>
+          <span id="dex-wrong-text" class="dex-wrong-text">0/10</span>
+        </div>
+      </div>
+      <!-- شريط التقدم -->
+      <div class="dex-progress">
+        <div id="dex-progress-fill" class="dex-progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- جسم الامتحان -->
+    <div class="dex-exam-body">
+      <!-- الوسائط -->
+      <div id="dex-media-wrap" class="dex-media-wrap dex-hidden">
+        <img id="dex-media-img" class="dex-media-img dex-hidden" alt="">
+        <video id="dex-media-video" class="dex-media-video dex-hidden" controls></video>
+      </div>
+      <!-- نص السؤال -->
+      <div id="dex-question" class="dex-question-box"></div>
+      <!-- الخيارات -->
+      <div id="dex-options" class="dex-options"></div>
+    </div>
+
+    <!-- تذييل الامتحان -->
+    <div class="dex-exam-footer">
+      <button id="dex-skip-btn" class="dex-skip-btn">
+        <i class="ph ph-skip-forward"></i>
+        <span>تخطي</span>
+      </button>
+      <button id="dex-confirm-btn" class="dex-confirm-btn" disabled>
+        <i id="dex-confirm-icon" class="ph ph-arrow-left dex-confirm-icon"></i>
+        <span id="dex-confirm-text">تأكيد والتالي</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- إشعار تجاوز حد النجاح — مخفي افتراضياً -->
+  <div id="dex-milestone" class="dex-milestone-overlay dex-hidden">
+    <div class="dex-milestone-card">
+      <div class="dex-milestone-icon">
+        <i class="ph-fill ph-seal-check"></i>
+      </div>
+      <h3 class="dex-milestone-title">أحسنت! لقد نجحت في الاختبار 🎉</h3>
+      <p class="dex-milestone-msg">
+        أجبت على <strong id="dex-ms-count">51</strong> سؤالاً بشكل صحيح وتجاوزت الحد المطلوب للنجاح.<br>
+        يمكنك إنهاء الاختبار الآن أو مواصلة الأسئلة المتبقية لتعزيز معرفتك.
+      </p>
+      <div class="dex-milestone-btns">
+        <button id="dex-ms-finish" class="dex-milestone-finish">
+          <i class="ph ph-flag-checkered"></i>
+          <span>إنهاء الاختبار الآن</span>
+        </button>
+        <button id="dex-ms-continue" class="dex-milestone-continue">
+          <i class="ph ph-arrow-left"></i>
+          <span>متابعة الأسئلة لتعزيز معرفتي</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- شاشة النتيجة -->
+  <div id="dex-result" class="dex-screen">
+
+    <!-- شريط اللون العلوي -->
+    <div class="dex-result-accent"></div>
+
+    <!-- قسم الهيرو -->
+    <div class="dex-result-hero">
+      <div class="dex-result-icon-wrap">
+        <i id="dex-result-icon" class="ph ph-seal-check"></i>
+      </div>
+      <h2 id="dex-result-title" class="dex-result-title"></h2>
+      <p id="dex-result-sub" class="dex-result-sub"></p>
+      <!-- دائرة النسبة المئوية -->
+      <div class="dex-circle-wrap">
+        <svg class="dex-circle-svg" viewBox="0 0 130 130">
+          <circle class="dex-circle-bg" cx="65" cy="65" r="52"/>
+          <circle id="dex-circle-arc" class="dex-circle-arc" cx="65" cy="65" r="52"/>
+        </svg>
+        <div class="dex-circle-center">
+          <span id="dex-result-pct" class="dex-result-pct">0%</span>
+          <span class="dex-result-pct-label">النتيجة</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- إحصائيات -->
+    <div class="dex-stats-grid">
+      <div class="dex-stat-card dex-stat-correct">
+        <div id="dex-stat-ok" class="dex-stat-val">0</div>
+        <div class="dex-stat-label">صحيح</div>
+      </div>
+      <div class="dex-stat-card dex-stat-wrong">
+        <div id="dex-stat-wrong" class="dex-stat-val">0</div>
+        <div class="dex-stat-label">خاطئ</div>
+      </div>
+      <div class="dex-stat-card dex-stat-skip">
+        <div id="dex-stat-skip" class="dex-stat-val">0</div>
+        <div class="dex-stat-label">متخطى</div>
+      </div>
+      <div class="dex-stat-card dex-stat-total">
+        <div id="dex-stat-total" class="dex-stat-val">0</div>
+        <div class="dex-stat-label">المجموع</div>
+      </div>
+    </div>
+
+    <!-- رسالة التفاصيل -->
+    <div class="dex-result-detail-wrap">
+      <i id="dex-detail-icon-el" class="ph ph-check-circle dex-detail-icon-el"></i>
+      <div>
+        <!-- نجح -->
+        <p class="dex-detail-variant dex-detail-passed">
+          أجبت على <strong id="dex-d-ok1"></strong> من <strong id="dex-d-total1"></strong> سؤال بشكل صحيح، بمعدل <strong id="dex-d-pct1"></strong>. الحد الأدنى للنجاح هو 51 سؤالاً وقد تجاوزته!
+        </p>
+        <!-- رسب بسبب كثرة الأخطاء -->
+        <p class="dex-detail-variant dex-detail-fail-wr">
+          تجاوزت الحد الأقصى للإجابات الخاطئة (<strong>10 أخطاء</strong>). وفقاً لمعايير دائرة الترخيص يُوقف الاختبار فوراً عند ذلك.
+        </p>
+        <!-- رسب بسبب قلة الإجابات الصحيحة -->
+        <p class="dex-detail-variant dex-detail-fail-low">
+          أجبت على <strong id="dex-d-ok2"></strong> من <strong id="dex-d-total2"></strong> سؤال بشكل صحيح. تحتاج إلى <strong>51</strong> إجابة صحيحة على الأقل للنجاح.
+        </p>
+      </div>
+    </div>
+
+    <!-- أزرار -->
+    <div class="dex-result-btns">
+      <button id="dex-retry-btn" class="dex-retry-btn">
+        <i class="ph ph-arrow-clockwise"></i>
+        <span>إعادة الاختبار</span>
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ══ AUTH MODAL ══ -->
+<div class="dex-overlay dex-hide jd-overlay" id="dex-overlay">
+  <div class="dex-modal jd-modal" id="dex-modal">
+    <button class="dex-modal__close jd-modal__close" id="dex-modal-close"><i class="ph ph-x"></i></button>
+
+    <!-- الخطوة 1: تسجيل الدخول -->
+    <div class="dex-mstep" id="dex-mstep-auth">
+      <div class="dex-mstep__ico dex-mstep__ico--blue"><i class="ph ph-sign-in"></i></div>
+      <div class="dex-mstep__title">سجّل دخولك لبدء الاختبار</div>
+      <div class="dex-mstep__sub">يُحفظ تقدّمك ونتائجك تلقائياً بعد تسجيل الدخول</div>
+      <button class="dex-google-btn" id="dex-google-btn">
+        <svg class="dex-google-ico" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        تسجيل الدخول بواسطة جوجل
+      </button>
+      <div class="dex-mphonemsg" id="dex-auth-msg" style="margin-top:12px;width:100%"></div>
+    </div>
+
+    <!-- الخطوة 2: رقم الهاتف -->
+    <div class="dex-mstep" id="dex-mstep-phone">
+      <div class="dex-mstep__ico dex-mstep__ico--blue"><i class="ph ph-phone"></i></div>
+      <div class="dex-mstep__title">خطوة أخيرة!</div>
+      <div class="dex-mstep__sub">أدخل رقم هاتفك لإكمال إنشاء حسابك</div>
+      <div class="dex-mphone-wrap">
+        <div class="dex-mphone-note">
+          <i class="ph ph-lock-simple"></i>
+          <span>رقم هاتفك خاص تماماً ولن يظهر لأي زائر</span>
+        </div>
+        <div class="dex-mphone-row">
+          <span class="dex-mphone-prefix">🇯🇴 +962</span>
+          <input type="tel" class="dex-mphone-input" id="dex-mphone"
+            placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" />
+        </div>
+        <div class="dex-mphonemsg" id="dex-phone-msg"></div>
+        <button class="dex-complete-btn" id="dex-complete-btn" type="button">
+          <i class="ph ph-check-circle"></i>
+          <span id="dex-complete-lbl">إكمال التسجيل وبدء الاختبار</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- الخطوة 3: نجاح (مستخدم جديد) -->
+    <div class="dex-mstep" id="dex-mstep-success">
+      <div class="dex-mstep__ico dex-mstep__ico--green">
+        <svg class="dex-check-svg" width="68" height="68" viewBox="0 0 68 68">
+          <circle cx="34" cy="34" r="34"/>
+          <path d="M20 34 l10 10 l18-20"/>
+        </svg>
+      </div>
+      <div class="dex-mstep__title" id="dex-success-title">تم التسجيل بنجاح!</div>
+      <div class="dex-mstep__sub" id="dex-success-sub">حسابك جاهز، ابدأ الاختبار متى تشاء!</div>
+      <button class="dex-goto-btn" id="dex-goto-exam-new">
+        <i class="ph ph-play-circle"></i>
+        <span>الانتقال للاختبار</span>
+      </button>
+    </div>
+
+    <!-- الخطوة 4: أهلاً بعودتك -->
+    <div class="dex-mstep" id="dex-mstep-welcome">
+      <img id="dex-mwelcome-photo" class="dex-mwelcome-avatar" src="" alt="" />
+      <div class="dex-mwelcome-name" id="dex-mwelcome-name"></div>
+      <div class="dex-mwelcome-msg">يسعدنا تواجدك مجددا، اختبارك ينتظرك!</div>
+      <div class="dex-mwelcome-badge"><i class="ph ph-hand-waving"></i> أهلا بعودتك!</div>
+      <button class="dex-goto-btn" id="dex-goto-exam-back" style="margin-top:20px;">
+        <i class="ph ph-play-circle"></i>
+        <span>الانتقال للاختبار</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ REVIEW POPUP ══ -->
+<div class="dex-rv-overlay dex-hide" id="dex-rv-overlay">
+  <div class="dex-rv-card">
+    <div class="dex-rv-head">
+      <div class="dex-rv-title">كيف كانت تجربتك؟ ⭐</div>
+      <button class="dex-rv-close" id="dex-rv-close"><i class="ph ph-x"></i></button>
+    </div>
+    <p class="dex-rv-sub">رأيك يساعد غيرك من الطلاب — يستغرق ثانية واحدة فقط!</p>
+    <div class="dex-rv-stars" id="dex-rv-stars"></div>
+    <div class="dex-rv-hint" id="dex-rv-hint"></div>
+    <textarea class="dex-rv-textarea" id="dex-rv-comment" placeholder="شاركنا رأيك وتجربتك مع الموقع… (اختياري)" rows="3"></textarea>
+    <label class="dex-rv-anon">
+      <input type="checkbox" id="dex-rv-anon" />
+      نشر التعليق كـ مجهول
+    </label>
+    <button class="dex-rv-submit" id="dex-rv-submit" disabled>
+      <i class="ph ph-paper-plane-tilt"></i>
+      <span id="dex-rv-submit-lbl">نشر التقييم</span>
+    </button>
+    <div class="dex-rv-msg" id="dex-rv-msg"></div>
+    <button class="dex-rv-skip" id="dex-rv-skip">تخطي</button>
+  </div>
+</div>
+
+<!-- ==================== JavaScript ==================== -->
+<script>
+(function () {
+
+  /* ——— ثوابت الامتحان ——— */
+  var EXAM_TOTAL = 60;
+  var EXAM_MINS  = 60;
+  var MAX_WRONG  = 9;
+  var CIRC       = 326.73; /* 2 * π * 52 */
+
+  /* ——— حالة الامتحان ——— */
+  var allQuestions = [];
+  var queue = [], answers = [], currentIdx = 0, selected = null;
+  var secsLeft = EXAM_MINS * 60, wrongCount = 0, correctCount = 0, timerId = null;
+  var milestoneShown = false;
+  var resOk = 0, resWrong = 0, resTotal = 0, resSkipped = 0;
+
+  /* ——— مراجع العناصر ——— */
+  var screenLoading  = document.getElementById('dex-loading');
+  var screenRules    = document.getElementById('dex-rules');
+  var screenExam     = document.getElementById('dex-exam');
+  var screenResult   = document.getElementById('dex-result');
+
+  var elTimer        = document.getElementById('dex-timer');
+  var elTimerText    = document.getElementById('dex-timer-text');
+  var elQnum         = document.getElementById('dex-qnum');
+  var elWrongCtr     = document.getElementById('dex-wrong-ctr');
+  var elWrongText    = document.getElementById('dex-wrong-text');
+  var elProgressFill = document.getElementById('dex-progress-fill');
+  var elMediaWrap    = document.getElementById('dex-media-wrap');
+  var elMediaImg     = document.getElementById('dex-media-img');
+  var elMediaVideo   = document.getElementById('dex-media-video');
+  var elQuestion     = document.getElementById('dex-question');
+  var elOptions      = document.getElementById('dex-options');
+  var elSkipBtn      = document.getElementById('dex-skip-btn');
+  var elConfirmBtn   = document.getElementById('dex-confirm-btn');
+  var elConfirmIcon  = document.getElementById('dex-confirm-icon');
+  var elConfirmText  = document.getElementById('dex-confirm-text');
+  var elMilestone    = document.getElementById('dex-milestone');
+  var elMsCount      = document.getElementById('dex-ms-count');
+  var elMsFinish     = document.getElementById('dex-ms-finish');
+  var elMsContinue   = document.getElementById('dex-ms-continue');
+
+  var elResultScreen = document.getElementById('dex-result');
+  var elResultIcon   = document.getElementById('dex-result-icon');
+  var elResultTitle  = document.getElementById('dex-result-title');
+  var elResultSub    = document.getElementById('dex-result-sub');
+  var elCircleArc    = document.getElementById('dex-circle-arc');
+  var elResultPct    = document.getElementById('dex-result-pct');
+  var elStatOk       = document.getElementById('dex-stat-ok');
+  var elStatWrong    = document.getElementById('dex-stat-wrong');
+  var elStatSkip     = document.getElementById('dex-stat-skip');
+  var elStatTotal    = document.getElementById('dex-stat-total');
+  var elDetailIconEl = document.getElementById('dex-detail-icon-el');
+  var elDOk1         = document.getElementById('dex-d-ok1');
+  var elDTotal1      = document.getElementById('dex-d-total1');
+  var elDPct1        = document.getElementById('dex-d-pct1');
+  var elDOk2         = document.getElementById('dex-d-ok2');
+  var elDTotal2      = document.getElementById('dex-d-total2');
+  var elNoQs         = document.getElementById('dex-no-qs');
+  var elStartBtn     = document.getElementById('dex-start-btn');
+  var elRetryBtn     = document.getElementById('dex-retry-btn');
+
+  /* ——— متغيرات Auth والمودال ——— */
+  var currentUser = null;
+  var db          = null;
+  var auth        = null;
+  var overlay         = document.getElementById('dex-overlay');
+  var modalClose      = document.getElementById('dex-modal-close');
+  var stepAuth        = document.getElementById('dex-mstep-auth');
+  var stepPhone       = document.getElementById('dex-mstep-phone');
+  var stepSuccess     = document.getElementById('dex-mstep-success');
+  var stepWelcome     = document.getElementById('dex-mstep-welcome');
+  var googleBtn       = document.getElementById('dex-google-btn');
+  var authMsg         = document.getElementById('dex-auth-msg');
+  var phoneInput      = document.getElementById('dex-mphone');
+  var phoneMsg        = document.getElementById('dex-phone-msg');
+  var completeBtn     = document.getElementById('dex-complete-btn');
+  var completeLbl     = document.getElementById('dex-complete-lbl');
+
+  /* ——— إدارة الشاشات ——— */
+  function showScreen(screen) {
+    [screenLoading, screenRules, screenExam, screenResult].forEach(function (s) {
+      s.classList.remove('dex-active');
+    });
+    screen.classList.add('dex-active');
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  /* ——— تهيئة Firebase ——— */
+  function initFirebase() {
+    if (!window.JDAuth) return false;
+    db   = JDAuth.db;
+    auth = JDAuth.auth;
+    return true;
+  }
+
+  /* ——— كاش محلي ——— */
+  var DEX_CACHE_KEY = 'dex_questions_v1';
+  var DEX_CACHE_TTL = 7*24*60*60*1000; /* 7 أيام */
+  function dexSaveCache(d){try{localStorage.setItem(DEX_CACHE_KEY,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}}
+  function dexLoadCache(){try{var r=localStorage.getItem(DEX_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>DEX_CACHE_TTL){localStorage.removeItem(DEX_CACHE_KEY);return null}return o.data}catch(e){return null}}
+
+  /* ——— تحميل الأسئلة عبر REST مباشرةً — بدون انتظار Auth أو SDK ——— */
+  var DEX_DB_URL = 'https://driverjo-default-rtdb.firebaseio.com/questions.json';
+  function loadData() {
+    fetch(DEX_DB_URL)
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(raw){
+        raw = raw || {};
+        var fresh = Object.values(raw).filter(function(q){
+          return q && q.question && q.options && q.options.length >= 2;
+        });
+        dexSaveCache(fresh);
+        allQuestions = fresh;
+        refreshStartBtn();
+      })
+      .catch(function(){ refreshStartBtn(); });
+  }
+
+  function refreshStartBtn() {
+    if (allQuestions.length === 0) {
+      elNoQs.classList.remove('dex-hidden');
+      elStartBtn.disabled = true;
+      elStartBtn.querySelector('span').textContent = 'لا توجد أسئلة';
+    } else {
+      elNoQs.classList.add('dex-hidden');
+      elStartBtn.disabled = false;
+      elStartBtn.querySelector('span').textContent = 'بدء الاختبار';
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     AUTH MODAL
+  ══════════════════════════════════════════ */
+  function isValidJoPhone(v) { return /^07[6-9]\d{7}$/.test(v) || /^7[6-9]\d{7}$/.test(v); }
+  function normalizePhone(v) { return /^7[6-9]\d{7}$/.test(v) ? '0' + v : v; }
+
+  function showModalStep(step) {
+    [stepAuth, stepPhone, stepSuccess, stepWelcome].forEach(function(s){ s.classList.remove('dex-mactive'); });
+    step.classList.add('dex-mactive');
+  }
+  function openModal(step) {
+    overlay.classList.remove('dex-hide');
+    document.body.style.overflow = 'hidden';
+    showModalStep(step);
+  }
+  function closeModal() {
+    overlay.classList.add('dex-hide');
+    document.body.style.overflow = '';
+    phoneInput.value = '';
+    phoneMsg.className = 'dex-mphonemsg'; phoneMsg.textContent = '';
+    completeBtn.disabled = false; completeLbl.textContent = 'إكمال التسجيل وبدء الاختبار';
+    authMsg.style.display = 'none'; authMsg.textContent = '';
+    googleBtn.disabled = false;
+  }
+  function setAuthMsg(t, ok) {
+    authMsg.className = 'dex-mphonemsg' + (t ? (ok ? ' dex-ok' : ' dex-err') : '');
+    authMsg.textContent = t || ''; authMsg.style.display = t ? 'block' : 'none';
+  }
+  function setPhoneMsg(t, ok) {
+    phoneMsg.className = 'dex-mphonemsg' + (t ? (ok ? ' dex-ok' : ' dex-err') : '');
+    phoneMsg.textContent = t || '';
+  }
+
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+  modalClose.addEventListener('click', closeModal);
+
+  googleBtn.addEventListener('click', function () {
+    googleBtn.disabled = true; setAuthMsg('', false);
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email'); provider.setCustomParameters({ prompt: 'select_account' });
+    auth.signInWithPopup(provider)
+      .then(function (r) {
+        currentUser = r.user;
+        return db.ref('users/' + r.user.uid).once('value').then(function (snap) {
+          googleBtn.disabled = false;
+          if (snap.exists()) { showWelcomeBack(r.user, snap.val().name || r.user.displayName || 'مستخدم'); }
+          else { showModalStep(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
+        });
+      })
+      .catch(function (err) {
+        googleBtn.disabled = false;
+        if (err.code !== 'auth/popup-closed-by-user') setAuthMsg('تعذّر تسجيل الدخول، حاول مرة أخرى', false);
+      });
+  });
+
+  function showWelcomeBack(user, name) {
+    document.getElementById('dex-mwelcome-photo').src = user.photoURL || '';
+    document.getElementById('dex-mwelcome-name').textContent = 'أهلا بعودتك ,' + name + '!';
+    showModalStep(stepWelcome);
+  }
+
+  completeBtn.addEventListener('click', function () {
+    if (!currentUser) return;
+    var phone = (phoneInput.value || '').trim();
+    if (!isValidJoPhone(phone)) { setPhoneMsg('أدخل رقم صحيح مثال: 0791234567 أو 791234567', false); return; }
+    completeBtn.disabled = true; completeLbl.textContent = 'جارٍ الحفظ...'; setPhoneMsg('', false);
+    db.ref('users/' + currentUser.uid).set({
+      name: currentUser.displayName || '', email: currentUser.email || '',
+      phone: normalizePhone(phone), createdAt: new Date().toISOString()
+    }).then(function () {
+      var firstName = (currentUser.displayName || 'بك').split(' ')[0];
+      document.getElementById('dex-success-title').textContent = 'أهلا وسهلا، ' + firstName + '!';
+      document.getElementById('dex-success-sub').textContent = 'تم إنشاء حسابك بنجاح، ابدأ الاختبار متى تشاء!';
+      showModalStep(stepSuccess);
+    }).catch(function () {
+      completeBtn.disabled = false; completeLbl.textContent = 'إكمال التسجيل وبدء الاختبار';
+      setPhoneMsg('حدث خطأ، حاول مرة أخرى', false);
+    });
+  });
+
+  function handleStartClick() {
+    JDAuth.onReady(function(user) {
+      if (user) currentUser = user;
+      if (!currentUser) { openModal(stepAuth); return; }
+      db.ref('users/' + currentUser.uid).once('value')
+        .then(function (snap) {
+          if (snap.exists()) {
+            var name = snap.val().name || currentUser.displayName || 'مستخدم';
+            if (!JDAuth.wasWelcomeShown(currentUser.uid)) {
+              JDAuth.markWelcomeShown(currentUser.uid);
+              openModal(stepWelcome);
+              showWelcomeBack(currentUser, name);
+            } else { startExam(); }
+          } else { openModal(stepPhone); setTimeout(function(){ phoneInput.focus(); }, 200); }
+        })
+        .catch(function () { startExam(); });
+    });
+  }
+
+  /* ——— بدء الامتحان ——— */
+  function startExam() {
+    var shuffled = allQuestions.slice().sort(function () { return Math.random() - 0.5; });
+    queue          = shuffled.slice(0, Math.min(EXAM_TOTAL, shuffled.length));
+    answers        = new Array(queue.length).fill(null);
+    currentIdx     = 0;
+    selected       = null;
+    secsLeft       = EXAM_MINS * 60;
+    wrongCount     = 0;
+    correctCount   = 0;
+    milestoneShown = false;
+    elMilestone.classList.add('dex-hidden');
+
+    showScreen(screenExam);
+    renderQuestion();
+
+    timerId = setInterval(function () {
+      secsLeft--;
+      if (secsLeft <= 0) {
+        clearInterval(timerId);
+        timerId = null;
+        finishExam();
+      } else {
+        updateStatusBar();
+      }
+    }, 1000);
+  }
+
+  /* ——— تحديث شريط الحالة ——— */
+  function updateStatusBar() {
+    var mins = Math.floor(secsLeft / 60);
+    var secs = secsLeft % 60;
+    var warn = secsLeft < 300;
+    var totalAnswered = answers.filter(function (a) { return a !== null; }).length;
+    var danger = wrongCount >= 7;
+
+    elTimerText.textContent = pad(mins) + ':' + pad(secs);
+    elTimer.classList.toggle('dex-timer-warn', warn);
+    elWrongText.textContent = wrongCount + '/' + (MAX_WRONG + 1);
+    elWrongCtr.classList.toggle('dex-wrong-danger', danger);
+    elProgressFill.style.width = ((totalAnswered / EXAM_TOTAL) * 100) + '%';
+    elProgressFill.classList.toggle('dex-progress-fill-danger', danger);
+  }
+
+  /* ——— عرض السؤال الحالي ——— */
+  function renderQuestion() {
+    var q      = queue[currentIdx];
+    var isLast = currentIdx >= queue.length - 1;
+    var hasSelection = selected !== null;
+
+    /* رقم السؤال */
+    elQnum.textContent = (currentIdx + 1) + ' / ' + queue.length;
+    updateStatusBar();
+
+    /* الوسائط */
+    elMediaWrap.classList.add('dex-hidden');
+    elMediaImg.classList.add('dex-hidden');
+    elMediaVideo.classList.add('dex-hidden');
+    elMediaImg.src   = '';
+    elMediaVideo.src = '';
+
+    if (q.mediaUrl && q.mediaType !== 'text') {
+      elMediaWrap.classList.remove('dex-hidden');
+      if (q.mediaType === 'video') {
+        elMediaVideo.src = q.mediaUrl;
+        elMediaVideo.classList.remove('dex-hidden');
+      } else {
+        elMediaImg.src = q.mediaUrl;
+        elMediaImg.classList.remove('dex-hidden');
+      }
+    }
+
+    /* نص السؤال */
+    elQuestion.textContent = q.question;
+
+    /* الخيارات */
+    elOptions.innerHTML = '';
+    var letters = ['A', 'B', 'C', 'D', 'E'];
+    q.options.forEach(function (optText, i) {
+      var btn = document.createElement('button');
+      btn.className = 'dex-option' + (selected === i ? ' dex-option-selected' : '');
+
+      var badge = document.createElement('div');
+      badge.className = 'dex-option-badge';
+
+      var letterSpan = document.createElement('span');
+      letterSpan.className = 'dex-badge-letter';
+      letterSpan.textContent = letters[i] || String(i + 1);
+
+      var checkIcon = document.createElement('i');
+      checkIcon.className = 'ph ph-check dex-badge-check';
+
+      badge.appendChild(letterSpan);
+      badge.appendChild(checkIcon);
+
+      var textSpan = document.createElement('span');
+      textSpan.className = 'dex-option-text';
+      textSpan.textContent = optText;
+
+      btn.appendChild(badge);
+      btn.appendChild(textSpan);
+
+      btn.addEventListener('click', function () {
+        selected = i;
+        renderQuestion();
+      });
+
+      elOptions.appendChild(btn);
+    });
+
+    /* زر التأكيد */
+    elConfirmBtn.disabled = !hasSelection;
+    elConfirmBtn.classList.toggle('dex-confirm-last', hasSelection && isLast);
+
+    if (isLast && hasSelection) {
+      elConfirmIcon.className = 'ph ph-flag-checkered dex-confirm-icon';
+      elConfirmText.textContent = 'إنهاء الاختبار';
+    } else {
+      elConfirmIcon.className = 'ph ph-arrow-left dex-confirm-icon';
+      elConfirmText.textContent = 'تأكيد والتالي';
+    }
+  }
+
+  /* ——— تخطي السؤال ——— */
+  function skipQuestion() {
+    var skippedQ = queue.splice(currentIdx, 1)[0];
+    queue.push(skippedQ);
+    var skippedA = answers.splice(currentIdx, 1)[0];
+    answers.push(skippedA);
+    selected = null;
+    if (currentIdx >= queue.length) {
+      clearInterval(timerId);
+      timerId = null;
+      finishExam();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ——— تأكيد الإجابة ——— */
+  function confirmAnswer() {
+    if (selected === null) return;
+    var q       = queue[currentIdx];
+    var isWrong = selected !== q.correctAnswer;
+    var isLast  = currentIdx >= queue.length - 1;
+    answers[currentIdx] = selected;
+
+    if (!isWrong) {
+      correctCount++;
+      /* إشعار النجاح عند الوصول لـ 51 إجابة صحيحة (مرة واحدة فقط) */
+      if (correctCount >= 51 && !milestoneShown) {
+        milestoneShown = true;
+        elMsCount.textContent = correctCount;
+        elMilestone.classList.remove('dex-hidden');
+        selected = null;
+        currentIdx++;
+        return;
+      }
+    } else {
+      wrongCount++;
+    }
+
+    selected = null;
+    if (wrongCount > MAX_WRONG || isLast) {
+      clearInterval(timerId);
+      timerId = null;
+      finishExam();
+    } else {
+      currentIdx++;
+      renderQuestion();
+    }
+  }
+
+  /* ——— إشعار النجاح: إنهاء الاختبار ——— */
+  function milestoneFinish() {
+    elMilestone.classList.add('dex-hidden');
+    clearInterval(timerId);
+    timerId = null;
+    finishExam();
+  }
+
+  /* ——— إشعار النجاح: متابعة الأسئلة ——— */
+  function milestoneContinue() {
+    elMilestone.classList.add('dex-hidden');
+    renderQuestion();
+  }
+
+  /* ——— إنهاء الامتحان ——— */
+  function finishExam() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+    var ok = 0, wr = 0, sk = 0;
+    queue.forEach(function (q, i) {
+      var a = answers[i];
+      if (a === null)                 sk++;
+      else if (a === q.correctAnswer) ok++;
+      else                            wr++;
+    });
+    resOk      = ok;
+    resWrong   = wr;
+    resTotal   = queue.length;
+    resSkipped = sk;
+    saveExamStats(ok, queue.length, wr <= 9 && ok >= 51);
+    showResult();
+  }
+
+  /* ——— حفظ نتائج الاختبار في Firebase ——— */
+  function saveExamStats(ok, total, passed) {
+    if (!currentUser || !db) return;
+    var ref = db.ref('users/' + currentUser.uid + '/stats');
+    ref.once('value').then(function (snap) {
+      var s = snap.val() || { examCount: 0, bestScore: 0, totalCorrect: 0, totalAnswered: 0 };
+      ref.set({
+        examCount:     (s.examCount || 0) + 1,
+        bestScore:     Math.max(s.bestScore || 0, ok),
+        totalCorrect:  (s.totalCorrect || 0) + ok,
+        totalAnswered: (s.totalAnswered || 0) + total,
+        lastExamAt:    new Date().toISOString(),
+        lastPassed:    passed
+      });
+    }).catch(function () {});
+  }
+
+  /* ——— شاشة النتيجة ——— */
+  function showResult() {
+    var passed = resWrong <= 9 && resOk >= 51;
+    var pct    = resTotal > 0 ? Math.round((resOk / resTotal) * 100) : 0;
+    var dash   = CIRC - (pct / 100) * CIRC;
+
+    /* حالة النجاح/الرسوب على حاوية النتيجة */
+    elResultScreen.classList.remove('dex-result-passed', 'dex-result-failed', 'dex-fail-wrongs', 'dex-fail-low');
+    if (passed) {
+      elResultScreen.classList.add('dex-result-passed');
+    } else {
+      elResultScreen.classList.add('dex-result-failed');
+      elResultScreen.classList.add(resWrong > 9 ? 'dex-fail-wrongs' : 'dex-fail-low');
+    }
+
+    /* الأيقونة */
+    elResultIcon.className = 'ph ' + (passed ? 'ph-seal-check' : 'ph-seal-warning');
+    elDetailIconEl.className = 'ph ' + (passed ? 'ph-check-circle' : 'ph-x-circle') + ' dex-detail-icon-el';
+
+    /* النصوص */
+    elResultTitle.textContent = passed ? 'مبروك! اجتزت الاختبار 🎉' : 'لم تجتز الاختبار';
+    elResultSub.textContent   = passed
+      ? 'أداء ممتاز! أنت مؤهل لاجتياز الفحص النظري الرسمي'
+      : (resWrong > 9
+        ? 'تم إيقاف الاختبار لتجاوز الحد الأقصى للإجابات الخاطئة'
+        : 'راجع المزيد من الأسئلة وحاول مجددا');
+
+    /* دائرة النسبة */
+    elResultPct.textContent = pct + '%';
+    elCircleArc.setAttribute('stroke-dashoffset', dash);
+
+    /* الإحصائيات */
+    elStatOk.textContent    = resOk;
+    elStatWrong.textContent = resWrong;
+    elStatSkip.textContent  = resSkipped;
+    elStatTotal.textContent = resTotal;
+
+    /* نصوص التفاصيل الديناميكية */
+    elDOk1.textContent    = resOk;
+    elDTotal1.textContent = resTotal;
+    elDPct1.textContent   = pct + '%';
+    elDOk2.textContent    = resOk;
+    elDTotal2.textContent = resTotal;
+
+    showScreen(screenResult);
+    maybeShowReviewPopup();
+  }
+
+  /* ——— ربط الأحداث ——— */
+  elStartBtn.addEventListener('click', handleStartClick);
+  elSkipBtn.addEventListener('click', skipQuestion);
+  elConfirmBtn.addEventListener('click', confirmAnswer);
+  elMsFinish.addEventListener('click', milestoneFinish);
+  elMsContinue.addEventListener('click', milestoneContinue);
+  elRetryBtn.addEventListener('click', function () { showScreen(screenRules); });
+
+  /* زرا الانتقال للاختبار (مستخدم جديد / عائد) */
+  var gotoExamNew  = document.getElementById('dex-goto-exam-new');
+  var gotoExamBack = document.getElementById('dex-goto-exam-back');
+  if (gotoExamNew)  gotoExamNew.addEventListener('click',  function () { closeModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); startExam(); });
+  if (gotoExamBack) gotoExamBack.addEventListener('click', function () { closeModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); startExam(); });
+
+  /* ══════════════════════════════════════════
+     REVIEW POPUP (after exam)
+  ══════════════════════════════════════════ */
+  var DEX_RV_PREFIX = 'dex_reviewed_';
+  function hasUserReviewed(uid) {
+    try { return !!localStorage.getItem(DEX_RV_PREFIX + uid); } catch(e) { return false; }
+  }
+  function markUserReviewed(uid) {
+    try { localStorage.setItem(DEX_RV_PREFIX + uid, '1'); } catch(e) {}
+  }
+
+  var rvOverlay   = document.getElementById('dex-rv-overlay');
+  var rvCloseBtn  = document.getElementById('dex-rv-close');
+  var rvStarsWrap = document.getElementById('dex-rv-stars');
+  var rvHintEl    = document.getElementById('dex-rv-hint');
+  var rvComment   = document.getElementById('dex-rv-comment');
+  var rvAnon      = document.getElementById('dex-rv-anon');
+  var rvSubmit    = document.getElementById('dex-rv-submit');
+  var rvSubmitLbl = document.getElementById('dex-rv-submit-lbl');
+  var rvMsgEl     = document.getElementById('dex-rv-msg');
+  var rvSkip      = document.getElementById('dex-rv-skip');
+
+  var rvSelStars  = 0;
+  var rvHovStars  = 0;
+  var rvStarBtns  = [];
+  var RV_HINTS = { 1: 'سيء', 2: 'مقبول', 3: 'جيد', 4: 'جيد جداً', 5: 'ممتاز' };
+
+  function rvStarSvg(filled) {
+    var fc = filled ? '#F59E0B' : 'none';
+    return '<svg width="38" height="38" viewBox="0 0 24 24" fill="none" style="display:block"><polygon fill="' + fc + '" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  }
+
+  function buildRvStars() {
+    rvStarsWrap.innerHTML = ''; rvStarBtns = [];
+    for (var n = 1; n <= 5; n++) {
+      (function(n) {
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.innerHTML = rvStarSvg(false);
+        btn.addEventListener('click', function() { rvSelStars = n; refreshRvStars(); rvSubmit.disabled = false; });
+        btn.addEventListener('mouseenter', function() { rvHovStars = n; refreshRvStars(); });
+        btn.addEventListener('mouseleave', function() { rvHovStars = 0; refreshRvStars(); });
+        rvStarsWrap.appendChild(btn); rvStarBtns.push(btn);
+      })(n);
+    }
+  }
+  function refreshRvStars() {
+    var cur = rvHovStars || rvSelStars;
+    rvStarBtns.forEach(function(btn, i) { btn.innerHTML = rvStarSvg(i + 1 <= cur); });
+    rvHintEl.textContent = cur ? RV_HINTS[cur] : '';
+  }
+
+  function openRvPopup() {
+    /* guard: only open if result screen is still the active screen */
+    if (!screenResult.classList.contains('dex-active')) return;
+    if (!currentUser || hasUserReviewed(currentUser.uid)) return;
+    rvOverlay.classList.remove('dex-hide');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeRvPopup() {
+    rvOverlay.classList.add('dex-hide');
+    document.body.style.overflow = '';
+  }
+  function setRvMsg(text, ok) {
+    rvMsgEl.className = 'dex-rv-msg' + (text ? (ok ? ' dex-rv-ok' : ' dex-rv-err') : '');
+    rvMsgEl.textContent = text || '';
+  }
+
+  function maybeShowReviewPopup() {
+    if (!currentUser) return;
+    if (hasUserReviewed(currentUser.uid)) return;
+    /* reset form */
+    rvSelStars = 0; rvHovStars = 0;
+    buildRvStars();
+    rvComment.value = ''; rvAnon.checked = false;
+    rvSubmit.disabled = true; rvSubmit.style.display = '';
+    rvSubmitLbl.textContent = 'نشر التقييم';
+    rvSkip.textContent = 'تخطي';
+    setRvMsg('', false);
+    setTimeout(openRvPopup, 1800);
+  }
+
+  if (rvCloseBtn) rvCloseBtn.addEventListener('click', closeRvPopup);
+  if (rvSkip)    rvSkip.addEventListener('click', closeRvPopup);
+  if (rvOverlay) rvOverlay.addEventListener('click', function(e) { if (e.target === rvOverlay) closeRvPopup(); });
+
+  if (rvSubmit) rvSubmit.addEventListener('click', function() {
+    if (!currentUser || rvSelStars === 0) return;
+    rvSubmit.disabled = true; rvSubmitLbl.textContent = 'جارٍ النشر...'; setRvMsg('', false);
+
+    var displayName = rvAnon.checked ? 'مجهول' : (currentUser.displayName || 'مستخدم');
+    var comment = rvComment.value.trim();
+
+    db.ref('reviews').push({
+      name:      displayName,
+      stars:     rvSelStars,
+      comment:   comment,
+      createdAt: new Date().toISOString(),
+      uid:       currentUser.uid
+    }).then(function() {
+      markUserReviewed(currentUser.uid);
+      setRvMsg('شكراً! تم نشر تقييمك بنجاح 🎉', true);
+      rvSubmit.style.display = 'none';
+      rvSkip.textContent = 'إغلاق';
+      setTimeout(closeRvPopup, 2500);
+    }).catch(function() {
+      rvSubmit.disabled = false; rvSubmitLbl.textContent = 'نشر التقييم';
+      setRvMsg('حدث خطأ، حاول مرة أخرى', false);
+    });
+  });
+
+  /* ——— تشغيل التطبيق ——— */
+
+  /* فحص الكاش فوراً — قبل انتظار Firebase */
+  (function checkCacheEarly() {
+    var cached = dexLoadCache();
+    if (cached && cached.length > 0) {
+      allQuestions = cached;
+      refreshStartBtn(); /* يُفعَّل الزر لحظياً */
+    } else {
+      elStartBtn.disabled = true;
+      elStartBtn.querySelector('span').textContent = 'جارٍ تحميل الأسئلة...';
+    }
+  })();
+
+  function boot() {
+    /* ① تحميل الأسئلة فوراً — لا ينتظر Firebase Auth */
+    loadData();
+    /* ② تهيئة Auth بشكل مستقل وغير محاصر */
+    function tryInitAuth() {
+      if (initFirebase()) {
+        JDAuth.onReady(function(user) { currentUser = user; });
+        auth.onAuthStateChanged(function(user) { currentUser = user; });
+      } else {
+        setTimeout(tryInitAuth, 500);
+      }
+    }
+    tryInitAuth();
+  }
+  boot();
+
+}());
+</script>
