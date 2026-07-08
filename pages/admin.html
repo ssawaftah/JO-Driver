@@ -1,523 +1,1122 @@
-<!-- Firebase SDK (أحدث إصدار من CDN) -->
+<!-- Phosphor Icons (loaded here as fallback; template already loads them globally) -->
+<script>if(!window.__phLoaded){var s=document.createElement('script');s.src='https://unpkg.com/@phosphor-icons/web@2.1.1';document.head.appendChild(s);window.__phLoaded=true;}</script>
+
+<!-- Google Identity Services (OAuth2 — for Blogger image upload) -->
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <style>
-/* ═══════════════════════════════════════════════════════
-   ADMIN PANEL  prefix: adm-
-═══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ADMIN PANEL — driverjo  |  prefix: adm-
+   Identity: #482dff primary, Phosphor Icons, RTL Arabic
+══════════════════════════════════════════════════════ */
 #adm-root {
-  --acc:    #2563EB;
-  --acc-dk: #1D4ED8;
-  --acc-lt: #EFF6FF;
-  --acc-bd: #BFDBFE;
-  --ok:     #16A34A;
-  --ok-lt:  #F0FDF4;
-  --err:    #DC2626;
-  --err-lt: #FEF2F2;
-  --warn:   #D97706;
-  --warn-lt:#FFFBEB;
+  --p:      #1976d2;
+  --p-dk:   #1565c0;
+  --p-lt:   #e3f2fd;
+  --p-bd:   #90caf9;
+  --p-grd:  linear-gradient(135deg,#1976d2 0%,#42a5f5 100%);
+  --ok:     #16a34a;
+  --ok-lt:  #f0fdf4;
+  --ok-bd:  #86efac;
+  --err:    #dc2626;
+  --err-lt: #fef2f2;
+  --err-bd: #fecaca;
+  --warn:   #d97706;
+  --warn-lt:#fffbeb;
   --txt:    #111827;
-  --txt2:   #6B7280;
-  --bdr:    #E5E7EB;
-  --bg:     #F3F4F6;
-  --card:   #FFFFFF;
+  --txt2:   #6b7280;
+  --txt3:   #9ca3af;
+  --bdr:    #e5e7eb;
+  --bdr2:   #f3f4f6;
+  --bg:     #f5f9ff;
+  --bg2:    #f3f4f6;
+  --card:   #ffffff;
+  --shadow: 0 1px 3px #0000000d,0 4px 16px #0000000a;
+  --shadow-p: 0 4px 24px #1976d233;
+
   font-family: system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
   direction: rtl;
   min-height: 500px;
   box-sizing: border-box;
+  background: var(--bg);
 }
-#adm-root *,#adm-root *::before,#adm-root *::after { box-sizing:border-box; }
+#adm-root *, #adm-root *::before, #adm-root *::after { box-sizing: border-box; }
 
-/* screens */
-.adm-screen { display:none; }
-.adm-active { display:block; }
+/* ── Screens ───────────────────────────────────────── */
+.adm-screen { display: none; }
+.adm-active { display: block; }
+.adm-hide   { display: none !important; }
 
-/* ── LOGIN ─────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════════════════ */
 #adm-login {
-  min-height:420px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:40px 20px;
-  gap:20px;
+  min-height: 480px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg);
+}
+#adm-login.adm-active { display: flex; }
+
+/* card with entrance/exit animations */
+.adm-login-wrap {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 .adm-login-card {
-  background:var(--card);
-  border:1.5px solid var(--bdr);
-  border-radius:20px;
-  padding:36px 32px;
-  width:100%;
-  max-width:380px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:18px;
-  box-shadow:0 4px 24px #0000000d;
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: 24px;
+  padding: 36px 32px 32px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow);
+  animation: adm-in .3s cubic-bezier(.22,1,.36,1);
+  transition: opacity .35s ease, transform .35s cubic-bezier(.4,0,.6,1);
 }
+.adm-login-card.adm-card-exit {
+  opacity: 0;
+  transform: scale(.93) translateY(-10px);
+  pointer-events: none;
+}
+@keyframes adm-in {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* logo badge */
 .adm-login-logo {
-  width:60px;height:60px;
-  border-radius:16px;
-  background:var(--acc);
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;color:#fff;
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  background: var(--p-grd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #fff;
+  box-shadow: var(--shadow-p);
 }
-.adm-login-title { font-size:20px;font-weight:800;color:var(--txt);text-align:center; }
-.adm-login-sub   { font-size:13px;color:var(--txt2);text-align:center;margin-top:-10px; }
-.adm-login-card  { min-width:0; }
-.adm-uid-field {
-  width:100%;display:flex;flex-direction:column;gap:6px;
+.adm-login-logo ph-icon, .adm-login-logo i { font-size: 32px; }
+
+.adm-login-head { text-align: center; }
+.adm-login-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--txt);
+  letter-spacing: -.3px;
 }
+.adm-login-sub {
+  font-size: 13px;
+  color: var(--txt2);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* field */
+.adm-uid-field { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 .adm-uid-label {
-  font-size:13px;font-weight:600;color:var(--txt2);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txt2);
+  letter-spacing: .3px;
+  text-transform: uppercase;
 }
 .adm-uid-input {
-  width:100%;padding:12px 14px;border:1.5px solid var(--bdr);border-radius:12px;
-  background:var(--bg);color:var(--txt);font-size:14px;font-family:inherit;
-  direction:ltr;letter-spacing:.03em;outline:none;
-  transition:border-color .15s;
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--bdr);
+  border-radius: 14px;
+  background: var(--bg2);
+  color: var(--txt);
+  font-size: 14px;
+  font-family: monospace;
+  direction: ltr;
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
 }
-.adm-uid-input:focus { border-color:var(--acc);background:#fff; }
-.adm-uid-input::placeholder { color:#9CA3AF;letter-spacing:0; }
+.adm-uid-input:focus {
+  border-color: var(--p);
+  background: #fff;
+  box-shadow: 0 0 0 3px #482dff18;
+}
+.adm-uid-input::placeholder { color: var(--txt3); font-family: inherit; }
+
 .adm-login-btn {
-  width:100%;padding:13px 18px;border-radius:12px;border:none;
-  background:var(--acc);color:#fff;
-  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
-  transition:background .15s;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--p-grd);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: var(--shadow-p);
+  transition: opacity .2s, transform .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
-.adm-login-btn:hover    { background:var(--acc-dk); }
-.adm-login-btn:disabled { opacity:.5;cursor:not-allowed; }
+.adm-login-btn:hover    { opacity: .92; }
+.adm-login-btn:active   { transform: scale(.98); }
+.adm-login-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
 .adm-login-err {
-  background:var(--err-lt);border:1.5px solid #FECACA;border-radius:10px;
-  padding:10px 14px;font-size:13px;color:var(--err);
-  width:100%;max-width:380px;text-align:center;display:none;
+  background: var(--err-lt);
+  border: 1.5px solid var(--err-bd);
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--err);
+  width: 100%;
+  text-align: center;
+  display: none;
+  animation: adm-in .2s ease;
 }
 
-/* ── COMMON HEADER ─────────────────────────────────── */
-.adm-header {
-  background:var(--card);
-  border-bottom:1.5px solid var(--bdr);
-  padding:14px 18px;
-  display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:50;
+/* success state shown briefly before transition */
+.adm-login-ok {
+  background: var(--ok-lt);
+  border: 1.5px solid var(--ok-bd);
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ok);
+  width: 100%;
+  text-align: center;
+  display: none;
+  animation: adm-in .2s ease;
 }
-.adm-header-back {
-  width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bdr);
-  background:transparent;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;color:var(--txt2);transition:background .15s;
+
+/* ══════════════════════════════════════════════════════
+   TOP BAR (header shared across dashboard & list)
+══════════════════════════════════════════════════════ */
+.adm-topbar {
+  background: var(--card);
+  border-bottom: 1.5px solid var(--bdr);
+  padding: 0 18px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
-.adm-header-back:hover { background:var(--bg); }
-.adm-header-title { font-size:17px;font-weight:800;color:var(--txt);flex:1; }
-.adm-header-badge {
-  background:var(--acc-lt);color:var(--acc);
-  font-size:12px;font-weight:700;
-  padding:4px 10px;border-radius:20px;border:1px solid var(--acc-bd);
+.adm-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
 }
-.adm-header-user {
-  display:flex;align-items:center;gap:8px;
-  font-size:13px;color:var(--txt2);
+.adm-topbar-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--p-grd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  flex-shrink: 0;
 }
+.adm-topbar-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--txt);
+  letter-spacing: -.2px;
+}
+.adm-topbar-sub {
+  font-size: 11px;
+  color: var(--txt3);
+  font-weight: 500;
+}
+
+.adm-back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1.5px solid var(--bdr);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt2);
+  font-size: 20px;
+  transition: background .15s, border-color .15s;
+}
+.adm-back-btn:hover { background: var(--bg2); border-color: var(--p-bd); }
+
+.adm-badge-pill {
+  background: var(--p-lt);
+  color: var(--p);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--p-bd);
+  white-space: nowrap;
+}
+
 .adm-logout-btn {
-  padding:6px 12px;border-radius:8px;
-  border:1.5px solid var(--bdr);background:transparent;
-  cursor:pointer;font-size:12px;font-weight:700;color:var(--err);
-  transition:background .15s;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--err-bd);
+  background: var(--err-lt);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--err);
+  transition: background .15s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
-.adm-logout-btn:hover { background:var(--err-lt); }
+.adm-logout-btn:hover { background: #fee2e2; }
 
-/* ── DASHBOARD ─────────────────────────────────────── */
-.adm-dash-body { padding:18px;max-width:900px;margin:0 auto; }
-.adm-section-title {
-  font-size:13px;font-weight:700;color:var(--txt2);
-  text-transform:uppercase;letter-spacing:.5px;
-  margin-bottom:12px;
+/* ══════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════ */
+.adm-dash-body {
+  padding: 20px 18px;
+  max-width: 900px;
+  margin: 0 auto;
 }
-.adm-main-card {
-  background:var(--acc);
-  border-radius:18px;
-  padding:22px 22px;
-  display:flex;align-items:center;gap:16px;
-  cursor:pointer;
-  transition:transform .15s,box-shadow .15s;
-  color:#fff;
-  margin-bottom:20px;
-  box-shadow:0 4px 20px #2563eb33;
-}
-.adm-main-card:hover { transform:translateY(-2px);box-shadow:0 8px 28px #2563eb44; }
-.adm-main-card-icon {
-  width:52px;height:52px;border-radius:14px;
-  background:#ffffff28;display:flex;align-items:center;justify-content:center;
-  font-size:26px;flex-shrink:0;
-}
-.adm-main-card-title { font-size:18px;font-weight:800; }
-.adm-main-card-sub   { font-size:13px;opacity:.8;margin-top:2px; }
-.adm-main-card-arrow { margin-right:auto;font-size:22px;opacity:.7; }
 
-/* Category Grid */
+/* Hero card */
+.adm-hero {
+  background: var(--p-grd);
+  border-radius: 20px;
+  padding: 24px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-p);
+  transition: transform .18s, box-shadow .18s;
+  position: relative;
+  overflow: hidden;
+}
+.adm-hero::after {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: -30px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: #ffffff14;
+  pointer-events: none;
+}
+.adm-hero:hover { transform: translateY(-2px); box-shadow: 0 8px 32px #482dff44; }
+.adm-hero-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #ffffff22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  flex-shrink: 0;
+  border: 1.5px solid #ffffff33;
+}
+.adm-hero-info { flex: 1; }
+.adm-hero-title { font-size: 19px; font-weight: 900; color: #fff; }
+.adm-hero-sub   { font-size: 13px; color: #ffffffcc; margin-top: 3px; }
+.adm-hero-arrow { color: #ffffffaa; font-size: 22px; }
+
+/* Section title */
+.adm-section-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--txt3);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adm-section-lbl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bdr);
+}
+
+/* Category grid */
 .adm-cat-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
 }
 .adm-cat-card {
-  background:var(--card);border:1.5px solid var(--bdr);border-radius:16px;
-  padding:18px 14px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
-  transition:border-color .15s,transform .15s,box-shadow .15s;
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: 18px;
+  padding: 20px 14px 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transition: border-color .18s, transform .18s, box-shadow .18s;
 }
 .adm-cat-card:hover {
-  border-color:var(--acc);
-  transform:translateY(-2px);
-  box-shadow:0 4px 16px #2563eb1a;
+  border-color: var(--p-bd);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px #482dff18;
 }
-.adm-cat-card-icon {
-  width:44px;height:44px;border-radius:12px;
-  background:var(--acc-lt);color:var(--acc);
-  display:flex;align-items:center;justify-content:center;font-size:22px;
+.adm-cat-card.adm-cat-all .adm-cat-icon { background: var(--bg2); color: var(--txt2); }
+.adm-cat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--p-lt);
+  color: var(--p);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 1.5px solid var(--p-bd);
 }
-.adm-cat-card.all .adm-cat-card-icon { background:#F3F4F6;color:var(--txt2); }
-.adm-cat-card-name  { font-size:13px;font-weight:700;color:var(--txt);line-height:1.3; }
-.adm-cat-card-count {
-  font-size:12px;font-weight:700;
-  background:var(--acc-lt);color:var(--acc);
-  padding:2px 10px;border-radius:20px;
+.adm-cat-all .adm-cat-icon { border-color: var(--bdr); }
+.adm-cat-name  { font-size: 13px; font-weight: 800; color: var(--txt); line-height: 1.35; }
+.adm-cat-count {
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--p-lt);
+  color: var(--p);
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--p-bd);
 }
-.adm-cat-card.all .adm-cat-card-count { background:var(--bg);color:var(--txt2); }
+.adm-cat-all .adm-cat-count { background: var(--bg2); color: var(--txt2); border-color: var(--bdr); }
 
-/* ── QUESTIONS LIST ────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   QUESTIONS SCREEN
+══════════════════════════════════════════════════════ */
 .adm-qs-toolbar {
-  background:var(--card);
-  border-bottom:1.5px solid var(--bdr);
-  padding:12px 16px;
-  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background: var(--card);
+  border-bottom: 1.5px solid var(--bdr);
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 .adm-add-btn {
-  display:flex;align-items:center;gap:6px;
-  padding:9px 16px;border-radius:10px;
-  background:var(--acc);color:#fff;border:none;
-  font-size:14px;font-weight:700;cursor:pointer;
-  transition:background .15s;white-space:nowrap;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: var(--p-grd);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 12px #482dff33;
+  transition: opacity .18s;
+  font-family: inherit;
+  white-space: nowrap;
 }
-.adm-add-btn:hover { background:var(--acc-dk); }
+.adm-add-btn:hover { opacity: .9; }
+
 .adm-search-wrap {
-  flex:1;min-width:160px;
-  position:relative;display:flex;align-items:center;
+  flex: 1;
+  min-width: 160px;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
-.adm-search-wrap .adm-si {
-  position:absolute;right:11px;font-size:18px;color:var(--txt2);pointer-events:none;
+.adm-search-ico {
+  position: absolute;
+  right: 12px;
+  color: var(--txt3);
+  font-size: 16px;
+  pointer-events: none;
 }
 .adm-search-input {
-  width:100%;padding:9px 36px 9px 14px;
-  border:1.5px solid var(--bdr);border-radius:10px;
-  font-size:14px;color:var(--txt);background:var(--bg);
-  outline:none;transition:border-color .15s;
-  font-family:inherit;direction:rtl;
+  width: 100%;
+  padding: 10px 38px 10px 14px;
+  border: 1.5px solid var(--bdr);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--txt);
+  background: var(--bg2);
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+  font-family: inherit;
+  direction: rtl;
 }
-.adm-search-input:focus { border-color:var(--acc);background:#fff; }
-.adm-filter-wrap { display:flex;gap:6px;flex-wrap:wrap; }
-.adm-filter-btn {
-  padding:7px 14px;border-radius:20px;border:1.5px solid var(--bdr);
-  background:transparent;font-size:13px;font-weight:600;color:var(--txt2);
-  cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit;
+.adm-search-input:focus {
+  border-color: var(--p);
+  background: #fff;
+  box-shadow: 0 0 0 3px #482dff14;
 }
-.adm-filter-btn:hover  { border-color:var(--acc);color:var(--acc); }
-.adm-filter-btn.active { background:var(--acc-lt);color:var(--acc);border-color:var(--acc-bd); }
 
-/* Questions list */
-.adm-qs-body { padding:14px 16px;max-width:900px;margin:0 auto; }
+.adm-filter-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+.adm-filter-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--bdr);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.adm-filter-btn:hover  { border-color: var(--p-bd); color: var(--p); }
+.adm-filter-btn.active {
+  background: var(--p-lt);
+  color: var(--p);
+  border-color: var(--p-bd);
+}
+
+/* Question list */
+.adm-qs-body {
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.adm-qs-list { display: flex; flex-direction: column; gap: 10px; }
 .adm-qs-empty {
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;padding:60px 20px;color:var(--txt2);font-size:14px;text-align:center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 20px;
+  color: var(--txt2);
+  font-size: 14px;
+  text-align: center;
 }
-.adm-qs-empty-icon { font-size:40px;color:#D1D5DB; }
-.adm-qs-list { display:flex;flex-direction:column;gap:10px; }
+.adm-qs-empty-ico { font-size: 44px; color: var(--txt3); }
+
+/* Question card */
 .adm-q-card {
-  background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;
-  padding:14px 16px;
-  display:flex;align-items:flex-start;gap:12px;
-  transition:border-color .15s;
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color .18s, box-shadow .18s;
 }
-.adm-q-card:hover { border-color:#D1D5DB; }
+.adm-q-card:hover { border-color: var(--p-bd); box-shadow: 0 4px 18px #482dff10; }
+.adm-q-top {
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
 .adm-q-num {
-  min-width:36px;height:36px;border-radius:10px;
-  background:var(--bg);display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:800;color:var(--txt2);flex-shrink:0;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--p-lt);
+  color: var(--p);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  flex-shrink: 0;
+  border: 1px solid var(--p-bd);
 }
 .adm-q-thumb {
-  width:56px;height:56px;border-radius:8px;
-  object-fit:cover;border:1px solid var(--bdr);flex-shrink:0;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1.5px solid var(--bdr);
+  flex-shrink: 0;
 }
-.adm-q-thumb-gif { border:1.5px solid #A78BFA; }
-.adm-q-content { flex:1;min-width:0; }
-.adm-q-badges { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px; }
+.adm-q-thumb-gif { border-color: #a78bfa; }
+.adm-q-content { flex: 1; min-width: 0; }
+.adm-q-badges  { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+
 .adm-badge {
-  font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
-  display:inline-flex;align-items:center;gap:3px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
 }
-.adm-badge-text  { background:#F3F4F6;color:#6B7280; }
-.adm-badge-image { background:#EFF6FF;color:#2563EB; }
-.adm-badge-gif   { background:#F5F3FF;color:#7C3AED; }
-.adm-badge-cat   { background:var(--warn-lt);color:var(--warn); }
+.adm-badge-text  { background: var(--bg2); color: var(--txt2); }
+.adm-badge-image { background: #eff6ff; color: #2563eb; }
+.adm-badge-gif   { background: #f5f3ff; color: #7c3aed; }
+.adm-badge-cat   { background: var(--warn-lt); color: var(--warn); }
+
 .adm-q-text {
-  font-size:14px;font-weight:600;color:var(--txt);
-  line-height:1.5;margin-bottom:6px;
-  word-break:break-word;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+  line-height: 1.6;
+  margin-bottom: 6px;
+  word-break: break-word;
 }
 .adm-q-answer {
-  font-size:12px;color:var(--ok);font-weight:700;
-  display:flex;align-items:center;gap:4px;
+  font-size: 12px;
+  color: var(--ok);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ok-lt);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ok-bd);
+  width: fit-content;
 }
-.adm-q-actions { display:flex;gap:8px;margin-top:6px; }
-.adm-btn-edit {
-  padding:6px 14px;border-radius:8px;
-  border:1.5px solid var(--acc-bd);background:var(--acc-lt);
-  color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;
-  transition:background .15s;font-family:inherit;
-  display:flex;align-items:center;gap:4px;
-}
-.adm-btn-edit:hover { background:#DBEAFE; }
-.adm-btn-del {
-  padding:6px 14px;border-radius:8px;
-  border:1.5px solid #FECACA;background:var(--err-lt);
-  color:var(--err);font-size:12px;font-weight:700;cursor:pointer;
-  transition:background .15s;font-family:inherit;
-  display:flex;align-items:center;gap:4px;
-}
-.adm-btn-del:hover { background:#FEE2E2; }
 
-/* ── MODAL BASE ────────────────────────────────────── */
-.adm-overlay {
-  position:fixed;inset:0;
-  background:#00000066;
-  display:flex;align-items:flex-end;justify-content:center;
-  z-index:999;
-  padding:0;
+/* action bar at bottom of each card */
+.adm-q-footer {
+  border-top: 1px solid var(--bdr2);
+  padding: 10px 16px;
+  display: flex;
+  gap: 8px;
+  background: var(--bg);
 }
-@media(min-width:600px){
-  .adm-overlay { align-items:center;padding:20px; }
+.adm-btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border-radius: 9px;
+  border: 1.5px solid var(--p-bd);
+  background: var(--p-lt);
+  color: var(--p);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.adm-btn-edit:hover { background: #e0d9ff; }
+.adm-btn-del {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border-radius: 9px;
+  border: 1.5px solid var(--err-bd);
+  background: var(--err-lt);
+  color: var(--err);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.adm-btn-del:hover { background: #fee2e2; }
+
+/* ══════════════════════════════════════════════════════
+   MODAL BASE
+══════════════════════════════════════════════════════ */
+.adm-overlay {
+  position: fixed;
+  inset: 0;
+  background: #00000055;
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 999;
+  padding: 0;
+}
+@media (min-width: 600px) {
+  .adm-overlay { align-items: center; padding: 20px; }
 }
 .adm-modal {
-  background:var(--card);
-  border-radius:20px 20px 0 0;
-  width:100%;max-width:560px;
-  max-height:90vh;overflow-y:auto;
-  padding:24px 20px 32px;
-  animation:adm-slide-up .22s ease;
-  position:relative;
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 580px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 24px 22px 32px;
+  animation: adm-modal-up .25s cubic-bezier(.22,1,.36,1);
+  position: relative;
 }
-@media(min-width:600px){
-  .adm-modal { border-radius:20px; }
+@media (min-width: 600px) {
+  .adm-modal { border-radius: 24px; }
 }
-@keyframes adm-slide-up {
-  from { transform:translateY(40px);opacity:0 }
-  to   { transform:translateY(0);opacity:1 }
+@keyframes adm-modal-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* modal header */
 .adm-modal-head {
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
 }
-.adm-modal-title { font-size:17px;font-weight:800;color:var(--txt); }
+.adm-modal-title { font-size: 18px; font-weight: 900; color: var(--txt); }
 .adm-modal-close {
-  width:32px;height:32px;border-radius:8px;
-  border:1.5px solid var(--bdr);background:transparent;
-  cursor:pointer;font-size:20px;color:var(--txt2);
-  display:flex;align-items:center;justify-content:center;
-  transition:background .15s;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid var(--bdr);
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--txt2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
 }
-.adm-modal-close:hover { background:var(--bg); }
+.adm-modal-close:hover { background: var(--bg2); }
 
-/* ── FORM ──────────────────────────────────────────── */
-.adm-form { display:flex;flex-direction:column;gap:14px; }
-.adm-field { display:flex;flex-direction:column;gap:6px; }
+/* ══════════════════════════════════════════════════════
+   FORM
+══════════════════════════════════════════════════════ */
+.adm-form { display: flex; flex-direction: column; gap: 16px; }
+
+.adm-field { display: flex; flex-direction: column; gap: 7px; }
 .adm-label {
-  font-size:13px;font-weight:700;color:var(--txt);
-  display:flex;align-items:center;gap:6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--txt);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
-.adm-label-req { color:var(--err); }
-.adm-input,.adm-textarea,.adm-select {
-  width:100%;padding:10px 13px;
-  border:1.5px solid var(--bdr);border-radius:10px;
-  font-size:14px;color:var(--txt);background:var(--card);
-  outline:none;transition:border-color .15s;
-  font-family:inherit;direction:rtl;
-}
-.adm-textarea { resize:vertical;min-height:90px; }
-.adm-input:focus,.adm-textarea:focus,.adm-select:focus { border-color:var(--acc); }
+.adm-label-req { color: var(--err); }
 
-/* type selector */
-.adm-type-row { display:flex;gap:8px; }
-.adm-type-btn {
-  flex:1;padding:10px 8px;border-radius:10px;
-  border:1.5px solid var(--bdr);background:transparent;
-  font-size:13px;font-weight:700;color:var(--txt2);
-  cursor:pointer;transition:all .15s;text-align:center;font-family:inherit;
+.adm-input, .adm-textarea, .adm-select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--bdr);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--txt);
+  background: var(--bg2);
+  outline: none;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+  font-family: inherit;
+  direction: rtl;
 }
-.adm-type-btn:hover  { border-color:var(--acc);color:var(--acc); }
-.adm-type-btn.active { background:var(--acc-lt);color:var(--acc);border-color:var(--acc-bd); }
+.adm-textarea { resize: vertical; min-height: 90px; }
+.adm-input:focus, .adm-textarea:focus, .adm-select:focus {
+  border-color: var(--p);
+  background: #fff;
+  box-shadow: 0 0 0 3px #482dff14;
+}
+
+/* type row */
+.adm-type-row { display: flex; gap: 8px; }
+.adm-type-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1.5px solid var(--bdr);
+  background: var(--bg2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+  font-family: inherit;
+}
+.adm-type-btn:hover  { border-color: var(--p-bd); color: var(--p); }
+.adm-type-btn.active {
+  background: var(--p-lt);
+  color: var(--p);
+  border-color: var(--p-bd);
+}
 
 /* media preview */
 .adm-media-preview {
-  width:100%;max-height:180px;border-radius:10px;
-  object-fit:contain;border:1.5px solid var(--bdr);
-  display:none;margin-top:4px;background:#F9FAFB;
+  width: 100%;
+  max-height: 180px;
+  border-radius: 12px;
+  object-fit: contain;
+  border: 1.5px solid var(--bdr);
+  display: none;
+  margin-top: 4px;
+  background: var(--bg2);
 }
 .adm-media-tip {
-  font-size:12px;color:var(--txt2);padding:8px 12px;
-  background:var(--bg);border-radius:8px;border:1px solid var(--bdr);
+  font-size: 12px;
+  color: var(--txt2);
+  padding: 9px 13px;
+  background: var(--bg2);
+  border-radius: 10px;
+  border: 1px solid var(--bdr);
+  line-height: 1.6;
 }
+
+/* ── Media tab switcher ────────────────────────────── */
+.adm-media-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--bdr);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg2);
+}
+.adm-media-tab {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .15s, color .15s;
+}
+.adm-media-tab + .adm-media-tab { border-right: 1.5px solid var(--bdr); }
+.adm-media-tab.active {
+  background: var(--p-lt);
+  color: var(--p);
+}
+.adm-media-tab-pane { display: none; }
+.adm-media-tab-pane.active { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Upload drop zone ──────────────────────────────── */
+.adm-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 16px;
+  border: 2px dashed var(--bdr);
+  border-radius: 14px;
+  background: var(--bg2);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: center;
+  position: relative;
+}
+.adm-dropzone:hover,
+.adm-dropzone.drag-over {
+  border-color: var(--p);
+  background: var(--p-lt);
+}
+.adm-dropzone input[type=file] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.adm-dropzone-icon {
+  font-size: 32px;
+  color: var(--p);
+  pointer-events: none;
+}
+.adm-dropzone-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt);
+  pointer-events: none;
+}
+.adm-dropzone-hint {
+  font-size: 11px;
+  color: var(--txt3);
+  pointer-events: none;
+}
+
+/* ── Upload status ─────────────────────────────────── */
+.adm-upload-status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: none;
+  align-items: center;
+  gap: 7px;
+}
+.adm-upload-status.ok  { display:flex; background:var(--ok-lt);  color:var(--ok);  border:1px solid var(--ok-bd); }
+.adm-upload-status.err { display:flex; background:var(--err-lt); color:var(--err); border:1px solid var(--err-bd); }
+.adm-upload-status.loading { display:flex; background:var(--p-lt); color:var(--p); border:1px solid var(--p-bd); }
 
 /* options */
-.adm-options-list { display:flex;flex-direction:column;gap:8px; }
-.adm-option-row {
-  display:flex;align-items:center;gap:8px;
-}
-.adm-option-radio { accent-color:var(--acc);width:17px;height:17px;flex-shrink:0;cursor:pointer; }
-.adm-option-input { flex:1; }
+.adm-options-list { display: flex; flex-direction: column; gap: 8px; }
+.adm-option-row   { display: flex; align-items: center; gap: 8px; }
+.adm-option-radio { accent-color: var(--p); width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; }
+.adm-option-input { flex: 1; }
 .adm-option-del {
-  width:30px;height:30px;border-radius:8px;border:1.5px solid #FECACA;
-  background:var(--err-lt);color:var(--err);
-  cursor:pointer;font-size:16px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .15s;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1.5px solid var(--err-bd);
+  background: var(--err-lt);
+  color: var(--err);
+  cursor: pointer;
+  font-size: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
 }
-.adm-option-del:hover { background:#FEE2E2; }
+.adm-option-del:hover { background: #fee2e2; }
+
 .adm-add-option-btn {
-  padding:8px 14px;border-radius:8px;border:1.5px dashed var(--bdr);
-  background:transparent;color:var(--txt2);
-  font-size:13px;font-weight:600;cursor:pointer;
-  transition:border-color .15s,color .15s;font-family:inherit;
-  display:flex;align-items:center;gap:6px;width:100%;justify-content:center;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--p-bd);
+  background: var(--p-lt);
+  color: var(--p);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
 }
-.adm-add-option-btn:hover { border-color:var(--acc);color:var(--acc); }
+.adm-add-option-btn:hover { background: #e0d9ff; }
 
 /* form actions */
-.adm-form-actions { display:flex;gap:10px;margin-top:4px; }
+.adm-form-actions { display: flex; gap: 10px; margin-top: 4px; }
 .adm-btn-primary {
-  flex:1;padding:12px;border-radius:12px;
-  background:var(--acc);color:#fff;border:none;
-  font-size:15px;font-weight:700;cursor:pointer;
-  transition:background .15s;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+  flex: 1;
+  padding: 13px;
+  border-radius: 14px;
+  background: var(--p-grd);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity .18s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--shadow-p);
 }
-.adm-btn-primary:hover    { background:var(--acc-dk); }
-.adm-btn-primary:disabled { opacity:.5;cursor:not-allowed; }
+.adm-btn-primary:hover    { opacity: .9; }
+.adm-btn-primary:disabled { opacity: .45; cursor: not-allowed; }
 .adm-btn-cancel {
-  padding:12px 20px;border-radius:12px;
-  border:1.5px solid var(--bdr);background:transparent;
-  font-size:15px;font-weight:700;color:var(--txt2);cursor:pointer;
-  transition:background .15s;font-family:inherit;
+  padding: 13px 22px;
+  border-radius: 14px;
+  border: 1.5px solid var(--bdr);
+  background: var(--bg2);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--txt2);
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
 }
-.adm-btn-cancel:hover { background:var(--bg); }
+.adm-btn-cancel:hover { background: var(--bdr); }
 
-/* form msg */
+/* form message */
 .adm-form-msg {
-  border-radius:10px;padding:10px 13px;
-  font-size:13px;font-weight:600;display:none;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  display: none;
+  animation: adm-in .2s ease;
 }
-.adm-form-msg.ok  { background:var(--ok-lt);color:var(--ok);display:block; }
-.adm-form-msg.err { background:var(--err-lt);color:var(--err);display:block; }
+.adm-form-msg.ok  { background: var(--ok-lt); color: var(--ok); display: block; border: 1px solid var(--ok-bd); }
+.adm-form-msg.err { background: var(--err-lt); color: var(--err); display: block; border: 1px solid var(--err-bd); }
 
-/* ── DELETE CONFIRM ────────────────────────────────── */
-#adm-del-modal .adm-modal { max-width:380px; }
-.adm-del-icon {
-  width:56px;height:56px;border-radius:16px;
-  background:var(--err-lt);color:var(--err);
-  display:flex;align-items:center;justify-content:center;font-size:28px;
-  margin:0 auto 12px;
+/* ══════════════════════════════════════════════════════
+   DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ */
+.adm-del-modal-inner { max-width: 380px; }
+.adm-del-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--err-lt);
+  color: var(--err);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 14px;
+  border: 1.5px solid var(--err-bd);
 }
-.adm-del-title  { font-size:17px;font-weight:800;color:var(--txt);text-align:center; }
-.adm-del-sub    { font-size:13px;color:var(--txt2);text-align:center;margin-top:4px; }
-.adm-del-actions { display:flex;gap:10px;margin-top:18px; }
+.adm-del-title { font-size: 18px; font-weight: 900; color: var(--txt); text-align: center; }
+.adm-del-sub   { font-size: 13px; color: var(--txt2); text-align: center; margin-top: 6px; line-height: 1.6; }
+.adm-del-actions { display: flex; gap: 10px; margin-top: 20px; }
 .adm-btn-danger {
-  flex:1;padding:12px;border-radius:12px;
-  background:var(--err);color:#fff;border:none;
-  font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:inherit;
+  flex: 1;
+  padding: 13px;
+  border-radius: 14px;
+  background: var(--err);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .15s;
 }
-.adm-btn-danger:hover    { opacity:.9; }
-.adm-btn-danger:disabled { opacity:.5;cursor:not-allowed; }
+.adm-btn-danger:hover    { opacity: .88; }
+.adm-btn-danger:disabled { opacity: .45; cursor: not-allowed; }
 
-/* ── LOADING SPINNER ───────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   SPINNER
+══════════════════════════════════════════════════════ */
 .adm-spin-wrap {
-  display:flex;align-items:center;justify-content:center;
-  padding:60px 20px;color:var(--txt2);
-  flex-direction:column;gap:12px;font-size:14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  color: var(--txt2);
+  flex-direction: column;
+  gap: 14px;
+  font-size: 14px;
 }
-@keyframes adm-spin { to { transform:rotate(360deg) } }
+@keyframes adm-spin { to { transform: rotate(360deg); } }
 .adm-spinner {
-  width:32px;height:32px;border-radius:50%;
-  border:3px solid var(--bdr);border-top-color:var(--acc);
-  animation:adm-spin .8s linear infinite;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--bdr);
+  border-top-color: var(--p);
+  animation: adm-spin .75s linear infinite;
 }
-
-/* ── HIDE ──────────────────────────────────────────── */
-.adm-hide { display:none!important; }
 </style>
 
-<!-- ╔══════════════════════════════╗ -->
-<!-- ║  ROOT                        ║ -->
-<!-- ╚══════════════════════════════╝ -->
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║  ROOT                                 ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
 <div id="adm-root">
 
-  <!-- ═══ LOGIN ═══════════════════════════════════ -->
+  <!-- ═══ LOGIN ════════════════════════════════════════ -->
   <div id="adm-login" class="adm-screen adm-active">
-    <div class="adm-login-card">
-      <div class="adm-login-logo">&#128737;</div>
-      <div class="adm-login-title">لوحة تحكم driverjo</div>
-      <div class="adm-login-sub">تسجيل الدخول مخصص للمشرفين فقط</div>
-      <div class="adm-uid-field">
-        <label class="adm-uid-label" for="adm-uid-input">معرّف المشرف (UID)</label>
-        <input class="adm-uid-input" id="adm-uid-input" type="text"
-               placeholder="أدخل الـ UID هنا" autocomplete="off" spellcheck="false">
+    <div class="adm-login-wrap">
+      <div class="adm-login-card" id="adm-login-card">
+
+        <div class="adm-login-logo">
+          <i class="ph-bold ph-shield-check"></i>
+        </div>
+
+        <div class="adm-login-head">
+          <div class="adm-login-title">لوحة تحكم driverjo</div>
+          <div class="adm-login-sub">مخصصة للمشرفين المخوّلين فقط</div>
+        </div>
+
+        <div class="adm-uid-field">
+          <label class="adm-uid-label" for="adm-uid-input">معرّف المشرف (UID)</label>
+          <input class="adm-uid-input" id="adm-uid-input" type="text"
+                 placeholder="أدخل الـ UID هنا" autocomplete="off" spellcheck="false">
+        </div>
+
+        <button class="adm-login-btn" id="adm-login-btn">
+          <i class="ph-bold ph-sign-in"></i>
+          <span id="adm-login-btn-lbl">تسجيل الدخول</span>
+        </button>
+
+        <div id="adm-login-err" class="adm-login-err"></div>
+        <div id="adm-login-ok"  class="adm-login-ok">
+          <i class="ph-bold ph-check-circle"></i> تم التحقق… جارٍ الدخول
+        </div>
+
       </div>
-      <button class="adm-login-btn" id="adm-login-btn">تسجيل الدخول</button>
-      <div id="adm-login-msg" class="adm-login-err"></div>
     </div>
   </div>
 
-  <!-- ═══ DASHBOARD ════════════════════════════════ -->
+  <!-- ═══ DASHBOARD ═════════════════════════════════════ -->
   <div id="adm-dash" class="adm-screen">
-    <div class="adm-header">
-      <div class="adm-header-title">لوحة التحكم</div>
-      <div class="adm-header-user">
-        <span id="adm-uname"></span>
-      </div>
-      <button class="adm-logout-btn" id="adm-logout-btn">تسجيل خروج</button>
-    </div>
-    <div class="adm-dash-body">
-      <!-- Main card -->
-      <div class="adm-main-card" id="adm-qs-card">
-        <div class="adm-main-card-icon">&#128218;</div>
+
+    <div class="adm-topbar">
+      <div class="adm-topbar-brand">
+        <div class="adm-topbar-dot"><i class="ph-bold ph-steering-wheel"></i></div>
         <div>
-          <div class="adm-main-card-title">إدارة الأسئلة</div>
-          <div class="adm-main-card-sub" id="adm-total-lbl">جارٍ التحميل...</div>
+          <div class="adm-topbar-name">driverjo</div>
+          <div class="adm-topbar-sub" id="adm-uname">المشرف</div>
         </div>
-        <span class="adm-main-card-arrow">&#8249;</span>
+      </div>
+      <button class="adm-logout-btn" id="adm-logout-btn">
+        <i class="ph-bold ph-sign-out"></i> خروج
+      </button>
+    </div>
+
+    <div class="adm-dash-body">
+
+      <!-- Hero -->
+      <div class="adm-hero" id="adm-qs-card">
+        <div class="adm-hero-icon"><i class="ph-bold ph-books"></i></div>
+        <div class="adm-hero-info">
+          <div class="adm-hero-title">إدارة الأسئلة</div>
+          <div class="adm-hero-sub" id="adm-total-lbl">جارٍ التحميل…</div>
+        </div>
+        <div class="adm-hero-arrow"><i class="ph-bold ph-caret-left"></i></div>
       </div>
 
-      <!-- Category cards — hidden until clicked -->
+      <!-- Category section -->
       <div id="adm-cat-section" class="adm-hide">
-        <div class="adm-section-title">اختر القسم</div>
+        <div class="adm-section-lbl">اختر القسم</div>
         <div class="adm-cat-grid" id="adm-cat-grid"></div>
       </div>
+
     </div>
   </div>
 
-  <!-- ═══ QUESTIONS LIST ═══════════════════════════ -->
+  <!-- ═══ QUESTIONS LIST ════════════════════════════════ -->
   <div id="adm-qs" class="adm-screen">
-    <div class="adm-header">
-      <button class="adm-header-back" id="adm-back-btn">&#8250;</button>
-      <div class="adm-header-title" id="adm-qs-title">الأسئلة</div>
-      <div class="adm-header-badge" id="adm-qs-badge">0</div>
+
+    <div class="adm-topbar">
+      <button class="adm-back-btn" id="adm-back-btn">
+        <i class="ph-bold ph-caret-right"></i>
+      </button>
+      <div style="flex:1">
+        <div class="adm-topbar-name" id="adm-qs-title">الأسئلة</div>
+      </div>
+      <div class="adm-badge-pill" id="adm-qs-badge">0 سؤال</div>
     </div>
+
     <div class="adm-qs-toolbar">
       <button class="adm-add-btn" id="adm-add-btn">
-        &#43; إضافة سؤال
+        <i class="ph-bold ph-plus"></i> إضافة سؤال
       </button>
       <div class="adm-search-wrap">
-        <span class="adm-si">&#128269;</span>
+        <i class="ph-bold ph-magnifying-glass adm-search-ico"></i>
         <input class="adm-search-input" id="adm-search" type="text"
-               placeholder="بحث بالسؤال، الخيارات، أو الرقم...">
+               placeholder="ابحث بالسؤال أو الخيارات أو الرقم…">
       </div>
       <div class="adm-filter-wrap">
         <button class="adm-filter-btn active" data-type="all">الكل</button>
@@ -526,20 +1125,22 @@
         <button class="adm-filter-btn" data-type="gif">متحرك</button>
       </div>
     </div>
+
     <div class="adm-qs-body">
       <div id="adm-qs-spinner" class="adm-spin-wrap">
         <div class="adm-spinner"></div>
-        <span>جارٍ تحميل الأسئلة...</span>
+        <span>جارٍ تحميل الأسئلة…</span>
       </div>
-      <div id="adm-qs-list" class="adm-qs-list adm-hide"></div>
+      <div id="adm-qs-list"  class="adm-qs-list adm-hide"></div>
       <div id="adm-qs-empty" class="adm-qs-empty adm-hide">
-        <div class="adm-qs-empty-icon">&#128269;</div>
+        <div class="adm-qs-empty-ico"><i class="ph-bold ph-magnifying-glass"></i></div>
         <div>لا توجد أسئلة تطابق البحث</div>
       </div>
     </div>
+
   </div>
 
-  <!-- ═══ ADD/EDIT MODAL ═══════════════════════════ -->
+  <!-- ═══ ADD / EDIT MODAL ══════════════════════════════ -->
   <div id="adm-form-modal" class="adm-overlay adm-hide">
     <div class="adm-modal">
       <div class="adm-modal-head">
@@ -552,15 +1153,23 @@
         <div class="adm-field">
           <div class="adm-label">نوع السؤال <span class="adm-label-req">*</span></div>
           <div class="adm-type-row">
-            <button type="button" class="adm-type-btn active" data-mtype="text">نصي</button>
-            <button type="button" class="adm-type-btn" data-mtype="image">صورة</button>
-            <button type="button" class="adm-type-btn" data-mtype="gif">صورة متحركة</button>
+            <button type="button" class="adm-type-btn active" data-mtype="text">
+              <i class="ph-bold ph-text-t"></i> نصي
+            </button>
+            <button type="button" class="adm-type-btn" data-mtype="image">
+              <i class="ph-bold ph-image"></i> صورة
+            </button>
+            <button type="button" class="adm-type-btn" data-mtype="gif">
+              <i class="ph-bold ph-gif"></i> متحركة
+            </button>
           </div>
         </div>
 
         <!-- القسم -->
         <div class="adm-field">
-          <label class="adm-label" for="adm-f-cat">القسم <span class="adm-label-req">*</span></label>
+          <label class="adm-label" for="adm-f-cat">
+            القسم <span class="adm-label-req">*</span>
+          </label>
           <select class="adm-select" id="adm-f-cat">
             <option value="">— اختر القسم —</option>
             <option>الميكانيك</option>
@@ -575,29 +1184,69 @@
 
         <!-- نص السؤال -->
         <div class="adm-field">
-          <label class="adm-label" for="adm-f-q">نص السؤال <span class="adm-label-req">*</span></label>
-          <textarea class="adm-textarea" id="adm-f-q" placeholder="اكتب نص السؤال هنا..."></textarea>
+          <label class="adm-label" for="adm-f-q">
+            نص السؤال <span class="adm-label-req">*</span>
+          </label>
+          <textarea class="adm-textarea" id="adm-f-q"
+                    placeholder="اكتب نص السؤال هنا…"></textarea>
         </div>
 
-        <!-- رابط الوسائط -->
+        <!-- رابط / رفع الوسائط -->
         <div class="adm-field" id="adm-media-field" style="display:none">
-          <label class="adm-label" for="adm-f-url">رابط الصورة / GIF <span class="adm-label-req">*</span></label>
-          <input class="adm-input" id="adm-f-url" type="url" placeholder="https://...">
-          <img id="adm-f-preview" class="adm-media-preview" alt="معاينة">
-          <div class="adm-media-tip">
-            ارفع الصورة على بلوجر أو أي استضافة خارجية وألصق الرابط المباشر هنا
+          <div class="adm-label">
+            الوسائط <span class="adm-label-req">*</span>
           </div>
+
+          <!-- تبديل بين الرابط والرفع -->
+          <div class="adm-media-tabs">
+            <button type="button" class="adm-media-tab active" data-mtab="url">
+              <i class="ph-bold ph-link"></i> رابط مباشر
+            </button>
+            <button type="button" class="adm-media-tab" data-mtab="upload">
+              <i class="ph-bold ph-cloud-arrow-up"></i> رفع إلى Blogger
+            </button>
+          </div>
+
+          <!-- لوحة الرابط -->
+          <div class="adm-media-tab-pane active" id="adm-mtab-url">
+            <input class="adm-input" id="adm-f-url" type="url"
+                   placeholder="https://…" style="direction:ltr">
+            <div class="adm-media-tip">
+              <i class="ph-bold ph-info" style="color:var(--p)"></i>
+              الصق رابطاً مباشراً للصورة من أي مصدر خارجي.
+            </div>
+          </div>
+
+          <!-- لوحة الرفع من الجهاز -->
+          <div class="adm-media-tab-pane" id="adm-mtab-upload">
+
+            <!-- منطقة السحب والإفلات -->
+            <label class="adm-dropzone" id="adm-dropzone">
+              <input type="file" id="adm-file-input" accept="image/*">
+              <i class="ph-bold ph-image-square adm-dropzone-icon"></i>
+              <span class="adm-dropzone-label">اضغط لاختيار صورة أو اسحبها هنا</span>
+              <span class="adm-dropzone-hint">PNG · JPG · WEBP · GIF — يُضغط تلقائياً ≤ 800px</span>
+            </label>
+
+            <!-- حالة -->
+            <div class="adm-upload-status" id="adm-upload-status"></div>
+          </div>
+
+          <!-- معاينة مشتركة -->
+          <img id="adm-f-preview" class="adm-media-preview" alt="معاينة">
         </div>
 
         <!-- الخيارات -->
         <div class="adm-field">
           <div class="adm-label">
             الخيارات <span class="adm-label-req">*</span>
-            <span style="font-size:11px;color:var(--txt2);font-weight:400;margin-right:auto">حدد الإجابة الصحيحة</span>
+            <span style="font-size:11px;color:var(--txt3);font-weight:500;margin-right:auto">
+              اختر الإجابة الصحيحة بالزر الدائري
+            </span>
           </div>
           <div class="adm-options-list" id="adm-options-list"></div>
           <button type="button" class="adm-add-option-btn" id="adm-add-option-btn">
-            &#43; إضافة خيار
+            <i class="ph-bold ph-plus"></i> إضافة خيار
           </button>
         </div>
 
@@ -606,19 +1255,23 @@
         <div class="adm-form-actions">
           <button type="button" class="adm-btn-cancel" id="adm-form-cancel">إلغاء</button>
           <button type="submit" class="adm-btn-primary" id="adm-form-save">
+            <i class="ph-bold ph-floppy-disk"></i>
             <span id="adm-form-save-lbl">حفظ السؤال</span>
           </button>
         </div>
+
       </form>
     </div>
   </div>
 
-  <!-- ═══ DELETE CONFIRM ═══════════════════════════ -->
+  <!-- ═══ DELETE CONFIRM ════════════════════════════════ -->
   <div id="adm-del-modal" class="adm-overlay adm-hide">
-    <div class="adm-modal" style="max-width:360px">
-      <div class="adm-del-icon">&#128465;</div>
+    <div class="adm-modal adm-del-modal-inner">
+      <div class="adm-del-icon-wrap">
+        <i class="ph-bold ph-trash"></i>
+      </div>
       <div class="adm-del-title">حذف السؤال</div>
-      <div class="adm-del-sub">هل أنت متأكد من حذف هذا السؤال؟ لا يمكن التراجع عن هذا الإجراء.</div>
+      <div class="adm-del-sub">هل أنت متأكد من حذف هذا السؤال؟<br>لا يمكن التراجع عن هذا الإجراء.</div>
       <div class="adm-del-actions">
         <button class="adm-btn-cancel" id="adm-del-cancel" style="flex:1">إلغاء</button>
         <button class="adm-btn-danger" id="adm-del-confirm">
@@ -629,97 +1282,98 @@
   </div>
 
 </div><!-- #adm-root -->
+
 <script>
   const firebaseConfig = {
-  apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
-  authDomain: "driverjo.firebaseapp.com",
-  databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-  projectId: "driverjo",
-  storageBucket: "driverjo.firebasestorage.app",
-  messagingSenderId: "716209135475",
-  appId: "1:716209135475:web:0a8188a18017c5880aaf06"
-};
-  firebase.initializeApp(firebaseConfig);
+    apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
+    authDomain: "driverjo.firebaseapp.com",
+    databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
+    projectId: "driverjo",
+    storageBucket: "driverjo.firebasestorage.app",
+    messagingSenderId: "716209135475",
+    appId: "1:716209135475:web:0a8188a18017c5880aaf06"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 </script>
 <script>
 (function () {
   'use strict';
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      DOM refs
-  ═══════════════════════════════════════════════ */
-  var scLogin     = document.getElementById('adm-login');
-  var scDash      = document.getElementById('adm-dash');
-  var scQs        = document.getElementById('adm-qs');
+  ═══════════════════════════════════════════ */
+  var scLogin    = document.getElementById('adm-login');
+  var scDash     = document.getElementById('adm-dash');
+  var scQs       = document.getElementById('adm-qs');
 
-  var uidInput    = document.getElementById('adm-uid-input');
-  var loginBtn    = document.getElementById('adm-login-btn');
-  var loginMsg    = document.getElementById('adm-login-msg');
-  var unameEl     = document.getElementById('adm-uname');
-  var logoutBtn   = document.getElementById('adm-logout-btn');
-  var totalLbl    = document.getElementById('adm-total-lbl');
-  var qsCard      = document.getElementById('adm-qs-card');
-  var catSection  = document.getElementById('adm-cat-section');
-  var catGrid     = document.getElementById('adm-cat-grid');
+  var loginCard  = document.getElementById('adm-login-card');
+  var uidInput   = document.getElementById('adm-uid-input');
+  var loginBtn   = document.getElementById('adm-login-btn');
+  var loginBtnLbl= document.getElementById('adm-login-btn-lbl');
+  var loginErr   = document.getElementById('adm-login-err');
+  var loginOk    = document.getElementById('adm-login-ok');
+  var unameEl    = document.getElementById('adm-uname');
+  var logoutBtn  = document.getElementById('adm-logout-btn');
+  var totalLbl   = document.getElementById('adm-total-lbl');
+  var qsCard     = document.getElementById('adm-qs-card');
+  var catSection = document.getElementById('adm-cat-section');
+  var catGrid    = document.getElementById('adm-cat-grid');
 
-  var backBtn     = document.getElementById('adm-back-btn');
-  var qsTitle     = document.getElementById('adm-qs-title');
-  var qsBadge     = document.getElementById('adm-qs-badge');
-  var addBtn      = document.getElementById('adm-add-btn');
-  var searchInput = document.getElementById('adm-search');
-  var filterBtns  = document.querySelectorAll('.adm-filter-btn');
-  var qsSpinner   = document.getElementById('adm-qs-spinner');
-  var qsListEl    = document.getElementById('adm-qs-list');
-  var qsEmptyEl   = document.getElementById('adm-qs-empty');
+  var backBtn    = document.getElementById('adm-back-btn');
+  var qsTitle    = document.getElementById('adm-qs-title');
+  var qsBadge    = document.getElementById('adm-qs-badge');
+  var addBtn     = document.getElementById('adm-add-btn');
+  var searchInput= document.getElementById('adm-search');
+  var filterBtns = document.querySelectorAll('.adm-filter-btn');
+  var qsSpinner  = document.getElementById('adm-qs-spinner');
+  var qsListEl   = document.getElementById('adm-qs-list');
+  var qsEmptyEl  = document.getElementById('adm-qs-empty');
 
-  var formModal   = document.getElementById('adm-form-modal');
-  var formTitle   = document.getElementById('adm-form-title');
-  var formClose   = document.getElementById('adm-form-close');
-  var formCancel  = document.getElementById('adm-form-cancel');
-  var qForm       = document.getElementById('adm-qform');
-  var fCat        = document.getElementById('adm-f-cat');
-  var fQ          = document.getElementById('adm-f-q');
-  var fUrl        = document.getElementById('adm-f-url');
-  var fPreview    = document.getElementById('adm-f-preview');
-  var mediaField  = document.getElementById('adm-media-field');
-  var optionsList = document.getElementById('adm-options-list');
-  var addOptBtn   = document.getElementById('adm-add-option-btn');
-  var formMsg     = document.getElementById('adm-form-msg');
-  var formSave    = document.getElementById('adm-form-save');
-  var formSaveLbl = document.getElementById('adm-form-save-lbl');
-  var typeBtns    = document.querySelectorAll('.adm-type-btn');
+  var formModal  = document.getElementById('adm-form-modal');
+  var formTitle  = document.getElementById('adm-form-title');
+  var formClose  = document.getElementById('adm-form-close');
+  var formCancel = document.getElementById('adm-form-cancel');
+  var qForm      = document.getElementById('adm-qform');
+  var fCat       = document.getElementById('adm-f-cat');
+  var fQ         = document.getElementById('adm-f-q');
+  var fUrl       = document.getElementById('adm-f-url');
+  var fPreview   = document.getElementById('adm-f-preview');
+  var mediaField = document.getElementById('adm-media-field');
+  var optionsList= document.getElementById('adm-options-list');
+  var addOptBtn  = document.getElementById('adm-add-option-btn');
+  var formMsg    = document.getElementById('adm-form-msg');
+  var formSave   = document.getElementById('adm-form-save');
+  var formSaveLbl= document.getElementById('adm-form-save-lbl');
+  var typeBtns   = document.querySelectorAll('.adm-type-btn');
 
-  var delModal    = document.getElementById('adm-del-modal');
-  var delCancel   = document.getElementById('adm-del-cancel');
-  var delConfirm  = document.getElementById('adm-del-confirm');
-  var delLbl      = document.getElementById('adm-del-lbl');
+  var delModal   = document.getElementById('adm-del-modal');
+  var delCancel  = document.getElementById('adm-del-cancel');
+  var delConfirm = document.getElementById('adm-del-confirm');
+  var delLbl     = document.getElementById('adm-del-lbl');
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      State
-  ═══════════════════════════════════════════════ */
-  var db;
-  var currentAdmin = null;  /* { uid, label } */
-  var allQuestions = {};    /* { id: {...} } */
-  var currentCat   = null;  /* null = all */
+  ═══════════════════════════════════════════ */
+  var db           = null;
+  var currentAdmin = null;
+  var allQuestions = {};
+  var currentCat   = null;
   var activeFilter = 'all';
-  var editingId    = null;  /* null = new question */
+  var editingId    = null;
   var deleteId     = null;
   var selectedType = 'text';
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Screen helpers
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function showScreen(sc) {
-    scLogin.classList.remove('adm-active');
-    scDash.classList.remove('adm-active');
-    scQs.classList.remove('adm-active');
+    [scLogin, scDash, scQs].forEach(function (s) { s.classList.remove('adm-active'); });
     sc.classList.add('adm-active');
   }
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      DB helper
-     يجرّب JDAuth.db أولاً ثم firebase.database()
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   var DB_URL = 'https://driverjo-default-rtdb.firebaseio.com';
 
   function getDb() {
@@ -734,22 +1388,25 @@
     return null;
   }
 
-  /* ═══════════════════════════════════════════════
-     Login — تسجيل الدخول بالـ UID عبر REST API
-  ═══════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════
+     LOGIN
+  ═══════════════════════════════════════════ */
   function showLoginErr(msg) {
-    loginMsg.textContent = msg;
-    loginMsg.style.display = 'block';
-    loginBtn.disabled = false;
+    loginErr.textContent = msg;
+    loginErr.style.display = 'block';
+    loginOk.style.display  = 'none';
+    loginBtn.disabled      = false;
+    loginBtnLbl.textContent = 'تسجيل الدخول';
   }
 
   function doLogin() {
     var uid = uidInput.value.trim();
     if (!uid) { showLoginErr('أدخل الـ UID أولاً'); return; }
 
-    loginMsg.style.display = 'none';
-    loginBtn.disabled = true;
-    loginBtn.textContent = 'جارٍ التحقق...';
+    loginErr.style.display  = 'none';
+    loginOk.style.display   = 'none';
+    loginBtn.disabled       = true;
+    loginBtnLbl.textContent = 'جارٍ التحقق…';
 
     fetch(DB_URL + '/admin/' + encodeURIComponent(uid) + '.json')
       .then(function (r) {
@@ -759,26 +1416,39 @@
       .then(function (data) {
         if (data === null || data === undefined) {
           showLoginErr('هذا الـ UID غير مصرّح له بالوصول');
-          loginBtn.textContent = 'تسجيل الدخول';
           return;
         }
+        /* ✅ SUCCESS — show ok message, animate card out, then switch */
         var label = (data && data.email) ? data.email : uid;
         currentAdmin = { uid: uid, label: label };
-        enterDashboard();
+
+        loginBtn.style.display  = 'none';
+        loginOk.style.display   = 'block';
+
+        /* wait a moment so the user sees the success state */
+        setTimeout(function () {
+          loginCard.classList.add('adm-card-exit');
+          setTimeout(function () {
+            enterDashboard();
+          }, 380);
+        }, 700);
       })
       .catch(function (e) {
         showLoginErr('خطأ في الاتصال: ' + e.message);
-        loginBtn.textContent = 'تسجيل الدخول';
       });
   }
 
   loginBtn.addEventListener('click', doLogin);
-  uidInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') doLogin();
-  });
+  uidInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
 
   function enterDashboard() {
     unameEl.textContent = currentAdmin.label;
+    /* reset login card state for next time */
+    loginCard.classList.remove('adm-card-exit');
+    loginBtn.style.display  = '';
+    loginOk.style.display   = 'none';
+    loginBtn.disabled       = false;
+    loginBtnLbl.textContent = 'تسجيل الدخول';
     showScreen(scDash);
     loadQuestions();
   }
@@ -788,17 +1458,16 @@
     allQuestions = {};
     db = null;
     uidInput.value = '';
-    loginBtn.textContent = 'تسجيل الدخول';
-    loginMsg.style.display = 'none';
+    loginErr.style.display = 'none';
     catSection.classList.add('adm-hide');
     showScreen(scLogin);
   });
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Load questions
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function loadQuestions() {
-    totalLbl.textContent = 'جارٍ التحميل...';
+    totalLbl.textContent = 'جارٍ التحميل…';
     var d = getDb();
     if (!d) { totalLbl.textContent = 'تعذّر الاتصال بقاعدة البيانات'; return; }
     d.ref('questions').once('value').then(function (snap) {
@@ -810,17 +1479,17 @@
     });
   }
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Dashboard — category cards
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   var CAT_ICONS = {
-    'الميكانيك':                   '&#9881;',
-    'قواعد السير والمرور':         '&#128678;',
-    'الشواخص والخطوط والعلامات':  '&#9888;',
-    'السلامة على الطريق':          '&#128737;',
-    'أسعافات أولية':               '&#129658;',
-    'المخالفات واحتساب النقاط':   '&#128220;',
-    'الصور المتحركة':              '&#127916;',
+    'الميكانيك':                  'ph-gear-six',
+    'قواعد السير والمرور':        'ph-traffic-sign',
+    'الشواخص والخطوط والعلامات': 'ph-warning-circle',
+    'السلامة على الطريق':         'ph-shield-check',
+    'أسعافات أولية':              'ph-first-aid-kit',
+    'المخالفات واحتساب النقاط':  'ph-clipboard-text',
+    'الصور المتحركة':             'ph-film-strip',
   };
 
   qsCard.addEventListener('click', function () {
@@ -845,45 +1514,40 @@
     var total = Object.keys(allQuestions).length;
 
     catGrid.innerHTML = '';
-    catGrid.appendChild(makeCatCard(null, 'جميع الأسئلة', total, '&#128221;', true));
-
+    catGrid.appendChild(makeCatCard(null, 'جميع الأسئلة', total, 'ph-books', true));
     Object.keys(catCounts).sort().forEach(function (cat) {
-      var icon = CAT_ICONS[cat] || '&#128193;';
+      var icon = CAT_ICONS[cat] || 'ph-folder-open';
       catGrid.appendChild(makeCatCard(cat, cat, catCounts[cat], icon, false));
     });
-
     catSection.classList.remove('adm-hide');
   }
 
-  function makeCatCard(catVal, label, count, icon, isAll) {
+  function makeCatCard(catVal, label, count, iconClass, isAll) {
     var card = document.createElement('div');
-    card.className = 'adm-cat-card' + (isAll ? ' all' : '');
+    card.className = 'adm-cat-card' + (isAll ? ' adm-cat-all' : '');
 
     var iconWrap = document.createElement('div');
-    iconWrap.className = 'adm-cat-card-icon';
-    iconWrap.innerHTML = icon;
+    iconWrap.className = 'adm-cat-icon';
+    iconWrap.innerHTML = '<i class="ph-bold ' + iconClass + '"></i>';
 
     var nameEl = document.createElement('div');
-    nameEl.className = 'adm-cat-card-name';
+    nameEl.className = 'adm-cat-name';
     nameEl.textContent = label;
 
     var countEl = document.createElement('div');
-    countEl.className = 'adm-cat-card-count';
+    countEl.className = 'adm-cat-count';
     countEl.textContent = count;
 
     card.appendChild(iconWrap);
     card.appendChild(nameEl);
     card.appendChild(countEl);
-
-    card.addEventListener('click', function () {
-      openCatQuestions(catVal, label);
-    });
+    card.addEventListener('click', function () { openCatQuestions(catVal, label); });
     return card;
   }
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Questions screen
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function openCatQuestions(catVal, label) {
     currentCat   = catVal;
     activeFilter = 'all';
@@ -898,7 +1562,6 @@
 
   backBtn.addEventListener('click', function () { showScreen(scDash); });
   searchInput.addEventListener('input', renderQuestions);
-
   filterBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       activeFilter = btn.dataset.type;
@@ -913,7 +1576,6 @@
     var list = Object.entries(allQuestions).map(function (e, idx) {
       return { id: e[0], data: e[1], idx: idx + 1 };
     });
-
     if (currentCat !== null) {
       list = list.filter(function (item) { return item.data.category === currentCat; });
     }
@@ -937,7 +1599,7 @@
   function renderQuestions() {
     qsSpinner.classList.add('adm-hide');
     var list = getFilteredList();
-    qsBadge.textContent = list.length;
+    qsBadge.textContent = list.length + ' سؤال';
 
     if (list.length === 0) {
       qsListEl.classList.add('adm-hide');
@@ -947,9 +1609,7 @@
     qsEmptyEl.classList.add('adm-hide');
     qsListEl.classList.remove('adm-hide');
     qsListEl.innerHTML = '';
-    list.forEach(function (item) {
-      qsListEl.appendChild(makeQCard(item));
-    });
+    list.forEach(function (item) { qsListEl.appendChild(makeQCard(item)); });
   }
 
   var TYPE_LABEL = { text: 'نصي', image: 'صورة', gif: 'متحرك' };
@@ -966,25 +1626,28 @@
                   '" src="' + escHtml(d.mediaUrl) + '" alt="وسائط" loading="lazy">';
     }
 
-    var badgeClass = 'adm-badge-' + mt;
-    var badgeLabel = TYPE_LABEL[mt] || mt;
-
     var card = document.createElement('div');
     card.className = 'adm-q-card';
     card.innerHTML =
-      '<div class="adm-q-num">' + item.idx + '</div>' +
-      (thumbHtml || '') +
-      '<div class="adm-q-content">' +
-        '<div class="adm-q-badges">' +
-          '<span class="adm-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
-          '<span class="adm-badge adm-badge-cat">' + escHtml(d.category || '') + '</span>' +
+      '<div class="adm-q-top">' +
+        '<div class="adm-q-num">' + item.idx + '</div>' +
+        (thumbHtml || '') +
+        '<div class="adm-q-content">' +
+          '<div class="adm-q-badges">' +
+            '<span class="adm-badge adm-badge-' + mt + '">' + (TYPE_LABEL[mt] || mt) + '</span>' +
+            '<span class="adm-badge adm-badge-cat">' + escHtml(d.category || '') + '</span>' +
+          '</div>' +
+          '<div class="adm-q-text">' + escHtml(d.question || '') + '</div>' +
+          '<div class="adm-q-answer"><i class="ph-bold ph-check-circle"></i>' + escHtml(ans) + '</div>' +
         '</div>' +
-        '<div class="adm-q-text">' + escHtml(d.question || '') + '</div>' +
-        '<div class="adm-q-answer">&#10003; ' + escHtml(ans) + '</div>' +
-        '<div class="adm-q-actions">' +
-          '<button class="adm-btn-edit" data-id="' + item.id + '">&#9998; تعديل</button>' +
-          '<button class="adm-btn-del"  data-id="' + item.id + '">&#128465; حذف</button>' +
-        '</div>' +
+      '</div>' +
+      '<div class="adm-q-footer">' +
+        '<button class="adm-btn-edit" data-id="' + item.id + '">' +
+          '<i class="ph-bold ph-pencil-simple"></i> تعديل' +
+        '</button>' +
+        '<button class="adm-btn-del" data-id="' + item.id + '">' +
+          '<i class="ph-bold ph-trash"></i> حذف' +
+        '</button>' +
       '</div>';
 
     card.querySelector('.adm-btn-edit').addEventListener('click', function () { openEditForm(item.id); });
@@ -992,9 +1655,164 @@
     return card;
   }
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
+     Media tabs + upload refs
+  ═══════════════════════════════════════════ */
+  var mediaTabs    = document.querySelectorAll('.adm-media-tab');
+  var mtabUrl      = document.getElementById('adm-mtab-url');
+  var mtabUpload   = document.getElementById('adm-mtab-upload');
+  var uploadStatus = document.getElementById('adm-upload-status');
+  var activeMediaTab = 'url'; /* 'url' | 'upload' */
+
+  /* ── media tab switch ── */
+  mediaTabs.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activeMediaTab = btn.dataset.mtab;
+      mediaTabs.forEach(function (b) { b.classList.toggle('active', b.dataset.mtab === activeMediaTab); });
+      mtabUrl.classList.toggle('active',    activeMediaTab === 'url');
+      mtabUpload.classList.toggle('active', activeMediaTab === 'upload');
+    });
+  });
+
+  /* ═══════════════════════════════════════════
+     رفع الصورة من الجهاز مباشرةً
+     FileReader + Canvas ضغط ≤ 800px داخل النموذج
+  ═══════════════════════════════════════════ */
+  var dropzone   = document.getElementById('adm-dropzone');
+  var fileInput  = document.getElementById('adm-file-input');
+
+  var MAX_PX   = 800;   /* الحد الأقصى للعرض/الارتفاع بعد الضغط */
+  var MAX_QUAL = 0.82;  /* جودة JPEG بعد الضغط */
+
+  /* سحب وإفلات */
+  dropzone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragleave', function () {
+    dropzone.classList.remove('drag-over');
+  });
+  dropzone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files[0]) processImageFile(files[0]);
+  });
+
+  /* اختيار ملف عبر النقر */
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) {
+      processImageFile(fileInput.files[0]);
+      fileInput.value = ''; /* السماح باختيار نفس الملف مرة أخرى */
+    }
+  });
+
+  /* ── ضغط الصورة بـ Canvas وتحويلها لـ data URL ── */
+  function processImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+      setUploadStatus('err', 'الملف المحدد ليس صورة');
+      return;
+    }
+    setUploadStatus('loading', 'جارٍ معالجة الصورة…');
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var rawDataUrl = e.target.result;
+
+      /* GIF: لا تُمرَّر عبر Canvas كي لا تُفقد الحركة — استخدم الـ dataUrl مباشرةً */
+      if (file.type === 'image/gif') {
+        var kb = Math.round(rawDataUrl.length * 0.75 / 1024);
+        fUrl.value = rawDataUrl;
+        updateMediaPreview(rawDataUrl);
+        switchToUrlTab();
+        setUploadStatus('ok', 'تم تحميل الصورة ✓ — GIF · ~' + kb + ' كيلوبايت (بدون ضغط للحفاظ على الحركة)');
+        return;
+      }
+
+      /* بقية الأنواع: ضغط + تصغير عبر Canvas */
+      var img = new Image();
+      img.onload = function () {
+        /* احسب الأبعاد بعد الضغط */
+        var w = img.naturalWidth;
+        var h = img.naturalHeight;
+        if (w > MAX_PX || h > MAX_PX) {
+          if (w >= h) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+          else        { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        /* خلفية بيضاء للصور الشفافة */
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+
+        /* حدد نوع المخرج — webp إن دعمه المتصفح وإلا jpeg */
+        var outType;
+        if (file.type === 'image/png') {
+          outType = 'image/png';
+        } else if (file.type === 'image/webp'
+            && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) {
+          outType = 'image/webp';
+        } else {
+          outType = 'image/jpeg';
+        }
+        var dataUrl = canvas.toDataURL(outType, MAX_QUAL);
+
+        /* أظهر المعاينة وضع الـ dataUrl في حقل الرابط */
+        fUrl.value = dataUrl;
+        updateMediaPreview(dataUrl);
+        switchToUrlTab();
+
+        var kb = Math.round(dataUrl.length * 0.75 / 1024);
+        setUploadStatus('ok', 'تم تحميل الصورة ✓ — ' + w + '×' + h + 'px · ~' + kb + ' كيلوبايت');
+      };
+      img.onerror = function () {
+        setUploadStatus('err', 'تعذّر قراءة الصورة — جرب ملفاً آخر');
+      };
+      img.src = rawDataUrl;
+    };
+    reader.onerror = function () {
+      setUploadStatus('err', 'فشل قراءة الملف');
+    };
+    reader.readAsDataURL(file);
+
+  /* ── مساعدة: انتقل لتبويب الرابط ── */
+  function switchToUrlTab() {
+    activeMediaTab = 'url';
+    mediaTabs.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.mtab === 'url');
+    });
+    mtabUrl.classList.add('active');
+    mtabUpload.classList.remove('active');
+  }
+  }
+
+  function setUploadStatus(type, msg) {
+    uploadStatus.className = 'adm-upload-status ' + type;
+    uploadStatus.innerHTML = (type === 'ok'
+      ? '<i class="ph-bold ph-check-circle"></i>'
+      : type === 'loading'
+        ? '<i class="ph-bold ph-spinner" style="animation:adm-spin .8s linear infinite"></i>'
+        : '<i class="ph-bold ph-warning-circle"></i>') + ' ' + msg;
+  }
+
+  function resetMediaUploadUI() {
+    if (uploadStatus) {
+      uploadStatus.className = 'adm-upload-status';
+      uploadStatus.innerHTML = '';
+    }
+    /* switch back to URL tab */
+    activeMediaTab = 'url';
+    mediaTabs.forEach(function (b) { b.classList.toggle('active', b.dataset.mtab === 'url'); });
+    mtabUrl.classList.add('active');
+    mtabUpload.classList.remove('active');
+  }
+
+  /* ═══════════════════════════════════════════
      Add / Edit form
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function openAddForm() {
     editingId    = null;
     selectedType = 'text';
@@ -1003,8 +1821,9 @@
     fCat.value  = currentCat || '';
     fQ.value    = '';
     fUrl.value  = '';
-    fPreview.style.display  = 'none';
+    fPreview.style.display   = 'none';
     mediaField.style.display = 'none';
+    resetMediaUploadUI();
     setTypeUI('text');
     buildOptionInputs(['', ''], -1);
     setFormMsg('', '');
@@ -1019,9 +1838,10 @@
     selectedType = d.mediaType || 'text';
     formTitle.textContent   = 'تعديل السؤال';
     formSaveLbl.textContent = 'حفظ التعديلات';
-    fCat.value  = d.category  || '';
-    fQ.value    = d.question  || '';
+    fCat.value  = d.category || '';
+    fQ.value    = d.question || '';
     fUrl.value  = d.mediaUrl  || '';
+    resetMediaUploadUI();
     setTypeUI(selectedType);
     updateMediaPreview(d.mediaUrl || '');
     buildOptionInputs(d.options || ['', ''], d.correctAnswer);
@@ -1051,7 +1871,7 @@
   function setTypeUI(mt) {
     typeBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.mtype === mt); });
     mediaField.style.display = (mt === 'image' || mt === 'gif') ? '' : 'none';
-    if (mt === 'text') { fUrl.value = ''; fPreview.style.display = 'none'; }
+    if (mt === 'text') { fUrl.value = ''; fPreview.style.display = 'none'; resetMediaUploadUI(); }
   }
 
   fUrl.addEventListener('input', function () { updateMediaPreview(fUrl.value.trim()); });
@@ -1062,9 +1882,7 @@
 
   function buildOptionInputs(opts, correctIdx) {
     optionsList.innerHTML = '';
-    opts.forEach(function (opt, i) {
-      addOptionRow(opt, i === correctIdx);
-    });
+    opts.forEach(function (opt, i) { addOptionRow(opt, i === correctIdx); });
   }
 
   function addOptionRow(value, checked) {
@@ -1083,7 +1901,7 @@
 
     var delBtn = document.createElement('button');
     delBtn.type = 'button'; delBtn.className = 'adm-option-del';
-    delBtn.textContent = '×';
+    delBtn.innerHTML = '<i class="ph-bold ph-x"></i>';
     delBtn.addEventListener('click', function () {
       if (optionsList.children.length > 2) row.remove();
     });
@@ -1112,8 +1930,7 @@
     }
 
     var opts = [], correctIdx = -1;
-    var rows = optionsList.querySelectorAll('.adm-option-row');
-    rows.forEach(function (row, i) {
+    optionsList.querySelectorAll('.adm-option-row').forEach(function (row, i) {
       var val = row.querySelector('input[type="text"]').value.trim();
       opts.push(val);
       if (row.querySelector('input[type="radio"]').checked) correctIdx = i;
@@ -1135,8 +1952,8 @@
     };
     if (selectedType !== 'text') payload.mediaUrl = url;
 
-    formSave.disabled = true;
-    formSaveLbl.textContent = 'جارٍ الحفظ...';
+    formSave.disabled       = true;
+    formSaveLbl.textContent = 'جارٍ الحفظ…';
     setFormMsg('', '');
 
     var d = getDb();
@@ -1177,12 +1994,12 @@
     formMsg.textContent = text;
   }
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Delete
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function openDeleteConfirm(id) {
     deleteId = id;
-    delLbl.textContent = 'حذف';
+    delLbl.textContent  = 'حذف';
     delConfirm.disabled = false;
     delModal.classList.remove('adm-hide');
     document.body.style.overflow = 'hidden';
@@ -1200,12 +2017,12 @@
   delConfirm.addEventListener('click', function () {
     if (!deleteId) return;
     delConfirm.disabled = true;
-    delLbl.textContent = 'جارٍ الحذف...';
+    delLbl.textContent  = 'جارٍ الحذف…';
 
     var d = getDb();
     if (!d) {
       delConfirm.disabled = false;
-      delLbl.textContent = 'حذف';
+      delLbl.textContent  = 'حذف';
       alert('تعذّر الاتصال بقاعدة البيانات');
       return;
     }
@@ -1217,14 +2034,14 @@
       totalLbl.textContent = Object.keys(allQuestions).length + ' سؤال في قاعدة البيانات';
     }).catch(function (e) {
       delConfirm.disabled = false;
-      delLbl.textContent = 'حذف';
+      delLbl.textContent  = 'حذف';
       alert('فشل الحذف: ' + e.message);
     });
   });
 
-  /* ═══════════════════════════════════════════════
+  /* ═══════════════════════════════════════════
      Utility
-  ═══════════════════════════════════════════════ */
+  ═══════════════════════════════════════════ */
   function escHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -1234,6 +2051,5 @@
   }
 
   showScreen(scLogin);
-
 })();
 </script>
