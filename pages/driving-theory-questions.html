@@ -671,13 +671,10 @@ function setMedia(q,wrap,img,vid){
   }else wrap.classList.add('qax-hide');
 }
 
-/* ── Firebase ── */
-function initFB(){
-  if(!window.firebase)return null;
-  if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FB);
-  else try{firebase.app()}catch(e){firebase.initializeApp(FB)}
-  return firebase.database();
-}
+/* ── Firebase (REST — بدون تحميل مكتبة SDK كاملة) ── */
+// طلب مباشر لواجهة REST الخاصة بـ Realtime Database بدل انتظار تحميل/تهيئة firebase.js
+// هذا يلغي زمن تحميل المكتبة + فتح اتصال WebSocket غير الضروري لقراءة واحدة.
+var FB_REST_URL = FB.databaseURL.replace(/\/$/, '') + '/questions.json';
 
 function parseRaw(raw){
   var result={};
@@ -689,22 +686,20 @@ function parseRaw(raw){
 }
 
 function fetchAndRefresh(silent){
-  function tryFetch(){
-    var db=initFB();
-    if(!db){setTimeout(tryFetch,300);return}
-    db.ref('questions').once('value').then(function(snap){
-      var raw=snap.val()||{};
-      var fresh=parseRaw(raw);
+  fetch(FB_REST_URL, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('bad status'); return r.json(); })
+    .then(function(raw){
+      raw = raw || {};
+      var fresh = parseRaw(raw);
       saveCache(fresh);
       // تحديث واجهة المستخدم إذا كان المستخدم لا يزال في صفحة الأقسام
-      if(!silent||document.getElementById('qax-page-cats').classList.contains('qax-hide')===false){
-        allQ=fresh;buildCats();
-      }else{
+      if(!silent || document.getElementById('qax-page-cats').classList.contains('qax-hide')===false){
+        allQ=fresh; buildCats();
+      } else {
         allQ=fresh; // تحديث البيانات في الذاكرة فقط
       }
-    }).catch(function(){/* صامت عند الفشل */});
-  }
-  tryFetch();
+    })
+    .catch(function(){/* صامت عند الفشل — يبقى المعروض هو آخر نسخة من الكاش */});
 }
 
 function load(){
