@@ -1,9 +1,4 @@
-<!-- Phosphor Icons (loaded here as fallback; template already loads them globally) -->
-<script>if(!window.__phLoaded){var s=document.createElement('script');s.src='https://unpkg.com/@phosphor-icons/web@2.1.1';document.head.appendChild(s);window.__phLoaded=true;}</script>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <style>
 /* ══════════════════════════════════════════════════════
@@ -778,6 +773,36 @@
 .adm-btn-promote:hover    { background: #fffbeb; border-color: #fde68a; color: #d97706; }
 .adm-btn-promote.promoted { background: #fffbeb; border-color: #fde68a; color: #d97706; }
 
+/* ── زر التثبيت ── */
+.adm-btn-pin {
+  padding: 7px 12px; border-radius: 9px; border: 1.5px solid var(--bdr);
+  background: transparent; font-size: 12px; font-weight: 700; color: var(--txt2);
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+  display: flex; align-items: center; gap: 5px; transition: all .15s;
+}
+.adm-btn-pin:hover  { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+.adm-btn-pin.pinned { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+.adm-ctr-card.is-pinned  { border-color: #86efac; }
+.adm-ctr-pill-pin { font-size: 11px; font-weight: 700; background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; padding: 2px 9px; border-radius: 999px; }
+
+/* ══ نافذة مدة التمييز ══ */
+.adm-promo-modal-inner { max-width: 360px; }
+.adm-months-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin: 16px 0 4px;
+}
+.adm-month-btn {
+  padding: 12px 4px; border-radius: 10px;
+  border: 1.5px solid var(--bdr); background: var(--bg2);
+  font-size: 13px; font-weight: 800; color: var(--txt);
+  cursor: pointer; font-family: inherit; transition: all .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.adm-month-btn:hover { background: #fffbeb; border-color: #fde68a; color: #d97706; }
+.adm-month-btn .adm-month-num { font-size: 20px; font-weight: 900; line-height: 1; }
+.adm-month-btn .adm-month-lbl { font-size: 10px; color: var(--txt2); }
+.adm-month-btn:hover .adm-month-lbl { color: #d97706; }
+
 /* form extras */
 .adm-wa-copy-btn {
   padding: 10px 14px; border: 1.5px solid var(--bdr); border-radius: 11px;
@@ -946,6 +971,7 @@
       <div class="adm-filter-wrap">
         <button class="adm-filter-btn active" data-ctrfilter="all">الكل</button>
         <button class="adm-filter-btn" data-ctrfilter="promoted">المميّزة</button>
+        <button class="adm-filter-btn" data-ctrfilter="pinned">المثبّتة</button>
       </div>
     </div>
     <div class="adm-ctr-body">
@@ -1220,6 +1246,23 @@
             </div>
           </div>
 
+          <!-- صورة المركز -->
+          <div class="adm-fsec">
+            <div class="adm-fsec-title">
+              <i class="ph-bold ph-image-square"></i> صورة المركز
+              <span style="font-weight:400;opacity:.65;font-size:10px">(اختياري)</span>
+            </div>
+            <div class="adm-field">
+              <label class="adm-label" for="adm-cf-image">رابط الصورة (imageUrl)</label>
+              <input class="adm-input" type="url" id="adm-cf-image"
+                     placeholder="https://…" style="direction:ltr">
+              <div style="font-size:12px;color:var(--txt2);margin-top:5px;display:flex;align-items:center;gap:5px">
+                <i class="ph-bold ph-info" style="color:var(--p);font-size:13px"></i>
+                الصق رابطاً مباشراً لصورة المركز (PNG · JPG · WEBP)
+              </div>
+            </div>
+          </div>
+
           <!-- التقييم -->
           <div class="adm-fsec">
             <div class="adm-fsec-title"><i class="ph-bold ph-star"></i> تقييم جوجل مابس</div>
@@ -1301,20 +1344,36 @@
     </div>
   </div>
 
+  <!-- ═══ PROMOTE DURATION MODAL ════════════════════════ -->
+  <div id="adm-promo-modal" class="adm-overlay adm-hide">
+    <div class="adm-modal adm-promo-modal-inner">
+      <div class="adm-modal-head">
+        <div class="adm-modal-title-wrap">
+          <div class="adm-modal-title"><i class="ph-fill ph-star" style="color:#d97706"></i> مدة التمييز</div>
+          <div class="adm-modal-sub">اختر عدد الأشهر — ينتهي التمييز تلقائياً</div>
+        </div>
+        <button class="adm-modal-close" id="adm-promo-modal-close">&#215;</button>
+      </div>
+      <div class="adm-modal-body">
+        <div class="adm-months-grid" id="adm-months-grid"></div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- #adm-root -->
 
+<!-- Firebase SDK — يُحمَّل فقط إن لم يكن JDAuth موجوداً مسبقاً في القالب -->
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
-    authDomain: "driverjo.firebaseapp.com",
-    databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-    projectId: "driverjo",
-    storageBucket: "driverjo.firebasestorage.app",
-    messagingSenderId: "716209135475",
-    appId: "1:716209135475:web:0a8188a18017c5880aaf06"
-  };
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+(function () {
+  if (window.JDAuth && window.JDAuth.db) return;
+  var srcs = [
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js'
+  ];
+  srcs.forEach(function (s) { document.write('<scr' + 'ipt src="' + s + '"><\/scr' + 'ipt>'); });
+})();
 </script>
+
 <script>
 (function () {
   'use strict';
@@ -1486,16 +1545,31 @@
   /* ════════════════════════════════════════
      Load questions
   ════════════════════════════════════════ */
+  var ADM_CACHE_Q = 'adm_questions_cache';
+  var ADM_CACHE_C = 'adm_centers_cache';
+
   function loadQuestions() {
-    totalLbl.textContent = 'جارٍ التحميل…';
+    // عرض الكاش فوراً إن وُجد
+    try {
+      var cached = sessionStorage.getItem(ADM_CACHE_Q);
+      if (cached) {
+        allQuestions = JSON.parse(cached);
+        var cachedCount = Object.keys(allQuestions).length;
+        totalLbl.textContent = cachedCount + ' سؤال ↻';
+      } else {
+        totalLbl.textContent = 'جارٍ التحميل…';
+      }
+    } catch (e) { totalLbl.textContent = 'جارٍ التحميل…'; }
+
     var d = getDb();
     if (!d) { totalLbl.textContent = 'تعذّر الاتصال بقاعدة البيانات'; return; }
     d.ref('questions').once('value').then(function (snap) {
       allQuestions = snap.val() || {};
       var count = Object.keys(allQuestions).length;
       totalLbl.textContent = count + ' سؤال في قاعدة البيانات';
+      try { sessionStorage.setItem(ADM_CACHE_Q, JSON.stringify(allQuestions)); } catch (e) {}
     }).catch(function () {
-      totalLbl.textContent = 'تعذّر تحميل الأسئلة';
+      if (!sessionStorage.getItem(ADM_CACHE_Q)) totalLbl.textContent = 'تعذّر تحميل الأسئلة';
     });
   }
 
@@ -2050,9 +2124,7 @@
         closeDeleteModal();
         renderCenters();
         /* update dashboard */
-        var prom = Object.values(allCenters).filter(function (c) { return !!c.promoted; }).length;
-        var tot  = Object.keys(allCenters).length;
-        ctrCountLbl.textContent = tot + ' مركز' + (prom ? ' · ' + prom + ' مميّز' : '');
+        updateCtrDashCount();
       }).catch(function (e) {
         delConfirm.disabled = false; delLbl.textContent = 'حذف';
         alert('فشل الحذف: ' + e.message);
@@ -2127,6 +2199,7 @@
   var cfAddAreaRow    = document.getElementById('adm-cf-add-area-row');
   var cfNewArea       = document.getElementById('adm-cf-new-area');
   var cfAddAreaBtn    = document.getElementById('adm-cf-add-area-btn');
+  var cfImageUrl      = document.getElementById('adm-cf-image');
   var cfRating        = document.getElementById('adm-cf-rating');
   var cfRcount        = document.getElementById('adm-cf-rcount');
   var cfScheduleEl    = document.getElementById('adm-cf-schedule');
@@ -2242,9 +2315,15 @@
     var d = getDb();
     if (!d) { ctrCountLbl.textContent = 'تعذّر الاتصال'; return; }
     d.ref('centers').once('value').then(function (snap) {
-      var total = snap.numChildren(), prom = 0;
-      snap.forEach(function (c) { if (c.val() && c.val().promoted) prom++; });
-      ctrCountLbl.textContent = total + ' مركز' + (prom ? ' · ' + prom + ' مميّز' : '');
+      var total = snap.numChildren(), prom = 0, pin = 0, now = Date.now();
+      snap.forEach(function (c) {
+        var v = c.val();
+        if (v && v.promoted && (!v.promotedUntil || v.promotedUntil > now)) prom++;
+        if (v && v.pinned) pin++;
+      });
+      ctrCountLbl.textContent = total + ' مركز'
+        + (prom ? ' · ' + prom + ' مميّز' : '')
+        + (pin  ? ' · ' + pin  + ' مثبّت' : '');
     }).catch(function () { ctrCountLbl.textContent = 'تعذّر التحميل'; });
   }
 
@@ -2254,24 +2333,45 @@
 
   /* ── Load all centers ────────────────────────────── */
   function loadAllCenters() {
-    allCenters = {};
-    ctrSpinner.classList.remove('adm-hide');
-    ctrListEl.classList.add('adm-hide');
     ctrEmptyEl.classList.add('adm-hide');
+
+    // عرض الكاش فوراً إن وُجد
+    try {
+      var cached = sessionStorage.getItem(ADM_CACHE_C);
+      if (cached) {
+        allCenters = JSON.parse(cached);
+        ctrSpinner.classList.add('adm-hide');
+        ctrListEl.classList.remove('adm-hide');
+        renderCenters();
+      } else {
+        allCenters = {};
+        ctrSpinner.classList.remove('adm-hide');
+        ctrListEl.classList.add('adm-hide');
+      }
+    } catch (e) {
+      allCenters = {};
+      ctrSpinner.classList.remove('adm-hide');
+      ctrListEl.classList.add('adm-hide');
+    }
+
     var d = getDb();
     if (!d) {
       ctrSpinner.classList.add('adm-hide');
       ctrBadge.textContent = 'تعذّر التحميل';
-      ctrEmptyEl.classList.remove('adm-hide'); return;
+      if (!Object.keys(allCenters).length) ctrEmptyEl.classList.remove('adm-hide');
+      return;
     }
     d.ref('centers').once('value').then(function (snap) {
       allCenters = snap.val() || {};
+      try { sessionStorage.setItem(ADM_CACHE_C, JSON.stringify(allCenters)); } catch (e) {}
       ctrSpinner.classList.add('adm-hide');
       renderCenters();
     }).catch(function () {
       ctrSpinner.classList.add('adm-hide');
-      ctrBadge.textContent = 'تعذّر التحميل';
-      ctrEmptyEl.classList.remove('adm-hide');
+      if (!Object.keys(allCenters).length) {
+        ctrBadge.textContent = 'تعذّر التحميل';
+        ctrEmptyEl.classList.remove('adm-hide');
+      }
     });
   }
 
@@ -2292,7 +2392,11 @@
     var entries = Object.keys(allCenters).map(function (k) {
       return { id: k, data: allCenters[k] };
     });
-    if (ctrFilter === 'promoted') entries = entries.filter(function (e) { return !!e.data.promoted; });
+    var _now = Date.now();
+    if (ctrFilter === 'promoted') entries = entries.filter(function (e) {
+      return !!e.data.promoted && (!e.data.promotedUntil || e.data.promotedUntil > _now);
+    });
+    if (ctrFilter === 'pinned') entries = entries.filter(function (e) { return !!e.data.pinned; });
     if (q) {
       entries = entries.filter(function (e) {
         var d = e.data;
@@ -2313,9 +2417,26 @@
 
   /* ── Single center card ──────────────────────────── */
   function makeCtrCard(id, data) {
-    var isProm = !!data.promoted;
-    var card   = document.createElement('div');
-    card.className = 'adm-ctr-card' + (isProm ? ' is-promoted' : '');
+    var now   = Date.now();
+    var isProm = !!data.promoted && (!data.promotedUntil || data.promotedUntil > now);
+    var isPin  = !!data.pinned;
+
+    /* تنظيف التمييز المنتهي تلقائياً */
+    if (data.promoted && data.promotedUntil && data.promotedUntil <= now) {
+      var _d = getDb();
+      if (_d) _d.ref('centers/' + id).update({ promoted: null, promotedUntil: null });
+      delete allCenters[id].promoted;
+      delete allCenters[id].promotedUntil;
+    }
+
+    var promUntilStr = '';
+    if (isProm && data.promotedUntil) {
+      var _dt = new Date(data.promotedUntil);
+      promUntilStr = ' حتى ' + _dt.toLocaleDateString('ar-JO', { day:'numeric', month:'short', year:'numeric' });
+    }
+
+    var card = document.createElement('div');
+    card.className = 'adm-ctr-card' + (isProm ? ' is-promoted' : '') + (isPin ? ' is-pinned' : '');
     card.innerHTML =
       '<div class="adm-ctr-card-head">' +
         '<div class="adm-ctr-id">' + (data.publicId || '—') + '</div>' +
@@ -2323,7 +2444,8 @@
           '<div class="adm-ctr-name">' + escHtml(data.name || 'مركز بدون اسم') + '</div>' +
           '<div class="adm-ctr-pills">' +
             (data.governorateId ? '<span class="adm-ctr-pill-gov">' + escHtml(data.governorateId) + '</span>' : '') +
-            (isProm ? '<span class="adm-ctr-pill-promo"><i class="ph-fill ph-star"></i> مميّز</span>' : '') +
+            (isProm ? '<span class="adm-ctr-pill-promo"><i class="ph-fill ph-star"></i> مميّز' + escHtml(promUntilStr) + '</span>' : '') +
+            (isPin  ? '<span class="adm-ctr-pill-pin"><i class="ph-fill ph-push-pin"></i> مثبّت</span>' : '') +
             (data.phone ? '<span class="adm-ctr-pill-phone"><i class="ph-bold ph-phone"></i>' + escHtml(data.phone) + '</span>' : '') +
             (data.rating != null ? '<span class="adm-ctr-pill-rating">★ ' + data.rating + '</span>' : '') +
           '</div>' +
@@ -2331,7 +2453,11 @@
         '<div class="adm-ctr-actions">' +
           '<button class="adm-btn-promote' + (isProm ? ' promoted' : '') + '" title="' + (isProm ? 'إلغاء التمييز' : 'تمييز المركز') + '">' +
             '<i class="ph-bold ph-star' + (isProm ? '-fill' : '') + '"></i>' +
-            (isProm ? ' إلغاء التمييز' : ' تمييز') +
+            (isProm ? ' إلغاء' : ' تمييز') +
+          '</button>' +
+          '<button class="adm-btn-pin' + (isPin ? ' pinned' : '') + '" title="' + (isPin ? 'إلغاء التثبيت' : 'تثبيت المركز') + '">' +
+            '<i class="ph-bold ph-push-pin"></i>' +
+            (isPin ? ' إلغاء التثبيت' : ' تثبيت') +
           '</button>' +
           '<button class="adm-btn-icon edit" title="تعديل"><i class="ph-bold ph-pencil-simple"></i></button>' +
           '<button class="adm-btn-icon del"  title="حذف"><i class="ph-bold ph-trash"></i></button>' +
@@ -2339,23 +2465,99 @@
       '</div>';
 
     card.querySelector('.adm-btn-promote').addEventListener('click', function () { toggleCtrFeatured(id, isProm); });
+    card.querySelector('.adm-btn-pin').addEventListener('click',     function () { toggleCtrPinned(id, isPin); });
     card.querySelector('.adm-btn-icon.edit').addEventListener('click', function () { openEditCenterForm(id); });
     card.querySelector('.adm-btn-icon.del').addEventListener('click',  function () { openCtrDeleteConfirm(id); });
     return card;
   }
 
-  /* ── Toggle featured ─────────────────────────────── */
-  function toggleCtrFeatured(id, currentVal) {
+  /* ── نافذة مدة التمييز ───────────────────────────── */
+  var promoModal      = document.getElementById('adm-promo-modal');
+  var promoModalClose = document.getElementById('adm-promo-modal-close');
+  var monthsGrid      = document.getElementById('adm-months-grid');
+  var pendingPromoId  = null;
+
+  (function buildMonthsGrid() {
+    var labels = ['شهر','شهران','أشهر','أشهر','أشهر','أشهر','أشهر','أشهر','أشهر','أشهر','شهراً','شهراً'];
+    for (var m = 1; m <= 12; m++) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'adm-month-btn';
+      btn.innerHTML = '<span class="adm-month-num">' + m + '</span><span class="adm-month-lbl">' + labels[m-1] + '</span>';
+      btn.dataset.months = m;
+      btn.addEventListener('click', onMonthSelect);
+      monthsGrid.appendChild(btn);
+    }
+  })();
+
+  function openPromoDurationModal(id) {
+    pendingPromoId = id;
+    promoModal.classList.remove('adm-hide');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePromoDurationModal() {
+    promoModal.classList.add('adm-hide');
+    document.body.style.overflow = '';
+    pendingPromoId = null;
+  }
+  promoModalClose.addEventListener('click', closePromoDurationModal);
+  promoModal.addEventListener('click', function (e) { if (e.target === promoModal) closePromoDurationModal(); });
+
+  function onMonthSelect() {
+    var months = parseInt(this.dataset.months, 10);
+    var id = pendingPromoId;
+    closePromoDurationModal();
+    if (!id) return;
     var d = getDb();
     if (!d) { alert('تعذّر الاتصال'); return; }
-    var upd = currentVal ? { promoted: null } : { promoted: true };
-    d.ref('centers/' + id).update(upd).then(function () {
-      if (currentVal) delete allCenters[id].promoted;
-      else allCenters[id].promoted = true;
+    var promotedUntil = Date.now() + months * 30 * 24 * 60 * 60 * 1000;
+    d.ref('centers/' + id).update({ promoted: true, promotedUntil: promotedUntil }).then(function () {
+      allCenters[id].promoted      = true;
+      allCenters[id].promotedUntil = promotedUntil;
       renderCenters();
-      var prom = Object.values(allCenters).filter(function (c) { return !!c.promoted; }).length;
-      ctrCountLbl.textContent = Object.keys(allCenters).length + ' مركز' + (prom ? ' · ' + prom + ' مميّز' : '');
+      updateCtrDashCount();
+    }).catch(function (e) { alert('فشل التمييز: ' + e.message); });
+  }
+
+  /* ── Toggle featured ─────────────────────────────── */
+  function toggleCtrFeatured(id, currentVal) {
+    if (currentVal) {
+      var d = getDb();
+      if (!d) { alert('تعذّر الاتصال'); return; }
+      d.ref('centers/' + id).update({ promoted: null, promotedUntil: null }).then(function () {
+        delete allCenters[id].promoted;
+        delete allCenters[id].promotedUntil;
+        renderCenters();
+        updateCtrDashCount();
+      }).catch(function (e) { alert('فشل التعديل: ' + e.message); });
+    } else {
+      openPromoDurationModal(id);
+    }
+  }
+
+  /* ── Toggle pinned ───────────────────────────────── */
+  function toggleCtrPinned(id, currentVal) {
+    var d = getDb();
+    if (!d) { alert('تعذّر الاتصال'); return; }
+    var upd = currentVal ? { pinned: null } : { pinned: true };
+    d.ref('centers/' + id).update(upd).then(function () {
+      if (currentVal) delete allCenters[id].pinned;
+      else allCenters[id].pinned = true;
+      renderCenters();
+      updateCtrDashCount();
     }).catch(function (e) { alert('فشل التعديل: ' + e.message); });
+  }
+
+  /* ── تحديث عداد لوحة التحكم ─────────────────────── */
+  function updateCtrDashCount() {
+    var now  = Date.now();
+    var prom = Object.values(allCenters).filter(function (c) {
+      return !!c.promoted && (!c.promotedUntil || c.promotedUntil > now);
+    }).length;
+    var pin = Object.values(allCenters).filter(function (c) { return !!c.pinned; }).length;
+    ctrCountLbl.textContent = Object.keys(allCenters).length + ' مركز'
+      + (prom ? ' · ' + prom + ' مميّز' : '')
+      + (pin  ? ' · ' + pin  + ' مثبّت' : '');
   }
 
   /* ── Delete confirm ──────────────────────────────── */
@@ -2475,7 +2677,7 @@
     ctrFormSub.textContent     = 'أكمل البيانات ثم احفظ';
     ctrFormSaveLbl.textContent = 'حفظ المركز';
     cfName.value = ''; cfPhone.value = ''; cfWhatsapp.value = '';
-    cfMaplink.value = ''; cfRating.value = ''; cfRcount.value = ''; cfDesc.value = '';
+    cfMaplink.value = ''; cfImageUrl.value = ''; cfRating.value = ''; cfRcount.value = ''; cfDesc.value = '';
     cfAreasWrap.style.display = 'none'; ctrCurGovId = null;
     setCtrFormMsg('', '');
     loadCtrGovs(null);
@@ -2496,6 +2698,7 @@
     cfPhone.value    = data.phone       || '';
     cfWhatsapp.value = data.whatsapp    || '';
     cfMaplink.value  = data.mapLink     || '';
+    cfImageUrl.value = data.imageUrl     || '';
     cfRating.value   = data.rating      != null ? data.rating      : '';
     cfRcount.value   = data.reviewCount != null ? data.reviewCount : '';
     cfDesc.value     = data.description || '';
@@ -2553,11 +2756,13 @@
       schedule:     schedule,
       workingDays:  workingDays,
     };
-    var wa   = cfWhatsapp.value.trim();
-    var rat  = parseFloat(cfRating.value);
-    var rcnt = parseInt(cfRcount.value, 10);
-    var desc = cfDesc.value.trim();
+    var wa      = cfWhatsapp.value.trim();
+    var imgUrl  = cfImageUrl.value.trim();
+    var rat     = parseFloat(cfRating.value);
+    var rcnt    = parseInt(cfRcount.value, 10);
+    var desc    = cfDesc.value.trim();
     if (wa)               payload.whatsapp    = wa;
+    if (imgUrl)           payload.imageUrl    = imgUrl;
     if (!isNaN(rat))      payload.rating      = rat;
     if (!isNaN(rcnt))     payload.reviewCount = rcnt;
     if (desc)             payload.description = desc;
@@ -2592,8 +2797,7 @@
       setCtrFormMsg(editingCtrId ? 'تم حفظ التعديلات ✓' : 'تم إضافة المركز ✓', 'ok');
       ctrFormSave.disabled = false;
       ctrFormSaveLbl.textContent = editingCtrId ? 'حفظ التعديلات' : 'حفظ المركز';
-      var prom = Object.values(allCenters).filter(function (c) { return !!c.promoted; }).length;
-      ctrCountLbl.textContent = Object.keys(allCenters).length + ' مركز' + (prom ? ' · ' + prom + ' مميّز' : '');
+      updateCtrDashCount();
       setTimeout(function () { closeCtrFormModal(); renderCenters(); }, 900);
     }).catch(function (e) {
       setCtrFormMsg('خطأ: ' + (e.message || ''), 'err');
