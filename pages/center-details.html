@@ -1,0 +1,746 @@
+<!-- ======================================================
+   مراكز تدريب القيادة – صفحة التفاصيل (الهوية الشفافة النحيفة المحدثة)
+   ====================================================== -->
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
+
+<style>
+/* ── Reset & Wrapper ── */
+#ctr-detail {
+  direction: rtl;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+  width: 100%;
+  max-width: 480px; /* المقاس الأصلي للهاتف */
+  margin: 0 auto;
+  color: #1c1917;
+  min-height: 100vh;
+  position: relative;
+  background: none !important; /* شفاف للاندماج مع الموقع */
+  padding-bottom: 25px;
+  transition: max-width 0.3s ease;
+}
+
+/* ──── التوافق الذكي مع الكمبيوتر والشاشات الكبيرة ──── */
+@media (min-width: 768px) {
+  #ctr-detail {
+    max-width: 720px; /* تمديد العرض ليكون مريحاً ومناسباً لشاشة الكمبيوتر دون تشتيت */
+    padding-top: 20px;
+  }
+  
+  /* زيادة طفيفة في أحجام نصوص الأقسام لتناسب الشاشة الكبيرة */
+  .ctr-hero {
+    height: 320px !important; /* زيادة ارتفاع الصورة على الكمبيوتر لتبدو متناسقة مع العرض الجديد */
+  }
+  .ctr-hero-name {
+    font-size: 24px !important;
+  }
+  .ctr-section-title {
+    font-size: 16px !important;
+  }
+  .ctr-section-text, .ctr-addr-main, .ctr-sched-row {
+    font-size: 14.5px !important;
+  }
+  .ctr-act-btn {
+    font-size: 13px !important;
+    padding: 12px 6px !important;
+  }
+}
+
+#ctr-detail *, #ctr-detail *::before, #ctr-detail *::after { box-sizing: border-box; }
+#ctr-detail [hidden] { display: none !important; }
+#ctr-detail h1, #ctr-detail h2, #ctr-detail h3,
+#ctr-detail p, #ctr-detail ul, #ctr-detail li,
+#ctr-detail a, #ctr-detail input, #ctr-detail table, #ctr-detail td {
+  margin: 0; padding: 0; border: 0; font: inherit; color: inherit;
+  text-decoration: none; list-style: none; background: none;
+  text-align: right; border-radius: 0;
+}
+
+/* ── حالة التحميل ── */
+#ctr-detail .ctr-state {
+  text-align: center; padding: 60px 20px; opacity: .5;
+}
+#ctr-detail .ctr-state i { font-size: 36px; display: block; margin-bottom: 10px; animation: spin 1s linear infinite; }
+#ctr-detail .ctr-state p { font-size: 13px; font-weight: 700; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════
+   HERO IMAGE (حواف دائرية كاملة متناسقة)
+══════════════════════════════════════ */
+.ctr-hero {
+  position: relative !important;
+  height: 240px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important; 
+  width: 100% !important;
+}
+.ctr-hero-img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important; 
+  object-position: center !important;
+  display: block !important;
+}
+.ctr-hero-fallback {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 70px !important;
+  color: rgba(255,255,255,.3) !important;
+  background: #f0f1f3 !important;
+}
+.ctr-hero-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(to bottom, rgba(0,0,0,.2) 0%, transparent 50%, rgba(0,0,0,.7) 100%) !important;
+  z-index: 1 !important;
+}
+
+/* أزرار الهيرو */
+.ctr-hero-nav {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px !important;
+  z-index: 2 !important;
+}
+.ctr-nav-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,.3);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.15); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px;
+}
+.ctr-promoted-nav {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fbbf24; color: #78350f;
+  font-size: 11px; font-weight: 800;
+  padding: 5px 12px; border-radius: 100px;
+}
+
+/* معلومات الهيرو */
+.ctr-hero-info {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  padding: 20px 14px 12px !important;
+  z-index: 2 !important;
+}
+.ctr-hero-name {
+  font-size: 20px; font-weight: 900; color: #fff;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+.ctr-hero-badges { display: flex; gap: 6px; align-items: center; }
+.ctr-hero-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(0,0,0,.4);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 5px 10px; border-radius: 100px;
+}
+.ctr-hero-badge.status-open    { background: rgba(16,185,129,.85); }
+.ctr-hero-badge.status-opening { background: rgba(245,158,11,.85); }
+.ctr-hero-badge.status-closed  { background: rgba(220,38,38,.85); }
+.ctr-hero-badge.rating-badge   { background: rgba(255,255,255,.2); }
+
+.ctr-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff; display: inline-block;
+  animation: pulseDot 1.5s infinite;
+}
+@keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+/* ══════════════════════════════════════
+   أزرار التواصل السريع (تطابق كامل وموحد)
+══════════════════════════════════════ */
+.ctr-actions-container {
+  margin-bottom: 12px;
+}
+.ctr-actions-grid {
+  display: flex; gap: 8px;
+}
+.ctr-act-btn {
+  flex: 1; min-width: 0;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 10px 4px !important;
+  box-sizing: border-box !important;
+  border-radius: 12px !important;
+  border: 1.5px solid #e5e7eb !important; 
+  background: none !important;
+  cursor: pointer;
+  font-size: 11.5px !important; 
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  transition: all .15s;
+}
+.ctr-act-btn i { 
+  font-size: 18px !important; 
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+.ctr-act-btn.phone    { color: #b45309 !important; }
+.ctr-act-btn.whatsapp { color: #047857 !important; }
+.ctr-act-btn.map      { color: #1d4ed8 !important; }
+.ctr-act-btn.share    { color: #57534e !important; }
+
+/* ══════════════════════════════════════
+   الأقسام الشفافة الموحدة (الهوية البصرية الجديدة)
+══════════════════════════════════════ */
+.ctr-sections {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ctr-section {
+  background: none !important;
+  border: 1.5px solid #f0f1f3 !important;
+  border-radius: 16px !important;
+  padding: 12px 14px !important;
+}
+.ctr-section-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.ctr-section-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.ctr-section-icon.amber  { background: #fef3c7; color: #b45309; }
+.ctr-section-icon.blue   { background: #dbeafe; color: #1d4ed8; }
+.ctr-section-icon.green  { background: #d1fae5; color: #047857; }
+
+.ctr-section-title { font-size: 14px; font-weight: 800; color: #111827; }
+.ctr-section-text { font-size: 13px; line-height: 1.7; color: #4b5563; }
+
+.ctr-desc-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed #e5e7eb;
+}
+.ctr-tag {
+  display: inline-flex; align-items: center;
+  background: #f9fafb; border: 1px solid #e5e7eb;
+  color: #4b5563; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 8px;
+}
+.ctr-tag.area { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+
+.ctr-addr-box {
+  background: #f9fafb; border-radius: 9px; border: 1px solid #e5e7eb; padding: 10px 12px;
+}
+.ctr-addr-main { font-size: 13px; font-weight: 700; color: #374151; line-height: 1.5; }
+
+/* صفوف جدول الدوام */
+.ctr-sched-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f9fafb;
+  font-size: 12.5px;
+}
+.ctr-sched-row:last-child { border-bottom: none; }
+.ctr-sched-row .day { font-weight: 700; color: #374151; display: flex; align-items: center; gap: 6px; }
+.ctr-sched-row .hrs { font-weight: 700; color: #6b7280; direction: ltr; }
+
+.ctr-sched-row.is-today { border-bottom-color: #fed7aa; }
+.ctr-sched-row.is-today .day { color: #ea580c; font-weight: 800; }
+.ctr-sched-row.is-today .hrs { color: #c2410c; font-weight: 800; }
+.ctr-sched-row.is-closed .hrs { color: #dc2626; }
+
+.ctr-today-badge {
+  font-size: 9px; font-weight: 800; background: #ffedd5; color: #ea580c; padding: 1px 6px; border-radius: 5px;
+}
+
+/* ══════════════════════════════════════
+   إصلاح وتلوين النجوم باللون الذهبي
+══════════════════════════════════════ */
+#ctr-detail .ctr-stars { 
+  --rating: 0%; 
+  position: relative; 
+  display: inline-flex !important; 
+  align-items: center;
+  gap: 2px;
+}
+/* تلوين أيقونة النجمة الفردية أو التقييم باللون الذهبي */
+#ctr-detail .rating-badge i,
+#ctr-detail .ph-star,
+#ctr-detail .ph-fill.ph-star {
+  color: #f59e0b !important; /* اللون الذهبي المميز */
+}
+ /* ─── إخفاء عنوان الصفحة ورفع الصورة للأعلى ─── */
+.post-title, 
+h1.post-title,
+#ctr-detail ~ h1,
+.post h1,
+.entry-title {
+  display: none !important;
+}
+
+#ctr-detail {
+  padding-top: 0 !important;
+  margin-top: -25px !important;
+}
+
+.ctr-hero {
+  margin-top: 0 !important;
+}
+
+/* ─── استهداف كلمة details داخل مسار التنقل وإخفاؤها ─── */
+.breadcrumb-item:last-child, 
+.breadcrumbs li:last-child,
+.crb-current,
+.breadcrumb a[href*="details.html"] {
+  display: none !important;
+}
+  
+</style>
+
+<!-- ══════════════ HTML ══════════════ -->
+<div id="ctr-detail">
+
+  <!-- حالة التحميل -->
+  <div class="ctr-state" id="ctr-state">
+    <i class="ph ph-circle-notch"></i>
+    <p id="ctr-state-text">جارٍ تحميل بيانات المركز…</p>
+  </div>
+
+  <!-- المحتوى الرئيسي للموقع -->
+  <div id="ctr-content" hidden>
+
+    <!-- الهيرو (الصورة الرأسية للمركز) -->
+    <div class="ctr-hero">
+      <img id="d-img" class="ctr-hero-img" alt="" loading="eager" hidden/>
+      <div id="d-ico" class="ctr-hero-fallback">
+        <i class="ph-fill ph-garage"></i>
+      </div>
+      <div class="ctr-hero-overlay"></div>
+
+      <!-- أزرار التحكم بالهيرو -->
+      <div class="ctr-hero-nav">
+        <button class="ctr-nav-btn" id="ctr-back" type="button">
+          <i class="ph ph-arrow-right"></i>
+        </button>
+        <div id="d-promoted" class="ctr-promoted-nav" hidden>
+          <i class="ph-fill ph-crown"></i> مميّز
+        </div>
+      </div>
+
+      <!-- تفاصيل الاسم والتقييم الداخلي -->
+      <div class="ctr-hero-info">
+        <div class="ctr-hero-name"></div>
+        <div class="ctr-hero-badges">
+          <span class="ctr-hero-badge" id="d-status">
+            <span class="ctr-status-dot" id="d-status-dot" hidden></span>
+            <i class="ph" id="d-status-ico"></i>
+            <span id="d-status-label"></span>
+          </span>
+          <span class="ctr-hero-badge rating-badge" id="d-rating" hidden>
+            <i class="ph-fill ph-star"></i>
+            <span id="d-rating-value"></span>
+            <span class="ctr-stars" id="d-stars"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- شبكة أزرار التواصل السريع المدمجة -->
+    <div class="ctr-actions-container">
+      <div class="ctr-actions-grid">
+        <a class="ctr-act-btn phone" id="d-phone" target="_blank" rel="noreferrer" hidden>
+          <i class="ph ph-phone"></i>
+          <span>اتصال</span>
+        </a>
+        <a class="ctr-act-btn whatsapp" id="d-wa" target="_blank" rel="noreferrer" hidden>
+          <i class="ph ph-whatsapp-logo"></i>
+          <span>واتساب</span>
+        </a>
+        <a class="ctr-act-btn map" id="d-map" target="_blank" rel="noreferrer" hidden>
+          <i class="ph ph-map-pin-line"></i>
+          <span>الخريطة</span>
+        </a>
+        <button class="ctr-act-btn share" id="d-share-btn" type="button">
+          <i class="ph ph-share-network"></i>
+          <span>مشاركة</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- كروت الأقسام الشفافة والنحيفة بالكامل -->
+    <div class="ctr-sections">
+      
+      <!-- القسم 1: نبذة عن المركز -->
+      <div class="ctr-section" id="d-desc-sec" hidden>
+        <div class="ctr-section-head">
+          <div class="ctr-section-icon amber"><i class="ph ph-steering-wheel"></i></div>
+          <span class="ctr-section-title" id="d-name">نبذة عن المركز</span>
+        </div>
+        <p class="ctr-section-text" id="d-desc-text"></p>
+        <div id="d-tags" class="ctr-desc-tags"></div>
+      </div>
+
+      <!-- القسم 2: الموقع الجغرافي -->
+      <div class="ctr-section" id="d-addr-sec" hidden>
+        <div class="ctr-section-head">
+          <div class="ctr-section-icon blue"><i class="ph ph-map-pin"></i></div>
+          <span class="ctr-section-title">الموقع والعنوان</span>
+        </div>
+        <div class="ctr-addr-box">
+          <p class="ctr-addr-main" id="d-addr-text"></p>
+        </div>
+      </div>
+
+      <!-- القسم 3: أوقات العمل الأسبوعية -->
+      <div class="ctr-section" id="d-sched-sec" hidden>
+        <div class="ctr-section-head">
+          <div class="ctr-section-icon green"><i class="ph ph-clock"></i></div>
+          <span class="ctr-section-title">أوقات الدوام الأسبوعي</span>
+        </div>
+        <div id="d-sched-body"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // 1. التحقق من تهيئة Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey:      'AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk',
+      databaseURL: 'https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId:   'al3arbicv',
+    });
+  }
+  var db = firebase.database();
+
+  var CACHE_KEY = 'dex_data_v2';
+  var LIST_URL  = '/';
+  var DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+
+  var JORDAN_DAY_MAP = { 'Sat':0, 'Sun':1, 'Mon':2, 'Tue':3, 'Wed':4, 'Thu':5, 'Fri':6 };
+  function getJordanNow() {
+    var now   = new Date();
+    var parts = new Intl.DateTimeFormat('en', {
+      timeZone: 'Asia/Amman',
+      weekday:  'short',
+      hour:     'numeric',
+      minute:   'numeric',
+      hour12:   false
+    }).formatToParts(now);
+    var weekday = parts.find(function(p){ return p.type === 'weekday'; }).value;
+    var hour    = parseInt(parts.find(function(p){ return p.type === 'hour';   }).value, 10);
+    var minute  = parseInt(parts.find(function(p){ return p.type === 'minute'; }).value, 10);
+    if (hour === 24) hour = 0;
+    return {
+      dayIdx:       JORDAN_DAY_MAP[weekday] !== undefined ? JORDAN_DAY_MAP[weekday] : 0,
+      minutesOfDay: hour * 60 + minute
+    };
+  }
+  function todayIdx() { return getJordanNow().dayIdx; }
+
+  var stateEl  = document.getElementById('ctr-state');
+  var stateTxt = document.getElementById('ctr-state-text');
+  var content  = document.getElementById('ctr-content');
+  var backBtn  = document.getElementById('ctr-back');
+
+  if (backBtn) {
+    backBtn.onclick = function () {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = LIST_URL;
+    };
+  }
+
+  function getStatus(c) {
+    var jordan = getJordanNow();
+    var nm     = jordan.minutesOfDay;
+    var ti = todayIdx(), from = null, to = null, closed = false;
+
+    if (c.schedule && c.schedule.length === 7) {
+      var s = c.schedule[ti];
+      if (s) { closed = !!s.closed; from = s.from || null; to = s.to || null; }
+    }
+    if (!from && c.workingHours) {
+      var m = c.workingHours.match(/(\d{1,2}:\d{2})/g);
+      if (m && m.length >= 2) { from = m[0]; to = m[1]; }
+    }
+    if (c.workingDays && c.workingDays.length && c.workingDays.indexOf(DAYS[ti]) === -1) closed = true;
+
+    if (closed || !from || !to) return { type:'closed',  label:'مغلق اليوم', icon:'ph-moon' };
+
+    function hm(s) { var p = s.split(':').map(Number); return p[0]*60+p[1]; }
+    var fm = hm(from), tm = hm(to);
+    if (nm < fm) {
+      var d = fm-nm, h = Math.floor(d/60), mm = d%60;
+      return { type:'opening', label:'يفتح بعد '+(h?h+'س ':'')+mm+'د', icon:'ph-clock-countdown' };
+    }
+    if (nm <= tm) {
+      var d2 = tm-nm, h2 = Math.floor(d2/60), mm2 = d2%60;
+      return { type:'open', label:'مفتوح - يغلق بعد '+(h2?h2+'س ':'')+mm2+'د', icon:'ph-door-open' };
+    }
+    return { type:'closed', label:'مغلق الآن', icon:'ph-moon' };
+  }
+
+  function fillDetail(c, govs) {
+    var prom = document.getElementById('d-promoted');
+    if (prom) prom.hidden = !c.promoted;
+
+    var img = document.getElementById('d-img');
+    var ico = document.getElementById('d-ico');
+    if (img && ico) {
+      if (c.imageUrl) {
+        img.src = c.imageUrl; img.hidden = false; ico.hidden = true;
+      } else {
+        img.hidden = true; ico.hidden = false;
+      }
+    }
+
+    var names = document.querySelectorAll('#d-name, .ctr-hero-name');
+    names.forEach(function(el) { el.textContent = c.name || ''; });
+
+    var st   = getStatus(c);
+    var stEl = document.getElementById('d-status');
+    if (stEl) { stEl.className = 'ctr-hero-badge status-' + st.type; }
+    
+    var stIco = document.getElementById('d-status-ico');
+    if (stIco) { stIco.className = 'ph ' + st.icon; }
+    
+    var stLbl = document.getElementById('d-status-label');
+    if (stLbl) { stLbl.textContent = st.label; }
+    
+    var dotEl = document.getElementById('d-status-dot');
+    if (dotEl) dotEl.hidden = (st.type !== 'open');
+
+    var ratSec = document.getElementById('d-rating');
+    var ratVal = document.getElementById('d-rating-value');
+    var stars  = document.getElementById('d-stars');
+    if (c.rating != null && ratSec && ratVal && stars) {
+      ratSec.hidden = false;
+      ratVal.textContent = (+c.rating).toFixed(1);
+      stars.style.setProperty('--rating', Math.round((c.rating/5)*100)+'%');
+    }
+
+    var tagsEl = document.getElementById('d-tags');
+    if (tagsEl) {
+      tagsEl.innerHTML = '';
+      var gName = c.governorateId && govs[c.governorateId] ? govs[c.governorateId].name : '';
+      function addTag(text, cls) {
+        var s = document.createElement('span');
+        s.className = 'ctr-tag' + (cls ? ' '+cls : '');
+        s.textContent = text;
+        tagsEl.appendChild(s);
+      }
+      if (gName) addTag(gName);
+      (c.areas || []).forEach(function(a) { addTag(a.name, 'area'); });
+    }
+
+    var phoneEl = document.getElementById('d-phone');
+    var waEl    = document.getElementById('d-wa');
+    var mapEl   = document.getElementById('d-map');
+
+    if (c.phone && phoneEl) {
+      phoneEl.hidden = false;
+      phoneEl.href   = 'tel:' + c.phone.replace(/[^\d+]/g, '');
+    }
+    if ((c.whatsapp || c.phone) && waEl) {
+      waEl.hidden = false;
+      waEl.href   = 'https://wa.me/' + (c.whatsapp||c.phone).replace(/[^\d]/g,'');
+    }
+    if (c.mapLink && mapEl) { mapEl.hidden = false; mapEl.href = c.mapLink; }
+
+    var shareBtn = document.getElementById('d-share-btn');
+    if (shareBtn) {
+      shareBtn.onclick = function () {
+        var url = window.location.href;
+        if (navigator.share) navigator.share({ title: c.name, url: url });
+        else if (navigator.clipboard) navigator.clipboard.writeText(url);
+      };
+    }
+
+    var hasTags = !!(gName || (c.areas && c.areas.length));
+    var descSec = document.getElementById('d-desc-sec');
+    var descTxt = document.getElementById('d-desc-text');
+    if ((c.description || hasTags) && descSec) {
+      descSec.hidden = false;
+      if (c.description && descTxt) descTxt.textContent = c.description;
+    }
+
+    var addrSec = document.getElementById('d-addr-sec');
+    var addrTxt = document.getElementById('d-addr-text');
+    if (c.address && addrSec && addrTxt) {
+      addrSec.hidden = false;
+      addrTxt.textContent = c.address;
+    }
+
+    var schedSec  = document.getElementById('d-sched-sec');
+    var schedBody = document.getElementById('d-sched-body');
+    if (c.schedule && c.schedule.length === 7 && schedBody && schedSec) {
+      schedSec.hidden = false;
+      var today = todayIdx();
+      schedBody.innerHTML = '';
+      DAYS.forEach(function(day, i) {
+        var s    = c.schedule[i] || {};
+        var isOk = !s.closed && s.from && s.to;
+        var isTdy = i === today;
+
+        var row = document.createElement('div');
+        var rowClass = 'ctr-sched-row';
+        if (isTdy) rowClass += ' is-today';
+        if (!isOk) rowClass += ' is-closed';
+        row.className = rowClass;
+
+        var dayDiv = document.createElement('div');
+        dayDiv.className = 'day';
+        dayDiv.appendChild(document.createTextNode(day));
+
+        if (isTdy) {
+          var badge = document.createElement('span');
+          badge.className = 'ctr-today-badge';
+          badge.textContent = 'اليوم';
+          dayDiv.appendChild(badge);
+        }
+
+        var hrsDiv = document.createElement('div');
+        hrsDiv.className = 'hrs';
+        hrsDiv.textContent = isOk ? s.from + ' - ' + s.to : 'مغلق';
+
+        row.appendChild(dayDiv);
+        row.appendChild(hrsDiv);
+        schedBody.appendChild(row);
+      });
+    }
+
+    if (stateEl) stateEl.hidden = true;
+    if (content) content.hidden = false;
+  }
+
+  function showError(msg) {
+    if (stateTxt) stateTxt.textContent = msg || 'تعذّر تحميل بيانات المركز';
+  }
+
+  function findCenter(id, centers) {
+    return Object.keys(centers).reduce(function(found, k) {
+      if (found) return found;
+      var c = centers[k];
+      if (String(c.publicId != null ? c.publicId : k) === String(id)) {
+        return Object.assign({ _fbKey: k }, c);
+      }
+      return null;
+    }, null);
+  }
+
+  var centerId = new URLSearchParams(window.location.search).get('id');
+  if (!centerId) {
+    showError('لم يُحدَّد معرّف المركز في الرابط');
+    return;
+  }
+
+  var govs = {}, centers = {};
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if (raw) {
+      var d = JSON.parse(raw);
+      govs    = d.govs    || {};
+      centers = d.centers || {};
+      var cached = findCenter(centerId, centers);
+      if (cached) { fillDetail(cached, govs); }
+    }
+  } catch(e) {}
+
+  // جلب البيانات من Firebase بشكل صحيح ومستقر
+  Promise.all([
+    db.ref('governorates').once('value'),
+    db.ref('centers').once('value')
+  ]).then(function(snaps) {
+    govs    = snaps[0].val() || {};
+    centers = snaps[1].val() || {};
+
+    try {
+      var existing = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+      existing.govs    = govs;
+      existing.centers = centers;
+      localStorage.setItem(CACHE_KEY, JSON.stringify(existing));
+    } catch(e) {}
+
+    var c = findCenter(centerId, centers);
+    if (c) {
+      fillDetail(c, govs);
+      
+      if (c.name) {
+        // 1. تحديث عنوان التبويب في المتصفح
+        document.title = c.name + " | JO Driver";
+
+        // 2. تحديث كلمة details بجانب "الصفحة الرئيسية" ديناميكياً
+        let breadcrumbLast = document.querySelector('.breadcrumb a[href*="details.html"] span, .breadcrumb-item.active, .breadcrumbs .current');
+        if (breadcrumbLast) {
+          breadcrumbLast.innerText = c.name;
+        } else {
+          // محاولة استهداف بديلة في حال لم يجد الوسم الأول
+          let allSpans = document.querySelectorAll('.breadcrumb span, .crumbs span, li span');
+          for (let i = 0; i < allSpans.length; i++) {
+            if (allSpans[i].innerText.toLowerCase() === 'details') {
+              allSpans[i].innerText = c.name;
+              break;
+            }
+          }
+        }
+
+        // 3. تحديث ترويسة الـ MetaTags الخاصة بالمشاركة (للمتصفحات المتقدمة)
+        var targetImg = c.imageUrl || '';
+        let metaData = {
+          'og:title': c.name + " | JO Driver",
+          'twitter:title': c.name + " | JO Driver",
+          'og:image': targetImg, 
+          'twitter:image': targetImg,
+          'og:description': 'تعرف على تفاصيل وموقع وأوقات دوام ' + c.name + ' عبر منصة JO Driver',
+          'twitter:description': 'تعرف على تفاصيل وموقع وأوقات دوام ' + c.name + ' عبر منصة JO Driver'
+        };
+
+        for (let property in metaData) {
+          let meta = document.querySelector(`meta[property="${property}"]`) || document.querySelector(`meta[name="${property}"]`);
+          if (meta) {
+            meta.setAttribute('content', metaData[property]);
+          } else {
+            let newMeta = document.createElement('meta');
+            if (property.startsWith('og:')) {
+              newMeta.setAttribute('property', property);
+            } else {
+              newMeta.setAttribute('name', property);
+            }
+            newMeta.setAttribute('content', metaData[property]);
+            document.head.appendChild(newMeta);
+          }
+        }
+      }
+    } else { 
+      showError('المركز المطلوب غير موجود'); 
+    }
+  }).catch(function(err) {
+    console.error(err);
+    if (content && content.hidden) showError('تعذّر التحميل، تحقق من الاتصال بالإنترنت');
+  });
+
+})();
+</script>
