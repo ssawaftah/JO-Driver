@@ -1,0 +1,1239 @@
+<!-- Firebase SDK (أحدث إصدار من CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL  prefix: adm-
+═══════════════════════════════════════════════════════ */
+#adm-root {
+  --acc:    #2563EB;
+  --acc-dk: #1D4ED8;
+  --acc-lt: #EFF6FF;
+  --acc-bd: #BFDBFE;
+  --ok:     #16A34A;
+  --ok-lt:  #F0FDF4;
+  --err:    #DC2626;
+  --err-lt: #FEF2F2;
+  --warn:   #D97706;
+  --warn-lt:#FFFBEB;
+  --txt:    #111827;
+  --txt2:   #6B7280;
+  --bdr:    #E5E7EB;
+  --bg:     #F3F4F6;
+  --card:   #FFFFFF;
+  font-family: system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  direction: rtl;
+  min-height: 500px;
+  box-sizing: border-box;
+}
+#adm-root *,#adm-root *::before,#adm-root *::after { box-sizing:border-box; }
+
+/* screens */
+.adm-screen { display:none; }
+.adm-active { display:block; }
+
+/* ── LOGIN ─────────────────────────────────────────── */
+#adm-login {
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+  gap:20px;
+}
+.adm-login-card {
+  background:var(--card);
+  border:1.5px solid var(--bdr);
+  border-radius:20px;
+  padding:36px 32px;
+  width:100%;
+  max-width:380px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+  box-shadow:0 4px 24px #0000000d;
+}
+.adm-login-logo {
+  width:60px;height:60px;
+  border-radius:16px;
+  background:var(--acc);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;color:#fff;
+}
+.adm-login-title { font-size:20px;font-weight:800;color:var(--txt);text-align:center; }
+.adm-login-sub   { font-size:13px;color:var(--txt2);text-align:center;margin-top:-10px; }
+.adm-login-card  { min-width:0; }
+.adm-uid-field {
+  width:100%;display:flex;flex-direction:column;gap:6px;
+}
+.adm-uid-label {
+  font-size:13px;font-weight:600;color:var(--txt2);
+}
+.adm-uid-input {
+  width:100%;padding:12px 14px;border:1.5px solid var(--bdr);border-radius:12px;
+  background:var(--bg);color:var(--txt);font-size:14px;font-family:inherit;
+  direction:ltr;letter-spacing:.03em;outline:none;
+  transition:border-color .15s;
+}
+.adm-uid-input:focus { border-color:var(--acc);background:#fff; }
+.adm-uid-input::placeholder { color:#9CA3AF;letter-spacing:0; }
+.adm-login-btn {
+  width:100%;padding:13px 18px;border-radius:12px;border:none;
+  background:var(--acc);color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .15s;
+}
+.adm-login-btn:hover    { background:var(--acc-dk); }
+.adm-login-btn:disabled { opacity:.5;cursor:not-allowed; }
+.adm-login-err {
+  background:var(--err-lt);border:1.5px solid #FECACA;border-radius:10px;
+  padding:10px 14px;font-size:13px;color:var(--err);
+  width:100%;max-width:380px;text-align:center;display:none;
+}
+
+/* ── COMMON HEADER ─────────────────────────────────── */
+.adm-header {
+  background:var(--card);
+  border-bottom:1.5px solid var(--bdr);
+  padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:50;
+}
+.adm-header-back {
+  width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bdr);
+  background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--txt2);transition:background .15s;
+}
+.adm-header-back:hover { background:var(--bg); }
+.adm-header-title { font-size:17px;font-weight:800;color:var(--txt);flex:1; }
+.adm-header-badge {
+  background:var(--acc-lt);color:var(--acc);
+  font-size:12px;font-weight:700;
+  padding:4px 10px;border-radius:20px;border:1px solid var(--acc-bd);
+}
+.adm-header-user {
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--txt2);
+}
+.adm-logout-btn {
+  padding:6px 12px;border-radius:8px;
+  border:1.5px solid var(--bdr);background:transparent;
+  cursor:pointer;font-size:12px;font-weight:700;color:var(--err);
+  transition:background .15s;
+}
+.adm-logout-btn:hover { background:var(--err-lt); }
+
+/* ── DASHBOARD ─────────────────────────────────────── */
+.adm-dash-body { padding:18px;max-width:900px;margin:0 auto; }
+.adm-section-title {
+  font-size:13px;font-weight:700;color:var(--txt2);
+  text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:12px;
+}
+.adm-main-card {
+  background:var(--acc);
+  border-radius:18px;
+  padding:22px 22px;
+  display:flex;align-items:center;gap:16px;
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  color:#fff;
+  margin-bottom:20px;
+  box-shadow:0 4px 20px #2563eb33;
+}
+.adm-main-card:hover { transform:translateY(-2px);box-shadow:0 8px 28px #2563eb44; }
+.adm-main-card-icon {
+  width:52px;height:52px;border-radius:14px;
+  background:#ffffff28;display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+}
+.adm-main-card-title { font-size:18px;font-weight:800; }
+.adm-main-card-sub   { font-size:13px;opacity:.8;margin-top:2px; }
+.adm-main-card-arrow { margin-right:auto;font-size:22px;opacity:.7; }
+
+/* Category Grid */
+.adm-cat-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+}
+.adm-cat-card {
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:16px;
+  padding:18px 14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  transition:border-color .15s,transform .15s,box-shadow .15s;
+}
+.adm-cat-card:hover {
+  border-color:var(--acc);
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px #2563eb1a;
+}
+.adm-cat-card-icon {
+  width:44px;height:44px;border-radius:12px;
+  background:var(--acc-lt);color:var(--acc);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.adm-cat-card.all .adm-cat-card-icon { background:#F3F4F6;color:var(--txt2); }
+.adm-cat-card-name  { font-size:13px;font-weight:700;color:var(--txt);line-height:1.3; }
+.adm-cat-card-count {
+  font-size:12px;font-weight:700;
+  background:var(--acc-lt);color:var(--acc);
+  padding:2px 10px;border-radius:20px;
+}
+.adm-cat-card.all .adm-cat-card-count { background:var(--bg);color:var(--txt2); }
+
+/* ── QUESTIONS LIST ────────────────────────────────── */
+.adm-qs-toolbar {
+  background:var(--card);
+  border-bottom:1.5px solid var(--bdr);
+  padding:12px 16px;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+}
+.adm-add-btn {
+  display:flex;align-items:center;gap:6px;
+  padding:9px 16px;border-radius:10px;
+  background:var(--acc);color:#fff;border:none;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:background .15s;white-space:nowrap;
+}
+.adm-add-btn:hover { background:var(--acc-dk); }
+.adm-search-wrap {
+  flex:1;min-width:160px;
+  position:relative;display:flex;align-items:center;
+}
+.adm-search-wrap .adm-si {
+  position:absolute;right:11px;font-size:18px;color:var(--txt2);pointer-events:none;
+}
+.adm-search-input {
+  width:100%;padding:9px 36px 9px 14px;
+  border:1.5px solid var(--bdr);border-radius:10px;
+  font-size:14px;color:var(--txt);background:var(--bg);
+  outline:none;transition:border-color .15s;
+  font-family:inherit;direction:rtl;
+}
+.adm-search-input:focus { border-color:var(--acc);background:#fff; }
+.adm-filter-wrap { display:flex;gap:6px;flex-wrap:wrap; }
+.adm-filter-btn {
+  padding:7px 14px;border-radius:20px;border:1.5px solid var(--bdr);
+  background:transparent;font-size:13px;font-weight:600;color:var(--txt2);
+  cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit;
+}
+.adm-filter-btn:hover  { border-color:var(--acc);color:var(--acc); }
+.adm-filter-btn.active { background:var(--acc-lt);color:var(--acc);border-color:var(--acc-bd); }
+
+/* Questions list */
+.adm-qs-body { padding:14px 16px;max-width:900px;margin:0 auto; }
+.adm-qs-empty {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:60px 20px;color:var(--txt2);font-size:14px;text-align:center;
+}
+.adm-qs-empty-icon { font-size:40px;color:#D1D5DB; }
+.adm-qs-list { display:flex;flex-direction:column;gap:10px; }
+.adm-q-card {
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;
+  padding:14px 16px;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:border-color .15s;
+}
+.adm-q-card:hover { border-color:#D1D5DB; }
+.adm-q-num {
+  min-width:36px;height:36px;border-radius:10px;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:var(--txt2);flex-shrink:0;
+}
+.adm-q-thumb {
+  width:56px;height:56px;border-radius:8px;
+  object-fit:cover;border:1px solid var(--bdr);flex-shrink:0;
+}
+.adm-q-thumb-gif { border:1.5px solid #A78BFA; }
+.adm-q-content { flex:1;min-width:0; }
+.adm-q-badges { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px; }
+.adm-badge {
+  font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+  display:inline-flex;align-items:center;gap:3px;
+}
+.adm-badge-text  { background:#F3F4F6;color:#6B7280; }
+.adm-badge-image { background:#EFF6FF;color:#2563EB; }
+.adm-badge-gif   { background:#F5F3FF;color:#7C3AED; }
+.adm-badge-cat   { background:var(--warn-lt);color:var(--warn); }
+.adm-q-text {
+  font-size:14px;font-weight:600;color:var(--txt);
+  line-height:1.5;margin-bottom:6px;
+  word-break:break-word;
+}
+.adm-q-answer {
+  font-size:12px;color:var(--ok);font-weight:700;
+  display:flex;align-items:center;gap:4px;
+}
+.adm-q-actions { display:flex;gap:8px;margin-top:6px; }
+.adm-btn-edit {
+  padding:6px 14px;border-radius:8px;
+  border:1.5px solid var(--acc-bd);background:var(--acc-lt);
+  color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .15s;font-family:inherit;
+  display:flex;align-items:center;gap:4px;
+}
+.adm-btn-edit:hover { background:#DBEAFE; }
+.adm-btn-del {
+  padding:6px 14px;border-radius:8px;
+  border:1.5px solid #FECACA;background:var(--err-lt);
+  color:var(--err);font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .15s;font-family:inherit;
+  display:flex;align-items:center;gap:4px;
+}
+.adm-btn-del:hover { background:#FEE2E2; }
+
+/* ── MODAL BASE ────────────────────────────────────── */
+.adm-overlay {
+  position:fixed;inset:0;
+  background:#00000066;
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:999;
+  padding:0;
+}
+@media(min-width:600px){
+  .adm-overlay { align-items:center;padding:20px; }
+}
+.adm-modal {
+  background:var(--card);
+  border-radius:20px 20px 0 0;
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+  padding:24px 20px 32px;
+  animation:adm-slide-up .22s ease;
+  position:relative;
+}
+@media(min-width:600px){
+  .adm-modal { border-radius:20px; }
+}
+@keyframes adm-slide-up {
+  from { transform:translateY(40px);opacity:0 }
+  to   { transform:translateY(0);opacity:1 }
+}
+.adm-modal-head {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.adm-modal-title { font-size:17px;font-weight:800;color:var(--txt); }
+.adm-modal-close {
+  width:32px;height:32px;border-radius:8px;
+  border:1.5px solid var(--bdr);background:transparent;
+  cursor:pointer;font-size:20px;color:var(--txt2);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.adm-modal-close:hover { background:var(--bg); }
+
+/* ── FORM ──────────────────────────────────────────── */
+.adm-form { display:flex;flex-direction:column;gap:14px; }
+.adm-field { display:flex;flex-direction:column;gap:6px; }
+.adm-label {
+  font-size:13px;font-weight:700;color:var(--txt);
+  display:flex;align-items:center;gap:6px;
+}
+.adm-label-req { color:var(--err); }
+.adm-input,.adm-textarea,.adm-select {
+  width:100%;padding:10px 13px;
+  border:1.5px solid var(--bdr);border-radius:10px;
+  font-size:14px;color:var(--txt);background:var(--card);
+  outline:none;transition:border-color .15s;
+  font-family:inherit;direction:rtl;
+}
+.adm-textarea { resize:vertical;min-height:90px; }
+.adm-input:focus,.adm-textarea:focus,.adm-select:focus { border-color:var(--acc); }
+
+/* type selector */
+.adm-type-row { display:flex;gap:8px; }
+.adm-type-btn {
+  flex:1;padding:10px 8px;border-radius:10px;
+  border:1.5px solid var(--bdr);background:transparent;
+  font-size:13px;font-weight:700;color:var(--txt2);
+  cursor:pointer;transition:all .15s;text-align:center;font-family:inherit;
+}
+.adm-type-btn:hover  { border-color:var(--acc);color:var(--acc); }
+.adm-type-btn.active { background:var(--acc-lt);color:var(--acc);border-color:var(--acc-bd); }
+
+/* media preview */
+.adm-media-preview {
+  width:100%;max-height:180px;border-radius:10px;
+  object-fit:contain;border:1.5px solid var(--bdr);
+  display:none;margin-top:4px;background:#F9FAFB;
+}
+.adm-media-tip {
+  font-size:12px;color:var(--txt2);padding:8px 12px;
+  background:var(--bg);border-radius:8px;border:1px solid var(--bdr);
+}
+
+/* options */
+.adm-options-list { display:flex;flex-direction:column;gap:8px; }
+.adm-option-row {
+  display:flex;align-items:center;gap:8px;
+}
+.adm-option-radio { accent-color:var(--acc);width:17px;height:17px;flex-shrink:0;cursor:pointer; }
+.adm-option-input { flex:1; }
+.adm-option-del {
+  width:30px;height:30px;border-radius:8px;border:1.5px solid #FECACA;
+  background:var(--err-lt);color:var(--err);
+  cursor:pointer;font-size:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.adm-option-del:hover { background:#FEE2E2; }
+.adm-add-option-btn {
+  padding:8px 14px;border-radius:8px;border:1.5px dashed var(--bdr);
+  background:transparent;color:var(--txt2);
+  font-size:13px;font-weight:600;cursor:pointer;
+  transition:border-color .15s,color .15s;font-family:inherit;
+  display:flex;align-items:center;gap:6px;width:100%;justify-content:center;
+}
+.adm-add-option-btn:hover { border-color:var(--acc);color:var(--acc); }
+
+/* form actions */
+.adm-form-actions { display:flex;gap:10px;margin-top:4px; }
+.adm-btn-primary {
+  flex:1;padding:12px;border-radius:12px;
+  background:var(--acc);color:#fff;border:none;
+  font-size:15px;font-weight:700;cursor:pointer;
+  transition:background .15s;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.adm-btn-primary:hover    { background:var(--acc-dk); }
+.adm-btn-primary:disabled { opacity:.5;cursor:not-allowed; }
+.adm-btn-cancel {
+  padding:12px 20px;border-radius:12px;
+  border:1.5px solid var(--bdr);background:transparent;
+  font-size:15px;font-weight:700;color:var(--txt2);cursor:pointer;
+  transition:background .15s;font-family:inherit;
+}
+.adm-btn-cancel:hover { background:var(--bg); }
+
+/* form msg */
+.adm-form-msg {
+  border-radius:10px;padding:10px 13px;
+  font-size:13px;font-weight:600;display:none;
+}
+.adm-form-msg.ok  { background:var(--ok-lt);color:var(--ok);display:block; }
+.adm-form-msg.err { background:var(--err-lt);color:var(--err);display:block; }
+
+/* ── DELETE CONFIRM ────────────────────────────────── */
+#adm-del-modal .adm-modal { max-width:380px; }
+.adm-del-icon {
+  width:56px;height:56px;border-radius:16px;
+  background:var(--err-lt);color:var(--err);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 12px;
+}
+.adm-del-title  { font-size:17px;font-weight:800;color:var(--txt);text-align:center; }
+.adm-del-sub    { font-size:13px;color:var(--txt2);text-align:center;margin-top:4px; }
+.adm-del-actions { display:flex;gap:10px;margin-top:18px; }
+.adm-btn-danger {
+  flex:1;padding:12px;border-radius:12px;
+  background:var(--err);color:#fff;border:none;
+  font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:inherit;
+}
+.adm-btn-danger:hover    { opacity:.9; }
+.adm-btn-danger:disabled { opacity:.5;cursor:not-allowed; }
+
+/* ── LOADING SPINNER ───────────────────────────────── */
+.adm-spin-wrap {
+  display:flex;align-items:center;justify-content:center;
+  padding:60px 20px;color:var(--txt2);
+  flex-direction:column;gap:12px;font-size:14px;
+}
+@keyframes adm-spin { to { transform:rotate(360deg) } }
+.adm-spinner {
+  width:32px;height:32px;border-radius:50%;
+  border:3px solid var(--bdr);border-top-color:var(--acc);
+  animation:adm-spin .8s linear infinite;
+}
+
+/* ── HIDE ──────────────────────────────────────────── */
+.adm-hide { display:none!important; }
+</style>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  ROOT                        ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="adm-root">
+
+  <!-- ═══ LOGIN ═══════════════════════════════════ -->
+  <div id="adm-login" class="adm-screen adm-active">
+    <div class="adm-login-card">
+      <div class="adm-login-logo">&#128737;</div>
+      <div class="adm-login-title">لوحة تحكم driverjo</div>
+      <div class="adm-login-sub">تسجيل الدخول مخصص للمشرفين فقط</div>
+      <div class="adm-uid-field">
+        <label class="adm-uid-label" for="adm-uid-input">معرّف المشرف (UID)</label>
+        <input class="adm-uid-input" id="adm-uid-input" type="text"
+               placeholder="أدخل الـ UID هنا" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="adm-login-btn" id="adm-login-btn">تسجيل الدخول</button>
+      <div id="adm-login-msg" class="adm-login-err"></div>
+    </div>
+  </div>
+
+  <!-- ═══ DASHBOARD ════════════════════════════════ -->
+  <div id="adm-dash" class="adm-screen">
+    <div class="adm-header">
+      <div class="adm-header-title">لوحة التحكم</div>
+      <div class="adm-header-user">
+        <span id="adm-uname"></span>
+      </div>
+      <button class="adm-logout-btn" id="adm-logout-btn">تسجيل خروج</button>
+    </div>
+    <div class="adm-dash-body">
+      <!-- Main card -->
+      <div class="adm-main-card" id="adm-qs-card">
+        <div class="adm-main-card-icon">&#128218;</div>
+        <div>
+          <div class="adm-main-card-title">إدارة الأسئلة</div>
+          <div class="adm-main-card-sub" id="adm-total-lbl">جارٍ التحميل...</div>
+        </div>
+        <span class="adm-main-card-arrow">&#8249;</span>
+      </div>
+
+      <!-- Category cards — hidden until clicked -->
+      <div id="adm-cat-section" class="adm-hide">
+        <div class="adm-section-title">اختر القسم</div>
+        <div class="adm-cat-grid" id="adm-cat-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ QUESTIONS LIST ═══════════════════════════ -->
+  <div id="adm-qs" class="adm-screen">
+    <div class="adm-header">
+      <button class="adm-header-back" id="adm-back-btn">&#8250;</button>
+      <div class="adm-header-title" id="adm-qs-title">الأسئلة</div>
+      <div class="adm-header-badge" id="adm-qs-badge">0</div>
+    </div>
+    <div class="adm-qs-toolbar">
+      <button class="adm-add-btn" id="adm-add-btn">
+        &#43; إضافة سؤال
+      </button>
+      <div class="adm-search-wrap">
+        <span class="adm-si">&#128269;</span>
+        <input class="adm-search-input" id="adm-search" type="text"
+               placeholder="بحث بالسؤال، الخيارات، أو الرقم...">
+      </div>
+      <div class="adm-filter-wrap">
+        <button class="adm-filter-btn active" data-type="all">الكل</button>
+        <button class="adm-filter-btn" data-type="text">نصي</button>
+        <button class="adm-filter-btn" data-type="image">صورة</button>
+        <button class="adm-filter-btn" data-type="gif">متحرك</button>
+      </div>
+    </div>
+    <div class="adm-qs-body">
+      <div id="adm-qs-spinner" class="adm-spin-wrap">
+        <div class="adm-spinner"></div>
+        <span>جارٍ تحميل الأسئلة...</span>
+      </div>
+      <div id="adm-qs-list" class="adm-qs-list adm-hide"></div>
+      <div id="adm-qs-empty" class="adm-qs-empty adm-hide">
+        <div class="adm-qs-empty-icon">&#128269;</div>
+        <div>لا توجد أسئلة تطابق البحث</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADD/EDIT MODAL ═══════════════════════════ -->
+  <div id="adm-form-modal" class="adm-overlay adm-hide">
+    <div class="adm-modal">
+      <div class="adm-modal-head">
+        <div class="adm-modal-title" id="adm-form-title">إضافة سؤال</div>
+        <button class="adm-modal-close" id="adm-form-close">&#215;</button>
+      </div>
+      <form class="adm-form" id="adm-qform" onsubmit="return false">
+
+        <!-- نوع السؤال -->
+        <div class="adm-field">
+          <div class="adm-label">نوع السؤال <span class="adm-label-req">*</span></div>
+          <div class="adm-type-row">
+            <button type="button" class="adm-type-btn active" data-mtype="text">نصي</button>
+            <button type="button" class="adm-type-btn" data-mtype="image">صورة</button>
+            <button type="button" class="adm-type-btn" data-mtype="gif">صورة متحركة</button>
+          </div>
+        </div>
+
+        <!-- القسم -->
+        <div class="adm-field">
+          <label class="adm-label" for="adm-f-cat">القسم <span class="adm-label-req">*</span></label>
+          <select class="adm-select" id="adm-f-cat">
+            <option value="">— اختر القسم —</option>
+            <option>الميكانيك</option>
+            <option>قواعد السير والمرور</option>
+            <option>الشواخص والخطوط والعلامات</option>
+            <option>السلامة على الطريق</option>
+            <option>أسعافات أولية</option>
+            <option>المخالفات واحتساب النقاط</option>
+            <option>الصور المتحركة</option>
+          </select>
+        </div>
+
+        <!-- نص السؤال -->
+        <div class="adm-field">
+          <label class="adm-label" for="adm-f-q">نص السؤال <span class="adm-label-req">*</span></label>
+          <textarea class="adm-textarea" id="adm-f-q" placeholder="اكتب نص السؤال هنا..."></textarea>
+        </div>
+
+        <!-- رابط الوسائط -->
+        <div class="adm-field" id="adm-media-field" style="display:none">
+          <label class="adm-label" for="adm-f-url">رابط الصورة / GIF <span class="adm-label-req">*</span></label>
+          <input class="adm-input" id="adm-f-url" type="url" placeholder="https://...">
+          <img id="adm-f-preview" class="adm-media-preview" alt="معاينة">
+          <div class="adm-media-tip">
+            ارفع الصورة على بلوجر أو أي استضافة خارجية وألصق الرابط المباشر هنا
+          </div>
+        </div>
+
+        <!-- الخيارات -->
+        <div class="adm-field">
+          <div class="adm-label">
+            الخيارات <span class="adm-label-req">*</span>
+            <span style="font-size:11px;color:var(--txt2);font-weight:400;margin-right:auto">حدد الإجابة الصحيحة</span>
+          </div>
+          <div class="adm-options-list" id="adm-options-list"></div>
+          <button type="button" class="adm-add-option-btn" id="adm-add-option-btn">
+            &#43; إضافة خيار
+          </button>
+        </div>
+
+        <div class="adm-form-msg" id="adm-form-msg"></div>
+
+        <div class="adm-form-actions">
+          <button type="button" class="adm-btn-cancel" id="adm-form-cancel">إلغاء</button>
+          <button type="submit" class="adm-btn-primary" id="adm-form-save">
+            <span id="adm-form-save-lbl">حفظ السؤال</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ DELETE CONFIRM ═══════════════════════════ -->
+  <div id="adm-del-modal" class="adm-overlay adm-hide">
+    <div class="adm-modal" style="max-width:360px">
+      <div class="adm-del-icon">&#128465;</div>
+      <div class="adm-del-title">حذف السؤال</div>
+      <div class="adm-del-sub">هل أنت متأكد من حذف هذا السؤال؟ لا يمكن التراجع عن هذا الإجراء.</div>
+      <div class="adm-del-actions">
+        <button class="adm-btn-cancel" id="adm-del-cancel" style="flex:1">إلغاء</button>
+        <button class="adm-btn-danger" id="adm-del-confirm">
+          <span id="adm-del-lbl">حذف</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #adm-root -->
+<script>
+  const firebaseConfig = {
+  apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
+  authDomain: "driverjo.firebaseapp.com",
+  databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
+  projectId: "driverjo",
+  storageBucket: "driverjo.firebasestorage.app",
+  messagingSenderId: "716209135475",
+  appId: "1:716209135475:web:0a8188a18017c5880aaf06"
+};
+  firebase.initializeApp(firebaseConfig);
+</script>
+<script>
+(function () {
+  'use strict';
+
+  /* ═══════════════════════════════════════════════
+     DOM refs
+  ═══════════════════════════════════════════════ */
+  var scLogin     = document.getElementById('adm-login');
+  var scDash      = document.getElementById('adm-dash');
+  var scQs        = document.getElementById('adm-qs');
+
+  var uidInput    = document.getElementById('adm-uid-input');
+  var loginBtn    = document.getElementById('adm-login-btn');
+  var loginMsg    = document.getElementById('adm-login-msg');
+  var unameEl     = document.getElementById('adm-uname');
+  var logoutBtn   = document.getElementById('adm-logout-btn');
+  var totalLbl    = document.getElementById('adm-total-lbl');
+  var qsCard      = document.getElementById('adm-qs-card');
+  var catSection  = document.getElementById('adm-cat-section');
+  var catGrid     = document.getElementById('adm-cat-grid');
+
+  var backBtn     = document.getElementById('adm-back-btn');
+  var qsTitle     = document.getElementById('adm-qs-title');
+  var qsBadge     = document.getElementById('adm-qs-badge');
+  var addBtn      = document.getElementById('adm-add-btn');
+  var searchInput = document.getElementById('adm-search');
+  var filterBtns  = document.querySelectorAll('.adm-filter-btn');
+  var qsSpinner   = document.getElementById('adm-qs-spinner');
+  var qsListEl    = document.getElementById('adm-qs-list');
+  var qsEmptyEl   = document.getElementById('adm-qs-empty');
+
+  var formModal   = document.getElementById('adm-form-modal');
+  var formTitle   = document.getElementById('adm-form-title');
+  var formClose   = document.getElementById('adm-form-close');
+  var formCancel  = document.getElementById('adm-form-cancel');
+  var qForm       = document.getElementById('adm-qform');
+  var fCat        = document.getElementById('adm-f-cat');
+  var fQ          = document.getElementById('adm-f-q');
+  var fUrl        = document.getElementById('adm-f-url');
+  var fPreview    = document.getElementById('adm-f-preview');
+  var mediaField  = document.getElementById('adm-media-field');
+  var optionsList = document.getElementById('adm-options-list');
+  var addOptBtn   = document.getElementById('adm-add-option-btn');
+  var formMsg     = document.getElementById('adm-form-msg');
+  var formSave    = document.getElementById('adm-form-save');
+  var formSaveLbl = document.getElementById('adm-form-save-lbl');
+  var typeBtns    = document.querySelectorAll('.adm-type-btn');
+
+  var delModal    = document.getElementById('adm-del-modal');
+  var delCancel   = document.getElementById('adm-del-cancel');
+  var delConfirm  = document.getElementById('adm-del-confirm');
+  var delLbl      = document.getElementById('adm-del-lbl');
+
+  /* ═══════════════════════════════════════════════
+     State
+  ═══════════════════════════════════════════════ */
+  var db;
+  var currentAdmin = null;  /* { uid, label } */
+  var allQuestions = {};    /* { id: {...} } */
+  var currentCat   = null;  /* null = all */
+  var activeFilter = 'all';
+  var editingId    = null;  /* null = new question */
+  var deleteId     = null;
+  var selectedType = 'text';
+
+  /* ═══════════════════════════════════════════════
+     Screen helpers
+  ═══════════════════════════════════════════════ */
+  function showScreen(sc) {
+    scLogin.classList.remove('adm-active');
+    scDash.classList.remove('adm-active');
+    scQs.classList.remove('adm-active');
+    sc.classList.add('adm-active');
+  }
+
+  /* ═══════════════════════════════════════════════
+     DB helper
+     يجرّب JDAuth.db أولاً ثم firebase.database()
+  ═══════════════════════════════════════════════ */
+  var DB_URL = 'https://driverjo-default-rtdb.firebaseio.com';
+
+  function getDb() {
+    if (db) return db;
+    if (window.JDAuth && JDAuth.db) { db = JDAuth.db; return db; }
+    if (window.firebase) {
+      try {
+        var d = (typeof firebase.database === 'function') ? firebase.database() : null;
+        if (d) { db = d; return db; }
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Login — تسجيل الدخول بالـ UID عبر REST API
+  ═══════════════════════════════════════════════ */
+  function showLoginErr(msg) {
+    loginMsg.textContent = msg;
+    loginMsg.style.display = 'block';
+    loginBtn.disabled = false;
+  }
+
+  function doLogin() {
+    var uid = uidInput.value.trim();
+    if (!uid) { showLoginErr('أدخل الـ UID أولاً'); return; }
+
+    loginMsg.style.display = 'none';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'جارٍ التحقق...';
+
+    fetch(DB_URL + '/admin/' + encodeURIComponent(uid) + '.json')
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        if (data === null || data === undefined) {
+          showLoginErr('هذا الـ UID غير مصرّح له بالوصول');
+          loginBtn.textContent = 'تسجيل الدخول';
+          return;
+        }
+        var label = (data && data.email) ? data.email : uid;
+        currentAdmin = { uid: uid, label: label };
+        enterDashboard();
+      })
+      .catch(function (e) {
+        showLoginErr('خطأ في الاتصال: ' + e.message);
+        loginBtn.textContent = 'تسجيل الدخول';
+      });
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  uidInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function enterDashboard() {
+    unameEl.textContent = currentAdmin.label;
+    showScreen(scDash);
+    loadQuestions();
+  }
+
+  logoutBtn.addEventListener('click', function () {
+    currentAdmin = null;
+    allQuestions = {};
+    db = null;
+    uidInput.value = '';
+    loginBtn.textContent = 'تسجيل الدخول';
+    loginMsg.style.display = 'none';
+    catSection.classList.add('adm-hide');
+    showScreen(scLogin);
+  });
+
+  /* ═══════════════════════════════════════════════
+     Load questions
+  ═══════════════════════════════════════════════ */
+  function loadQuestions() {
+    totalLbl.textContent = 'جارٍ التحميل...';
+    var d = getDb();
+    if (!d) { totalLbl.textContent = 'تعذّر الاتصال بقاعدة البيانات'; return; }
+    d.ref('questions').once('value').then(function (snap) {
+      allQuestions = snap.val() || {};
+      var count = Object.keys(allQuestions).length;
+      totalLbl.textContent = count + ' سؤال في قاعدة البيانات';
+    }).catch(function () {
+      totalLbl.textContent = 'تعذّر تحميل الأسئلة';
+    });
+  }
+
+  /* ═══════════════════════════════════════════════
+     Dashboard — category cards
+  ═══════════════════════════════════════════════ */
+  var CAT_ICONS = {
+    'الميكانيك':                   '&#9881;',
+    'قواعد السير والمرور':         '&#128678;',
+    'الشواخص والخطوط والعلامات':  '&#9888;',
+    'السلامة على الطريق':          '&#128737;',
+    'أسعافات أولية':               '&#129658;',
+    'المخالفات واحتساب النقاط':   '&#128220;',
+    'الصور المتحركة':              '&#127916;',
+  };
+
+  qsCard.addEventListener('click', function () {
+    if (Object.keys(allQuestions).length === 0) {
+      var d = getDb();
+      if (!d) { renderCatGrid(); return; }
+      d.ref('questions').once('value').then(function (snap) {
+        allQuestions = snap.val() || {};
+        renderCatGrid();
+      });
+    } else {
+      renderCatGrid();
+    }
+  });
+
+  function renderCatGrid() {
+    var catCounts = {};
+    Object.values(allQuestions).forEach(function (q) {
+      var c = q.category || 'غير مصنّف';
+      catCounts[c] = (catCounts[c] || 0) + 1;
+    });
+    var total = Object.keys(allQuestions).length;
+
+    catGrid.innerHTML = '';
+    catGrid.appendChild(makeCatCard(null, 'جميع الأسئلة', total, '&#128221;', true));
+
+    Object.keys(catCounts).sort().forEach(function (cat) {
+      var icon = CAT_ICONS[cat] || '&#128193;';
+      catGrid.appendChild(makeCatCard(cat, cat, catCounts[cat], icon, false));
+    });
+
+    catSection.classList.remove('adm-hide');
+  }
+
+  function makeCatCard(catVal, label, count, icon, isAll) {
+    var card = document.createElement('div');
+    card.className = 'adm-cat-card' + (isAll ? ' all' : '');
+
+    var iconWrap = document.createElement('div');
+    iconWrap.className = 'adm-cat-card-icon';
+    iconWrap.innerHTML = icon;
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'adm-cat-card-name';
+    nameEl.textContent = label;
+
+    var countEl = document.createElement('div');
+    countEl.className = 'adm-cat-card-count';
+    countEl.textContent = count;
+
+    card.appendChild(iconWrap);
+    card.appendChild(nameEl);
+    card.appendChild(countEl);
+
+    card.addEventListener('click', function () {
+      openCatQuestions(catVal, label);
+    });
+    return card;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Questions screen
+  ═══════════════════════════════════════════════ */
+  function openCatQuestions(catVal, label) {
+    currentCat   = catVal;
+    activeFilter = 'all';
+    searchInput.value = '';
+    filterBtns.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.type === 'all');
+    });
+    qsTitle.textContent = label;
+    showScreen(scQs);
+    renderQuestions();
+  }
+
+  backBtn.addEventListener('click', function () { showScreen(scDash); });
+  searchInput.addEventListener('input', renderQuestions);
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activeFilter = btn.dataset.type;
+      filterBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderQuestions();
+    });
+  });
+
+  function getFilteredList() {
+    var q = searchInput.value.trim().toLowerCase();
+    var list = Object.entries(allQuestions).map(function (e, idx) {
+      return { id: e[0], data: e[1], idx: idx + 1 };
+    });
+
+    if (currentCat !== null) {
+      list = list.filter(function (item) { return item.data.category === currentCat; });
+    }
+    if (activeFilter !== 'all') {
+      list = list.filter(function (item) { return item.data.mediaType === activeFilter; });
+    }
+    if (q) {
+      list = list.filter(function (item) {
+        var d = item.data;
+        if (String(item.idx).includes(q)) return true;
+        if ((d.question || '').toLowerCase().includes(q)) return true;
+        if ((d.options || []).some(function (o) {
+          return o != null && String(o).toLowerCase().includes(q);
+        })) return true;
+        return false;
+      });
+    }
+    return list;
+  }
+
+  function renderQuestions() {
+    qsSpinner.classList.add('adm-hide');
+    var list = getFilteredList();
+    qsBadge.textContent = list.length;
+
+    if (list.length === 0) {
+      qsListEl.classList.add('adm-hide');
+      qsEmptyEl.classList.remove('adm-hide');
+      return;
+    }
+    qsEmptyEl.classList.add('adm-hide');
+    qsListEl.classList.remove('adm-hide');
+    qsListEl.innerHTML = '';
+    list.forEach(function (item) {
+      qsListEl.appendChild(makeQCard(item));
+    });
+  }
+
+  var TYPE_LABEL = { text: 'نصي', image: 'صورة', gif: 'متحرك' };
+
+  function makeQCard(item) {
+    var d  = item.data;
+    var mt = d.mediaType || 'text';
+    var ans = (d.options && d.options[d.correctAnswer] != null)
+              ? d.options[d.correctAnswer] : '—';
+
+    var thumbHtml = '';
+    if ((mt === 'image' || mt === 'gif') && d.mediaUrl) {
+      thumbHtml = '<img class="adm-q-thumb' + (mt === 'gif' ? ' adm-q-thumb-gif' : '') +
+                  '" src="' + escHtml(d.mediaUrl) + '" alt="وسائط" loading="lazy">';
+    }
+
+    var badgeClass = 'adm-badge-' + mt;
+    var badgeLabel = TYPE_LABEL[mt] || mt;
+
+    var card = document.createElement('div');
+    card.className = 'adm-q-card';
+    card.innerHTML =
+      '<div class="adm-q-num">' + item.idx + '</div>' +
+      (thumbHtml || '') +
+      '<div class="adm-q-content">' +
+        '<div class="adm-q-badges">' +
+          '<span class="adm-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+          '<span class="adm-badge adm-badge-cat">' + escHtml(d.category || '') + '</span>' +
+        '</div>' +
+        '<div class="adm-q-text">' + escHtml(d.question || '') + '</div>' +
+        '<div class="adm-q-answer">&#10003; ' + escHtml(ans) + '</div>' +
+        '<div class="adm-q-actions">' +
+          '<button class="adm-btn-edit" data-id="' + item.id + '">&#9998; تعديل</button>' +
+          '<button class="adm-btn-del"  data-id="' + item.id + '">&#128465; حذف</button>' +
+        '</div>' +
+      '</div>';
+
+    card.querySelector('.adm-btn-edit').addEventListener('click', function () { openEditForm(item.id); });
+    card.querySelector('.adm-btn-del').addEventListener('click',  function () { openDeleteConfirm(item.id); });
+    return card;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Add / Edit form
+  ═══════════════════════════════════════════════ */
+  function openAddForm() {
+    editingId    = null;
+    selectedType = 'text';
+    formTitle.textContent   = 'إضافة سؤال جديد';
+    formSaveLbl.textContent = 'حفظ السؤال';
+    fCat.value  = currentCat || '';
+    fQ.value    = '';
+    fUrl.value  = '';
+    fPreview.style.display  = 'none';
+    mediaField.style.display = 'none';
+    setTypeUI('text');
+    buildOptionInputs(['', ''], -1);
+    setFormMsg('', '');
+    formModal.classList.remove('adm-hide');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openEditForm(id) {
+    var d = allQuestions[id];
+    if (!d) return;
+    editingId    = id;
+    selectedType = d.mediaType || 'text';
+    formTitle.textContent   = 'تعديل السؤال';
+    formSaveLbl.textContent = 'حفظ التعديلات';
+    fCat.value  = d.category  || '';
+    fQ.value    = d.question  || '';
+    fUrl.value  = d.mediaUrl  || '';
+    setTypeUI(selectedType);
+    updateMediaPreview(d.mediaUrl || '');
+    buildOptionInputs(d.options || ['', ''], d.correctAnswer);
+    setFormMsg('', '');
+    formModal.classList.remove('adm-hide');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeFormModal() {
+    formModal.classList.add('adm-hide');
+    document.body.style.overflow = '';
+    editingId = null;
+  }
+
+  addBtn.addEventListener('click', openAddForm);
+  formClose.addEventListener('click', closeFormModal);
+  formCancel.addEventListener('click', closeFormModal);
+  formModal.addEventListener('click', function (e) { if (e.target === formModal) closeFormModal(); });
+
+  typeBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      selectedType = btn.dataset.mtype;
+      setTypeUI(selectedType);
+    });
+  });
+
+  function setTypeUI(mt) {
+    typeBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.mtype === mt); });
+    mediaField.style.display = (mt === 'image' || mt === 'gif') ? '' : 'none';
+    if (mt === 'text') { fUrl.value = ''; fPreview.style.display = 'none'; }
+  }
+
+  fUrl.addEventListener('input', function () { updateMediaPreview(fUrl.value.trim()); });
+  function updateMediaPreview(url) {
+    if (url) { fPreview.src = url; fPreview.style.display = 'block'; }
+    else      { fPreview.style.display = 'none'; }
+  }
+
+  function buildOptionInputs(opts, correctIdx) {
+    optionsList.innerHTML = '';
+    opts.forEach(function (opt, i) {
+      addOptionRow(opt, i === correctIdx);
+    });
+  }
+
+  function addOptionRow(value, checked) {
+    var row   = document.createElement('div');
+    row.className = 'adm-option-row';
+
+    var radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'adm-correct';
+    radio.className = 'adm-option-radio';
+    radio.checked = !!checked;
+
+    var input = document.createElement('input');
+    input.type = 'text'; input.className = 'adm-input adm-option-input';
+    input.placeholder = 'الخيار ' + (optionsList.children.length + 1);
+    input.value = value || '';
+
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'adm-option-del';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', function () {
+      if (optionsList.children.length > 2) row.remove();
+    });
+
+    row.appendChild(radio);
+    row.appendChild(input);
+    row.appendChild(delBtn);
+    optionsList.appendChild(row);
+  }
+
+  addOptBtn.addEventListener('click', function () {
+    if (optionsList.children.length >= 6) return;
+    addOptionRow('', false);
+  });
+
+  /* save */
+  qForm.addEventListener('submit', function () {
+    var cat  = fCat.value.trim();
+    var qTxt = fQ.value.trim();
+    var url  = fUrl.value.trim();
+
+    if (!cat)  { setFormMsg('يرجى اختيار القسم.', 'err'); return; }
+    if (!qTxt) { setFormMsg('يرجى إدخال نص السؤال.', 'err'); return; }
+    if ((selectedType === 'image' || selectedType === 'gif') && !url) {
+      setFormMsg('يرجى إدخال رابط الصورة.', 'err'); return;
+    }
+
+    var opts = [], correctIdx = -1;
+    var rows = optionsList.querySelectorAll('.adm-option-row');
+    rows.forEach(function (row, i) {
+      var val = row.querySelector('input[type="text"]').value.trim();
+      opts.push(val);
+      if (row.querySelector('input[type="radio"]').checked) correctIdx = i;
+    });
+
+    if (opts.some(function (o) { return !o; })) {
+      setFormMsg('يرجى ملء جميع الخيارات.', 'err'); return;
+    }
+    if (correctIdx === -1) {
+      setFormMsg('يرجى تحديد الإجابة الصحيحة.', 'err'); return;
+    }
+
+    var payload = {
+      category:      cat,
+      mediaType:     selectedType,
+      question:      qTxt,
+      options:       opts,
+      correctAnswer: correctIdx,
+    };
+    if (selectedType !== 'text') payload.mediaUrl = url;
+
+    formSave.disabled = true;
+    formSaveLbl.textContent = 'جارٍ الحفظ...';
+    setFormMsg('', '');
+
+    var d = getDb();
+    if (!d) {
+      setFormMsg('تعذّر الاتصال بقاعدة البيانات', 'err');
+      formSave.disabled = false;
+      formSaveLbl.textContent = editingId ? 'حفظ التعديلات' : 'حفظ السؤال';
+      return;
+    }
+
+    var ref = editingId
+      ? d.ref('questions/' + editingId).update(payload)
+      : d.ref('questions').push(payload).then(function (r) { return r; });
+
+    ref.then(function (result) {
+      if (editingId) {
+        Object.assign(allQuestions[editingId], payload);
+      } else {
+        allQuestions[result.key] = payload;
+      }
+      setFormMsg(editingId ? 'تم حفظ التعديلات ✓' : 'تم إضافة السؤال ✓', 'ok');
+      formSave.disabled = false;
+      formSaveLbl.textContent = editingId ? 'حفظ التعديلات' : 'حفظ السؤال';
+      setTimeout(function () {
+        closeFormModal();
+        renderQuestions();
+        totalLbl.textContent = Object.keys(allQuestions).length + ' سؤال في قاعدة البيانات';
+      }, 900);
+    }).catch(function (e) {
+      setFormMsg('خطأ: ' + (e.message || ''), 'err');
+      formSave.disabled = false;
+      formSaveLbl.textContent = editingId ? 'حفظ التعديلات' : 'حفظ السؤال';
+    });
+  });
+
+  function setFormMsg(text, type) {
+    formMsg.className = 'adm-form-msg' + (type ? ' ' + type : '');
+    formMsg.textContent = text;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Delete
+  ═══════════════════════════════════════════════ */
+  function openDeleteConfirm(id) {
+    deleteId = id;
+    delLbl.textContent = 'حذف';
+    delConfirm.disabled = false;
+    delModal.classList.remove('adm-hide');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    delModal.classList.add('adm-hide');
+    document.body.style.overflow = '';
+    deleteId = null;
+  }
+
+  delCancel.addEventListener('click', closeDeleteModal);
+  delModal.addEventListener('click', function (e) { if (e.target === delModal) closeDeleteModal(); });
+
+  delConfirm.addEventListener('click', function () {
+    if (!deleteId) return;
+    delConfirm.disabled = true;
+    delLbl.textContent = 'جارٍ الحذف...';
+
+    var d = getDb();
+    if (!d) {
+      delConfirm.disabled = false;
+      delLbl.textContent = 'حذف';
+      alert('تعذّر الاتصال بقاعدة البيانات');
+      return;
+    }
+
+    d.ref('questions/' + deleteId).remove().then(function () {
+      delete allQuestions[deleteId];
+      closeDeleteModal();
+      renderQuestions();
+      totalLbl.textContent = Object.keys(allQuestions).length + ' سؤال في قاعدة البيانات';
+    }).catch(function (e) {
+      delConfirm.disabled = false;
+      delLbl.textContent = 'حذف';
+      alert('فشل الحذف: ' + e.message);
+    });
+  });
+
+  /* ═══════════════════════════════════════════════
+     Utility
+  ═══════════════════════════════════════════════ */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  showScreen(scLogin);
+
+})();
+</script>
