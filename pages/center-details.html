@@ -421,10 +421,10 @@ h1.post-title,
   'use strict';
 
   // 1. التحقق من تهيئة Firebase
-  // REST API — بدون SDK، بدون Auth، بدون WebSocket
-  var FB_BASE = 'https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app';
+  // CDN — Cloudflare Pages (يُعرَّف في template كـ window.JDCDN)
+  var FB_BASE = (window.JDCDN && window.JDCDN.base) || 'https://driverjo-cdn.pages.dev';
 
-  var CACHE_KEY = 'dex_data_v2';
+  var CACHE_KEY = 'djv3_detail_v1';   /* مفتاح مستقل عن صفحة المراكز */
   var LIST_URL  = '/';
   var DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 
@@ -666,10 +666,11 @@ h1.post-title,
     centers = results[1] || {};
 
     try {
-      var existing = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-      existing.govs    = govs;
-      existing.centers = centers;
-      localStorage.setItem(CACHE_KEY, JSON.stringify(existing));
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        govs: govs,
+        centers: centers
+      }));
     } catch(e) {}
 
     var c = findCenter(centerId, centers);
