@@ -1205,7 +1205,8 @@
   function dexLoadCache(){try{var r=localStorage.getItem(DEX_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>DEX_CACHE_TTL){localStorage.removeItem(DEX_CACHE_KEY);return null}return o.data}catch(e){return null}}
 
   /* ——— تحميل الأسئلة عبر REST مباشرةً — بدون انتظار Auth أو SDK ——— */
-  var DEX_DB_URL = 'https://driverjo-default-rtdb.firebaseio.com/questions.json';
+  /* مصدر الأسئلة: Cloudflare Pages CDN (يُعرَّف في template كـ window.JDQURL) */
+  var DEX_DB_URL = window.JDQURL || 'https://driverjo-cdn.pages.dev/questions.json';
   function loadData() {
     fetch(DEX_DB_URL)
       .then(function(r){ if(!r.ok) throw 0; return r.json(); })
