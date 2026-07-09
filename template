@@ -42,7 +42,15 @@
 
 <head>
   
-  <script src='https://unpkg.com/@phosphor-icons/web@2.1.1'/>
+  <!-- ── Preconnect لتسريع الاتصالات الحرجة ── -->
+  <link rel='preconnect' href='https://www.gstatic.com' crossorigin='crossorigin'/>
+  <link rel='preconnect' href='https://driverjo-cdn.pages.dev'/>
+  <link rel='preconnect' href='https://driverjo-default-rtdb.firebaseio.com'/>
+  <link rel='dns-prefetch' href='https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app'/>
+  <link rel='dns-prefetch' href='https://unpkg.com'/>
+
+  <!-- Phosphor Icons: async لمنع حجب الرسم -->
+  <script async='async' src='https://unpkg.com/@phosphor-icons/web@2.1.1'/>
 
 
 <b:if cond='data:blog.view not in [&quot;x-content-lazy&quot;, &quot;x-content-blog&quot;]'>
@@ -91,6 +99,22 @@
   //]]>
   </script>
 
+  <!-- ══ مصادر CDN الموحَّدة — غيِّر base فقط عند تغيير الاستضافة ══ -->
+  <script>//<![CDATA[
+  (function(){
+    var base='https://driverjo-cdn.pages.dev';
+    window.JDCDN={
+      base:base,
+      questions:    base+'/questions.json',
+      governorates: base+'/governorates.json',
+      areas:        base+'/areas.json',
+      centers:      base+'/centers.json',
+      centersDetail:base+'/centers-detail.json'
+    };
+    window.JDQURL=window.JDCDN.questions; /* توافق مع الكود القديم */
+  })();
+  //]]></script>
+
   <!-- JDPrefetch: تحميل مسبق شامل لجميع البيانات عند فتح أي صفحة -->
   <script>
   //<![CDATA[
@@ -110,7 +134,8 @@
   /* ── جلب الأسئلة وتوزيعها على كاش كل قسم ── */
   function prefetchQuestions(){
     if(fresh('jd_pf_questions',FORCE_TTL))return; /* سبق تحميلها مؤخراً */
-    fetch(DB+'/questions.json',{cache:'no-store'})
+    if(fresh('qax_questions_v1',FORCE_TTL))return; /* الصفحة نفسها جلبتها للتو */
+    fetch(window.JDQURL,{cache:'no-store'})
       .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(raw){
         if(!raw)return;
@@ -144,25 +169,30 @@
 
   /* ── جلب المدارس والمحافظات والمناطق ── */
   function prefetchCenters(){
+    /* بيانات المراكز ضرورية فقط على صفحة المدارس — لا تُحمَّل على الصفحات الأخرى */
+    if(window.location.href.indexOf('driving-schools')===-1)return;
     if(fresh('jd_pf_centers',FORCE_TTL))return;
+    var cdn=window.JDCDN;
     Promise.all([
-      fetch(DB+'/governorates.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return {};}),
-      fetch(DB+'/areas.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return {};}),
-      fetch(DB+'/centers.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return {};})
+      fetch(cdn.governorates).then(function(r){return r.ok?r.json():{};}).catch(function(){return {};}),
+      fetch(cdn.areas).then(function(r){return r.ok?r.json():{};}).catch(function(){return {};}),
+      fetch(cdn.centers).then(function(r){return r.ok?r.json():{};}).catch(function(){return {};})
     ]).then(function(res){
       store('jd_pf_centers',1);
       /* كاش موحّد لصفحة المدارس */
-      try{localStorage.setItem('dex_data_v2',JSON.stringify({govs:res[0]||{},areas:res[1]||{},centers:res[2]||{}}));}catch(e){}
+      try{localStorage.setItem('djv3_schools_v1',JSON.stringify({ts:Date.now(),govs:res[0]||{},areas:res[1]||{},centers:res[2]||{}}));}catch(e){}
     }).catch(function(){});
   }
 
-  /* ── تشغيل بعد تحميل الصفحة لعدم التأثير على السرعة الأولية ── */
+  /* ── تشغيل في وقت الخمول — لا يُشغَّل حتى ينتهي المتصفح من الرسم الأولي ── */
   function run(){
-    /* تأخير بسيط ليحمل المستخدم الصفحة الحالية أولاً */
-    setTimeout(function(){
+    var exec=typeof requestIdleCallback==='function'
+      ? function(fn){requestIdleCallback(fn,{timeout:3000});}
+      : function(fn){setTimeout(fn,2500);};
+    exec(function(){
       prefetchQuestions();
       prefetchCenters();
-    },1500);
+    });
   }
 
   if(document.readyState==='loading'){
@@ -333,7 +363,7 @@
     setTimeout(function(){var a=document.getElementById('qsr-arc');if(a)a.setAttribute('stroke-dashoffset',String(dash));},80);
   }
   window.qsrRetry=function(){startQuiz();};
-  var QSR_DB_URL='https://driverjo-default-rtdb.firebaseio.com/questions.json';
+  var QSR_DB_URL=window.JDQURL; /* مصدر الأسئلة — Cloudflare Pages CDN */
   window.escHtml=esc;
   window.qsrInit=function(){
     _CAT=window.QSR_CAT||'';
