@@ -101,14 +101,15 @@
   <!-- &#9552;&#9552; مصادر CDN الموح&#1614;&#1617;دة &#8212; غي&#1616;&#1617;ر base فقط عند تغيير الاستضافة &#9552;&#9552; -->
   <script>//<![CDATA[
   (function(){
-    var base='https://driverjo-cdn.pages.dev';
+    var base='https://data.driverjo.online'; /* Cloudflare R2 */
     window.JDCDN={
       base:base,
       questions:    base+'/questions.json',
       governorates: base+'/governorates.json',
       areas:        base+'/areas.json',
       centers:      base+'/centers.json',
-      centersDetail:base+'/centers.json'
+      centersDetail:base+'/centers.json',
+      version:      base+'/version.json'
     };
     window.JDQURL=window.JDCDN.questions; /* توافق مع الكود القديم */
   })();
@@ -194,13 +195,48 @@
     });
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',run);
-  }else{
-    run();
+  /* فحص إصدار البيانات — إذا تغير الرقم يمسح كل الكاش ويعيد الجلب فوراً */
+  var VKEY='jd_data_version';
+  function clearAllDataCache(){
+    try{
+      var i,k,rm=[];
+      for(i=0;i<localStorage.length;i++){
+        k=localStorage.key(i);
+        if(!k)continue;
+        if(k.indexOf('qsr_')===0||k==='jd_pf_questions'||k==='jd_pf_centers'||k==='qax_questions_v1'||k==='dex_questions_v1'||k==='djv3_schools_v1'){
+          rm.push(k);
+        }
+      }
+      rm.forEach(function(k){localStorage.removeItem(k);});
+    }catch(e){}
+  }
+  function checkVersion(cb){
+    var cdn=window.JDCDN;
+    if(!cdn||!cdn.version){cb();return;}
+    fetch(cdn.version,{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(v){
+        var remote=v&&(v.v!==undefined)?String(v.v):null;
+        if(remote===null){cb();return;}
+        var local=null;
+        try{local=localStorage.getItem(VKEY);}catch(e){}
+        if(local!==remote){
+          clearAllDataCache();
+          try{localStorage.setItem(VKEY,remote);}catch(e){}
+        }
+        cb();
+      })
+      .catch(function(){cb();});
   }
   window.JDNorm=norm;
   window.JDPrefetch={refresh:function(){store('jd_pf_questions',null);store('jd_pf_centers',null);prefetchQuestions();prefetchCenters();}};
+  checkVersion(function(){
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded',run);
+    }else{
+      run();
+    }
+  });
   }());
   //]]>
   </script>
