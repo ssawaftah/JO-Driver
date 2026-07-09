@@ -608,7 +608,17 @@ function loadCache(){
     if(!raw)return null;
     var obj=JSON.parse(raw);
     if(Date.now()-obj.ts>CACHE_TTL){localStorage.removeItem(CACHE_KEY);return null}
-    return obj.data;
+    var data=obj.data;
+    if(!data||typeof data!=='object'||Array.isArray(data))return null;
+    // أعد تطبيع المفاتيح عبر matchCat حتى لو كتب JDPrefetch بأسماء غير قياسية
+    // (مثلاً: همزات مختلفة أو تشكيل) — يضمن تطابق الأعداد في buildCats
+    var normalized={};
+    Object.keys(data).forEach(function(k){
+      var canonical=matchCat(k);
+      if(!normalized[canonical])normalized[canonical]=[];
+      normalized[canonical]=normalized[canonical].concat(data[k]||[]);
+    });
+    return normalized;
   }catch(e){return null}
 }
 
@@ -628,6 +638,9 @@ var P={
 window.qaxGo=function(name){
   Object.values(P).forEach(function(p){p.classList.add('qax-hide')});
   P[name].classList.remove('qax-hide');
+  // أعد بناء قائمة الأقسام دائماً عند الانتقال إليها
+  // هذا يضمن عرض الأعداد المحدَّثة بعد أي جلب خلفي حدث أثناء المراجعة/الاختبار
+  if(name==='cats') buildCats();
   try{window.scrollTo(0,0)}catch(e){}
 };
 
@@ -671,7 +684,8 @@ function setMedia(q,wrap,img,vid){
 /* ── Firebase (REST — بدون تحميل مكتبة SDK كاملة) ── */
 // طلب مباشر لواجهة REST الخاصة بـ Realtime Database بدل انتظار تحميل/تهيئة firebase.js
 // هذا يلغي زمن تحميل المكتبة + فتح اتصال WebSocket غير الضروري لقراءة واحدة.
-var FB_REST_URL = FB.databaseURL.replace(/\/$/, '') + '/questions.json';
+/* مصدر الأسئلة: Cloudflare Pages CDN (يُعرَّف في template كـ window.JDQURL) */
+var FB_REST_URL = window.JDQURL || 'https://driverjo-cdn.pages.dev/questions.json';
 
 function parseRaw(raw){
   var result={};
@@ -683,35 +697,56 @@ function parseRaw(raw){
 }
 
 function fetchAndRefresh(silent){
+  // اضبط العلامة قبل بدء الجلب — يمنع JDPrefetch من إصدار طلب مزدوج
+  // حتى على الشبكات البطيئة (الحل المحدد وليس الاحتمالي)
+  try{localStorage.setItem('jd_pf_questions',JSON.stringify({ts:Date.now(),data:1}));}catch(e){}
   fetch(FB_REST_URL, {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('bad status'); return r.json(); })
     .then(function(raw){
       raw = raw || {};
       var fresh = parseRaw(raw);
       saveCache(fresh);
-      // تحديث واجهة المستخدم إذا كان المستخدم لا يزال في صفحة الأقسام
-      if(!silent || document.getElementById('qax-page-cats').classList.contains('qax-hide')===false){
-        allQ=fresh; buildCats();
-      } else {
-        allQ=fresh; // تحديث البيانات في الذاكرة فقط
-      }
+      allQ = fresh;
+      // أول زيارة: انتقل إلى صفحة الأقسام (buildCats ستُستدعى داخل qaxGo)
+      // خلفية: علَّم فقط — buildCats ستُعيد البناء عند عودة المستخدم إلى الأقسام
+      if(!silent){ qaxGo('cats'); }
     })
-    .catch(function(){/* صامت عند الفشل — يبقى المعروض هو آخر نسخة من الكاش */});
+    .catch(function(){
+      // امسح العلامة عند الفشل — يتيح لـ JDPrefetch أن يكون احتياطياً
+      try{localStorage.removeItem('jd_pf_questions');}catch(e){}
+      if(!silent){
+        // فشل الجلب ولا يوجد كاش — أوقف المؤشر وأضف زر إعادة المحاولة
+        var spin=P.loading.querySelector('.qax-spin');
+        var txt=P.loading.querySelector('.qax-loading-txt');
+        if(spin) spin.style.display='none';
+        if(txt) txt.textContent='تعذّر تحميل الأسئلة، تحقق من اتصالك';
+        var btn=document.createElement('button');
+        btn.textContent='إعادة المحاولة';btn.className='qax-btn-exam';
+        btn.style.cssText='margin-top:14px;padding:0 22px;height:40px;border-radius:10px;font-size:13px';
+        btn.onclick=function(){
+          btn.disabled=true;
+          if(spin) spin.style.display='';
+          if(txt) txt.textContent='جارٍ التحميل...';
+          btn.remove();
+          fetchAndRefresh(false);
+        };
+        P.loading.appendChild(btn);
+      }
+      /* صامت عند الفشل مع وجود كاش — يبقى المعروض هو آخر نسخة */
+    });
 }
 
 function load(){
   var cached=loadCache();
   if(cached){
-    // عرض فوري من الكاش
+    // عرض فوري من الكاش — buildCats تُستدعى داخل qaxGo('cats')
     allQ=cached;
-    buildCats();
     qaxGo('cats');
     // تحديث صامت في الخلفية
     fetchAndRefresh(true);
   }else{
-    // أول زيارة: إخفاء شاشة التحميل وعرض الأقسام فارغة ثم التحديث
-    buildCats();
-    qaxGo('cats');
+    // أول زيارة: أظهر مؤشر التحميل حتى يكتمل الجلب — لا تعرض أصفاراً مضللة
+    qaxGo('loading');
     fetchAndRefresh(false);
   }
 }
