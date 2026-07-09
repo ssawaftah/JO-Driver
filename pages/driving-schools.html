@@ -495,6 +495,38 @@
   #ctr-page .ctr-chip { padding: 5px 10px; font-size: 12px; }
   #ctr-page #ctr-sort { min-width: 74px; }
 }
+
+/* ── Skeleton UI ── */
+.ctr-skeleton-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #f0f0f0;
+  padding: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.ctr-sk-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ctr-sk-img {
+  width: 54px; height: 54px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.ctr-sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.ctr-sk-line  { height: 12px; border-radius: 6px; }
+@keyframes ctr-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.ctr-sk-pulse {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: ctr-shimmer 1.4s infinite;
+}
 </style>
 
 <div id="faqdrive-page">
@@ -641,11 +673,11 @@
 (function () {
   'use strict';
 
-  // ══ Firebase REST API — بدون انتظار JDAuth أو Auth ══
-  var FB_BASE = 'https://driverjo-default-rtdb.firebaseio.com';
+  // ══ CDN الأسئلة — Cloudflare Pages (يُعرَّف في template كـ window.JDCDN) ══
+  var FB_BASE = (window.JDCDN && window.JDCDN.base) || 'https://driverjo-cdn.pages.dev';
 
   // ══ الثوابت ══
-  var CACHE_KEY  = 'dex_data_v2';
+  var CACHE_KEY  = 'djv3_schools_v1';   /* مفتاح مستقل — لا يتعارض مع صفحة التفاصيل */
   var DETAIL_URL = '/p/center-details.html';
   var DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 
@@ -979,7 +1011,12 @@
 
   // ══ الإدخالات ══
   sortSel.value = sortMode;
-  searchInp.oninput = function(e) { searchQ = e.target.value; renderList(); };
+  var _searchTimer = null;
+  searchInp.oninput = function(e) {
+    searchQ = e.target.value;
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(renderList, 220);
+  };
   sortSel.onchange  = function(e) {
     sortMode = e.target.value;
     localStorage.setItem('dex_sort', sortMode);
@@ -987,40 +1024,84 @@
     renderList();
   };
 
-  // ══ تحميل البيانات (Cache أولاً ثم Firebase) ══
+  // ══ Cache First + Stale-While-Revalidate ══
+  var CACHE_FRESH = 5 * 60 * 1000;   // 5 دقائق: لا حاجة لجلب — اعتبر الكاش طازجاً
+
   function loadCache() {
     try {
       var raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return false;
-      var d = JSON.parse(raw);
-      govs = d.govs || {}; areas = d.areas || {}; centers = d.centers || {};
-      return true;
-    } catch(e) { return false; }
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
   }
 
   function saveCache() {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({govs:govs,areas:areas,centers:centers})); }
-    catch(e) {}
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(), govs: govs, areas: areas, centers: centers
+      }));
+    } catch(e) {}
   }
 
   function renderAll() { renderGovChips(); renderAreaChips(); renderList(); }
 
-  if (loadCache()) { renderAll(); }
-  else             { setState('loading', 'جارٍ تحميل المراكز…'); }
+  function showSkeletons() {
+    stateEl.hidden = true;
+    for (var i = 0; i < 3; i++) {
+      var sk = document.createElement('div');
+      sk.className = 'ctr-skeleton-card';
+      sk.innerHTML =
+        '<div class="ctr-sk-head">' +
+          '<div class="ctr-sk-img ctr-sk-pulse"></div>' +
+          '<div class="ctr-sk-lines">' +
+            '<div class="ctr-sk-line ctr-sk-pulse" style="width:65%"></div>' +
+            '<div class="ctr-sk-line ctr-sk-pulse" style="width:40%"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ctr-sk-line ctr-sk-pulse" style="width:80%;margin-bottom:8px"></div>' +
+        '<div class="ctr-sk-line ctr-sk-pulse" style="width:100%"></div>';
+      listEl.appendChild(sk);
+    }
+  }
 
-  Promise.all([
-    fetch(FB_BASE + '/governorates.json').then(function(r){ return r.ok ? r.json() : {}; }),
-    fetch(FB_BASE + '/areas.json').then(function(r){ return r.ok ? r.json() : {}; }),
-    fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
-  ]).then(function(results) {
-    govs    = results[0] || {};
-    areas   = results[1] || {};
-    centers = results[2] || {};
-    saveCache();
+  function clearSkeletons() {
+    Array.from(listEl.querySelectorAll('.ctr-skeleton-card')).forEach(function(el){ el.remove(); });
+  }
+
+  function fetchFresh(silent) {
+    return Promise.all([
+      fetch(FB_BASE + '/governorates.json').then(function(r){ return r.ok ? r.json() : {}; }),
+      fetch(FB_BASE + '/areas.json').then(function(r){ return r.ok ? r.json() : {}; }),
+      fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
+    ]).then(function(results) {
+      govs    = results[0] || {};
+      areas   = results[1] || {};
+      centers = results[2] || {};
+      saveCache();
+      clearSkeletons();
+      renderAll();
+    }).catch(function() {
+      clearSkeletons();
+      if (!silent && !Object.keys(centers).length)
+        setState('error', 'تعذّر تحميل المراكز، حاول لاحقاً');
+    });
+  }
+
+  var _cached = loadCache();
+  var _now    = Date.now();
+
+  if (_cached && Object.keys(_cached.centers || {}).length) {
+    govs    = _cached.govs    || {};
+    areas   = _cached.areas   || {};
+    centers = _cached.centers || {};
     renderAll();
-  }).catch(function() {
-    if (!Object.keys(centers).length) setState('error', 'تعذّر تحميل المراكز، حاول لاحقاً');
-  });
+    // جلب في الخلفية فقط إذا كان الكاش قديماً
+    if (!_cached.ts || _now - _cached.ts > CACHE_FRESH) {
+      fetchFresh(true);
+    }
+  } else {
+    showSkeletons();
+    fetchFresh(false);
+  }
 
 })();
 </script>
