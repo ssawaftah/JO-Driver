@@ -42,12 +42,11 @@
 
 <head>
   
-  <!-- ── Preconnect لتسريع الاتصالات الحرجة ── -->
-  <link rel='preconnect' href='https://www.gstatic.com' crossorigin='crossorigin'/>
-  <link rel='preconnect' href='https://driverjo-cdn.pages.dev'/>
-  <link rel='preconnect' href='https://driverjo-default-rtdb.firebaseio.com'/>
-  <link rel='dns-prefetch' href='https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app'/>
-  <link rel='dns-prefetch' href='https://unpkg.com'/>
+  <!-- &#9472;&#9472; Preconnect لتسريع الاتصالات الحرجة &#9472;&#9472; -->
+  <link crossorigin='crossorigin' href='https://www.gstatic.com' rel='preconnect'/>
+  <link href='https://driverjo-cdn.pages.dev' rel='preconnect'/>
+  <link href='https://driverjo-default-rtdb.firebaseio.com' rel='preconnect'/>
+  <link href='https://unpkg.com' rel='dns-prefetch'/>
 
   <!-- Phosphor Icons: async لمنع حجب الرسم -->
   <script async='async' src='https://unpkg.com/@phosphor-icons/web@2.1.1'/>
@@ -99,7 +98,7 @@
   //]]>
   </script>
 
-  <!-- ══ مصادر CDN الموحَّدة — غيِّر base فقط عند تغيير الاستضافة ══ -->
+  <!-- &#9552;&#9552; مصادر CDN الموح&#1614;&#1617;دة &#8212; غي&#1616;&#1617;ر base فقط عند تغيير الاستضافة &#9552;&#9552; -->
   <script>//<![CDATA[
   (function(){
     var base='https://driverjo-cdn.pages.dev';
@@ -109,7 +108,7 @@
       governorates: base+'/governorates.json',
       areas:        base+'/areas.json',
       centers:      base+'/centers.json',
-      centersDetail:base+'/centers-detail.json'
+      centersDetail:base+'/centers.json'
     };
     window.JDQURL=window.JDCDN.questions; /* توافق مع الكود القديم */
   })();
