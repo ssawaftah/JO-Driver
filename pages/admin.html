@@ -1491,6 +1491,14 @@
               <label class="adm-label" for="adm-cf-maplink">رابط جوجل مابس <span class="adm-label-req">*</span></label>
               <input class="adm-input" type="url" id="adm-cf-maplink" placeholder="https://maps.google.com/…" style="direction:ltr">
             </div>
+            <div class="adm-field" style="margin-top:12px">
+              <label class="adm-label">الإحداثيات (lat, lng) — لحساب المسافة عن المستخدمين</label>
+              <div style="display:flex;gap:8px">
+                <input class="adm-input" type="text" id="adm-cf-lat" placeholder="lat مثال: 31.9539" style="direction:ltr">
+                <input class="adm-input" type="text" id="adm-cf-lng" placeholder="lng مثال: 35.9106" style="direction:ltr">
+              </div>
+              <div class="adm-hint" style="font-size:.78rem;color:var(--txt3);margin-top:5px">إن كان الطلب مُرسلاً من نموذج الانضمام مع "تحديد الموقع"، الصقّ القيمتين هنا من تفاصيل الطلب. اتركهما فارغتين إذا رابط الخريطة يحتوي على إحداثيات ضمنه (مثل @lat,lng).</div>
+            </div>
           </div>
 
           <div class="adm-fsec">
@@ -2644,6 +2652,8 @@
   var cfWhatsapp     = document.getElementById('adm-cf-whatsapp');
   var cfWaCopy       = document.getElementById('adm-cf-wa-copy');
   var cfMaplink      = document.getElementById('adm-cf-maplink');
+  var cfLat          = document.getElementById('adm-cf-lat');
+  var cfLng          = document.getElementById('adm-cf-lng');
   var cfGov          = document.getElementById('adm-cf-gov');
   var cfAreasWrap    = document.getElementById('adm-cf-areas-wrap');
   var cfAreas        = document.getElementById('adm-cf-areas');
@@ -2948,7 +2958,7 @@
 
   function openAddCenterForm() {
     editingCtrId=null; ctrFormTitle.textContent='إضافة مركز جديد'; ctrFormSub.textContent='أكمل البيانات ثم احفظ'; ctrFormSaveLbl.textContent='حفظ المركز';
-    cfName.value=''; cfPhone.value=''; cfWhatsapp.value=''; cfMaplink.value=''; cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value='';
+    cfName.value=''; cfPhone.value=''; cfWhatsapp.value=''; cfMaplink.value=''; cfLat.value=''; cfLng.value=''; cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value='';
     cfAreasWrap.style.display='none'; ctrCurGovId=null; setCtrFormMsg('',''); loadCtrGovs(null); buildCtrScheduleUI(null);
     ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
   }
@@ -2957,7 +2967,7 @@
     var data=allCenters[id]; if (!data) return;
     editingCtrId=id; ctrFormTitle.textContent='تعديل المركز'; ctrFormSub.textContent='عدّل ما تريد ثم احفظ'; ctrFormSaveLbl.textContent='حفظ التعديلات';
     cfName.value=data.name||''; cfPhone.value=data.phone||''; cfWhatsapp.value=data.whatsapp||'';
-    cfMaplink.value=data.mapLink||''; cfImageUrl.value=data.imageUrl||'';
+    cfMaplink.value=data.mapLink||''; cfLat.value=data.lat!=null?data.lat:''; cfLng.value=data.lng!=null?data.lng:''; cfImageUrl.value=data.imageUrl||'';
     cfRating.value=data.rating!=null?data.rating:''; cfRcount.value=data.reviewCount!=null?data.reviewCount:'';
     cfDesc.value=data.description||''; setCtrFormMsg('',''); buildCtrScheduleUI(data.schedule||null); loadCtrGovs(data.governorateId||null);
     if (data.governorateId) { loadCtrAreas(data.governorateId, (data.areas||[]).map(function(a){ return a.id; })); }
@@ -2981,8 +2991,10 @@
     var schedule=readCtrSchedule(), workingDays=computeWorkingDays(schedule);
     var payload={ name:name, phone:phone, mapLink:mapLink, governorateId:govId, areas:areas, schedule:schedule, workingDays:workingDays };
     var wa=cfWhatsapp.value.trim(), imgUrl=cfImageUrl.value.trim(), rat=parseFloat(cfRating.value), rcnt=parseInt(cfRcount.value,10), desc=cfDesc.value.trim();
+    var latVal=parseFloat(cfLat.value), lngVal=parseFloat(cfLng.value);
     if (wa) payload.whatsapp=wa; if (imgUrl) payload.imageUrl=imgUrl;
     if (!isNaN(rat)) payload.rating=rat; if (!isNaN(rcnt)) payload.reviewCount=rcnt; if (desc) payload.description=desc;
+    if (!isNaN(latVal) && !isNaN(lngVal)) { payload.lat=latVal; payload.lng=lngVal; }
     ctrFormSave.disabled=true; ctrFormSaveLbl.textContent='جارٍ الحفظ…'; setCtrFormMsg('','');
     var d=getDb();
     if (!d) { setCtrFormMsg('تعذّر الاتصال.','err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=editingCtrId?'حفظ التعديلات':'حفظ المركز'; return; }
@@ -3092,6 +3104,9 @@
     if (data.mapsLink) {
       var safeLink=/^https?:\/\//i.test(String(data.mapsLink).trim())?data.mapsLink.trim():null;
       html += rdField('جوجل مابس', safeLink?'<a href="'+escHtml(safeLink)+'" target="_blank" rel="noopener noreferrer"><i class="ph-bold ph-map-pin"></i> فتح الخريطة</a>':'<span style="color:var(--txt3)">رابط غير صالح</span>', true);
+    }
+    if (data.lat!=null && data.lng!=null) {
+      html += rdField('الإحداثيات (لصقها بنموذج إضافة المركز)', '<span style="direction:ltr;display:inline-block;user-select:all">'+escHtml(String(data.lat))+', '+escHtml(String(data.lng))+'</span>', true);
     }
     html += '</div></div>';
     if (data.areas && Object.keys(data.areas).length > 0) {

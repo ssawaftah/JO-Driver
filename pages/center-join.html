@@ -68,6 +68,7 @@
   transition: background .15s, border-color .15s;
 }
 .jf-wa-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+.jf-wa-btn.btn-success-active { background: #f0fdf4; border-color: #22c55e; color: #16a34a; pointer-events: none; }
 
 /* ——— MULTI SELECT ——— */
 .jf-select-multi {
@@ -191,6 +192,14 @@
           <input class="jf-input" type="url" id="jfMapsLink" placeholder="https://maps.google.com/...">
           <div class="jf-field-err" id="jfMapsLinkErr">يرجى إدخال رابط جوجل مابس صحيح</div>
           <div class="jf-hint">انسخ الرابط من تطبيق جوجل مابس → مشاركة → نسخ الرابط</div>
+        </div>
+
+        <div class="jf-field">
+          <label class="jf-label">تحديد موقع المركز على الخريطة</label>
+          <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;">
+            <i class="ph ph-crosshair"></i> <span id="jfLocateBtnText">تحديد موقعي الحالي</span>
+          </button>
+          <div class="jf-hint">فعّل هذا الخيار وأنت داخل المركز أو أمامه، حتى تظهر مسافته بدقّة للمستخدمين الباحثين عن أقرب مركز لهم.</div>
         </div>
 
         <div class="jf-field">
@@ -565,6 +574,36 @@
     addLiveValidation(id, id + 'Err');
   });
 
+  /* ══════════════════════════════════════
+     5.1 تحديد الموقع الجغرافي (lat/lng)
+  ══════════════════════════════════════ */
+  var jfCoords = null;
+  var elLocateBtn     = document.getElementById('jfLocateBtn');
+  var elLocateBtnText  = document.getElementById('jfLocateBtnText');
+  if (elLocateBtn) {
+    elLocateBtn.addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        alert('المتصفح لا يدعم تحديد الموقع.');
+        return;
+      }
+      elLocateBtn.disabled = true;
+      elLocateBtnText.textContent = 'جارٍ تحديد الموقع...';
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          jfCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          elLocateBtn.disabled = false;
+          elLocateBtn.classList.add('btn-success-active');
+          elLocateBtnText.textContent = '✓ تم تحديد الموقع بنجاح';
+        },
+        function () {
+          elLocateBtn.disabled = false;
+          elLocateBtnText.textContent = 'تحديد موقعي الحالي';
+          alert('تعذّر تحديد موقعك. يرجى السماح بالوصول للموقع من إعدادات المتصفح والمحاولة مرة أخرى.');
+        }
+      );
+    });
+  }
+
   function validate() {
     var ok = true;
 
@@ -625,6 +664,8 @@
 
     var payload = {
       mapsLink:    document.getElementById('jfMapsLink').value.trim(),
+      lat:         jfCoords ? jfCoords.lat : null,
+      lng:         jfCoords ? jfCoords.lng : null,
       centerName:  document.getElementById('jfName').value.trim(),
       phone:       document.getElementById('jfPhone').value.trim(),
       whatsapp:    document.getElementById('jfWhatsapp').value.trim() || null,
