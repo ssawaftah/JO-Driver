@@ -107,9 +107,14 @@ export default {
 
         let resp;
         try {
-          resp = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DriverjoImageMigrator/1.0)' } });
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 15000);
+          resp = await fetch(sourceUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DriverjoImageMigrator/1.0)' },
+            signal: controller.signal,
+          }).finally(() => clearTimeout(timer));
         } catch (e) {
-          return new Response(JSON.stringify({ error: 'Could not reach source URL: ' + e.message }), { status: 502, headers: jsonHeaders });
+          return new Response(JSON.stringify({ error: 'Could not reach source URL (timeout or network error): ' + e.message }), { status: 502, headers: jsonHeaders });
         }
         if (!resp.ok) {
           return new Response(JSON.stringify({ error: `Source URL returned HTTP ${resp.status}` }), { status: 502, headers: jsonHeaders });
@@ -117,6 +122,10 @@ export default {
         let mimeType = (resp.headers.get('Content-Type') || '').split(';')[0].trim();
         if (!ALLOWED_TYPES.includes(mimeType)) {
           return new Response(JSON.stringify({ error: 'Source is not a supported image type (got: ' + mimeType + ')' }), { status: 400, headers: jsonHeaders });
+        }
+        const declaredLen = parseInt(resp.headers.get('Content-Length') || '0', 10);
+        if (declaredLen > MAX_BYTES) {
+          return new Response(JSON.stringify({ error: 'Source image too large (max 5MB)' }), { status: 400, headers: jsonHeaders });
         }
 
         const buf = await resp.arrayBuffer();

@@ -2141,6 +2141,7 @@
   var MAX_PX = 800, MAX_QUAL = 0.82;
   var UPLOAD_WORKER_URL = 'https://upload.idriverjo.workers.dev';
   var UPLOAD_KEY = '19686130';
+  var MIGRATED_HOST = 'data.driverjo.online'; /* نطاق R2 المستضاف - يُستخدم لتخطي الصور المُرحَّلة مسبقًا */
 
   dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('drag-over'); });
   dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('drag-over'); });
@@ -2213,6 +2214,165 @@
     };
     reader.onerror = function(){ setUploadStatus('err','فشل قراءة الملف'); };
     reader.readAsDataURL(file);
+  }
+
+  /* ════════════════════════════════════════════════════
+     MIGRATE OLD IMAGES (base64 / external links) TO CLOUDFLARE
+  ════════════════════════════════════════════════════ */
+  var migrateOverlay  = document.getElementById('adm-migrate-overlay');
+  var migrateBtn      = document.getElementById('adm-migrate-btn');
+  var migrateCloseBtn = document.getElementById('adm-migrate-close');
+  var migrateStartBtn = document.getElementById('adm-migrate-start');
+  var migrateIntro    = document.getElementById('adm-migrate-intro');
+  var migrateProgress = document.getElementById('adm-migrate-progress');
+  var migrateCountEl  = document.getElementById('adm-migrate-count');
+  var migrateStatusLbl= document.getElementById('adm-migrate-status-lbl');
+  var migrateBar      = document.getElementById('adm-migrate-bar');
+  var migrateLogEl    = document.getElementById('adm-migrate-log');
+  var migrateRunning  = false;
+
+  function migrateLog(msg) {
+    migrateLogEl.value += msg + '\n';
+    migrateLogEl.scrollTop = migrateLogEl.scrollHeight;
+  }
+
+  function needsMigration(d) {
+    if (!d || (d.mediaType !== 'image' && d.mediaType !== 'gif')) return false;
+    var url = d.mediaUrl || '';
+    if (!url) return false;
+    if (url.indexOf('data:') === 0) return true;
+    if (!/^https?:\/\//i.test(url)) return false;
+    try { return new URL(url).hostname !== MIGRATED_HOST; }
+    catch (e) { return false; /* رابط غير صالح - لا يمكن ترحيله، يُتجاهل بدل تعليق العملية */ }
+  }
+
+  function fetchWithTimeout(url, options, ms) {
+    var controller = new AbortController();
+    var timer = setTimeout(function(){ controller.abort(); }, ms || 20000);
+    options = Object.assign({}, options, { signal: controller.signal });
+    return fetch(url, options).finally(function(){ clearTimeout(timer); });
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    var parts = dataUrl.split(',');
+    var meta = parts[0].match(/data:(.*?)(;base64)?$/);
+    var mime = (meta && meta[1]) || 'image/jpeg';
+    var isBase64 = parts[0].indexOf('base64') !== -1;
+    var binary = isBase64 ? atob(parts[1]) : decodeURIComponent(parts[1]);
+    var arr = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
+  function migrateOneQuestion(id, d) {
+    var url = d.mediaUrl || '';
+    var uploadPromise;
+
+    if (url.indexOf('data:') === 0) {
+      var blob;
+      try { blob = dataUrlToBlob(url); }
+      catch (e) { return Promise.reject(new Error('تعذّر تحويل base64: ' + e.message)); }
+      var fd = new FormData();
+      var ext = blob.type === 'image/gif' ? 'gif' : blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
+      fd.append('file', blob, 'migrated.' + ext);
+      uploadPromise = fetchWithTimeout(UPLOAD_WORKER_URL, { method: 'POST', headers: { 'X-Upload-Key': UPLOAD_KEY }, body: fd }, 20000);
+    } else {
+      uploadPromise = fetchWithTimeout(UPLOAD_WORKER_URL, {
+        method: 'POST',
+        headers: { 'X-Upload-Key': UPLOAD_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+      }, 25000);
+    }
+
+    return uploadPromise
+      .then(function(r){ return r.json().then(function(data){ if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status)); return data; }); })
+      .then(function(data){
+        var db = getDb();
+        return db.ref('questions/' + id).update({ mediaUrl: data.url }).then(function(){
+          d.mediaUrl = data.url; /* keep local cache in sync */
+          return data.url;
+        });
+      });
+  }
+
+  function runMigration() {
+    var targets = [];
+    Object.keys(allQuestions).forEach(function(id){
+      if (needsMigration(allQuestions[id])) targets.push(id);
+    });
+
+    if (targets.length === 0) {
+      migrateLog('لا توجد صور تحتاج ترحيل — كل شيء محدَّث بالفعل ✓');
+      migrateStatusLbl.textContent = 'مكتمل';
+      return;
+    }
+
+    migrateRunning = true;
+    migrateStartBtn.disabled = true;
+    migrateCloseBtn.textContent = 'إيقاف/إغلاق';
+    var total = targets.length, done = 0, failed = 0;
+    migrateCountEl.textContent = '0 / ' + total;
+    migrateLog('بدء الترحيل: ' + total + ' صورة تحتاج معالجة...');
+
+    function next(i) {
+      if (i >= targets.length || !migrateRunning) {
+        migrateStatusLbl.textContent = migrateRunning ? 'اكتمل' : 'أُوقف';
+        migrateRunning = false;
+        migrateStartBtn.disabled = false;
+        migrateCloseBtn.textContent = 'إغلاق';
+        migrateLog('انتهى: نجح ' + done + '، فشل ' + failed + ' من أصل ' + total + '.');
+        try { if (typeof renderQuestions === 'function') renderQuestions(); } catch(e){}
+        renderDashCats();
+        try { sessionStorage.setItem(ADM_CACHE_Q, JSON.stringify(allQuestions)); } catch(e){}
+        return;
+      }
+      var id = targets[i];
+      var d = allQuestions[id];
+      migrateStatusLbl.textContent = 'جارٍ معالجة سؤال ' + (i+1) + '...';
+      migrateOneQuestion(id, d)
+        .then(function(newUrl){
+          done++;
+          migrateLog('✓ [' + (i+1) + '/' + total + '] تم ترحيل سؤال (' + id + ') -> ' + newUrl);
+        })
+        .catch(function(err){
+          failed++;
+          migrateLog('✗ [' + (i+1) + '/' + total + '] فشل سؤال (' + id + '): ' + err.message);
+        })
+        .then(function(){
+          migrateCountEl.textContent = (done+failed) + ' / ' + total;
+          migrateBar.style.width = Math.round((done+failed)/total*100) + '%';
+          setTimeout(function(){ next(i+1); }, 300); /* تأخير بسيط لتفادي الضغط على الـ Worker */
+        });
+    }
+    next(0);
+  }
+
+  if (migrateBtn) {
+    migrateBtn.addEventListener('click', function(){
+      migrateIntro.style.display = '';
+      migrateProgress.style.display = 'none';
+      migrateLogEl.value = '';
+      migrateBar.style.width = '0%';
+      migrateStatusLbl.textContent = '';
+      migrateStartBtn.style.display = '';
+      migrateStartBtn.disabled = false;
+      migrateCloseBtn.textContent = 'إغلاق';
+      migrateOverlay.classList.remove('adm-hide');
+    });
+  }
+  if (migrateCloseBtn) {
+    migrateCloseBtn.addEventListener('click', function(){
+      migrateRunning = false;
+      migrateOverlay.classList.add('adm-hide');
+    });
+  }
+  if (migrateStartBtn) {
+    migrateStartBtn.addEventListener('click', function(){
+      migrateIntro.style.display = 'none';
+      migrateProgress.style.display = '';
+      migrateStartBtn.style.display = 'none';
+      runMigration();
+    });
   }
 
   function setUploadStatus(type, msg) {
