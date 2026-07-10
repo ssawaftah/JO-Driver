@@ -51,3 +51,20 @@ Pre-existing, out-of-scope issue noted (not fixed, low-risk): if the Firebase
 `governorates.json` fetch fails, the hardcoded fallback list generates synthetic
 IDs (`gov_0`, `gov_1`, …) that won't match `areas.json`'s real `governorateId`
 values, so area auto-fill silently no-ops in that degraded network state.
+
+## Superseded: governorate/area dropdowns removed entirely
+As of the next iteration, `center-join.html` dropped the governorate/area
+selects and the coverage-radius slider completely (the section above is kept
+for historical context only — `govsMap`/`areasMap`/`GOV_ORDER`/`loadAreas`/
+`findGovByName` etc. no longer exist in the file). The form is now: name → map
+pin → free-text "العنوان" (address) field auto-filled from Nominatim reverse
+geocoding (editable) → "رابط جوجل مابس" auto-filled as a generated
+`google.com/maps/search/?api=1&query=lat,lng` URL (editable, can be replaced
+with the real place link). Payload sends `lat/lng/address/mapsLink` directly —
+no governorate/areas/coverageRadiusKm anymore. `admin.html`'s request-detail
+modal shows `data.address` alongside lat/lng for admins reviewing requests.
+
+**Why:** the user wants distance-based discovery instead of a city/area
+picker; the location a user drops on the map is now the single source of
+truth for both the human-readable address and the map link, removing
+duplicate/inconsistent manual entry.

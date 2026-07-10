@@ -72,11 +72,8 @@
 .jf-wa-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 .jf-wa-btn.btn-success-active { background: #f0fdf4; border-color: #22c55e; color: #16a34a; pointer-events: none; }
 .jf-map { width: 100%; height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 10px; background: #f1f5f9; }
+.jf-map.error { border-color: #ef4444; }
 .jf-map .leaflet-control-attribution { font-size: 9px; }
-.jf-radius-row { display: flex; align-items: center; gap: 12px; font-size: .87rem; color: #64748b; }
-.jf-radius-row label { white-space: nowrap; }
-.jf-radius-row b { color: #1e293b; }
-.jf-radius-row input[type="range"] { flex: 1; accent-color: #2563eb; }
 .jf-geo-status { margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; font-size: .84rem; display: flex; align-items: center; gap: 6px; }
 .jf-geo-status.jf-geo-warn { background: #fffbeb; color: #b45309; }
 
@@ -196,34 +193,40 @@
       <div class="jf-card-body">
 
         <div class="jf-field">
-          <label class="jf-label" for="jfMapsLink">
-            رابط المركز على جوجل مابس <span class="req">*</span>
-          </label>
-          <input class="jf-input" type="url" id="jfMapsLink" placeholder="https://maps.google.com/...">
-          <div class="jf-field-err" id="jfMapsLinkErr">يرجى إدخال رابط جوجل مابس صحيح</div>
-          <div class="jf-hint">انسخ الرابط من تطبيق جوجل مابس → مشاركة → نسخ الرابط</div>
-        </div>
-
-        <div class="jf-field">
-          <label class="jf-label">تحديد موقع المركز والمنطقة التي يخدمها</label>
-          <div id="jfMap" class="jf-map"></div>
-          <div class="jf-radius-row">
-            <label for="jfRadiusSlider">نطاق التغطية: <b id="jfRadiusVal">5</b> كم</label>
-            <input type="range" id="jfRadiusSlider" min="1" max="30" step="1" value="5">
-          </div>
-          <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;margin-top:10px">
-            <i class="ph ph-crosshair"></i> <span id="jfLocateBtnText">تحديد موقعي الحالي</span>
-          </button>
-          <div class="jf-geo-status" id="jfGeoStatus" style="display:none"></div>
-          <div class="jf-hint">اضغط على الخريطة أو استخدم زر "تحديد موقعي" لوضع الدبوس على موقع المركز بدقّة — ستُحدَّد المحافظة والمنطقة تلقائيًا، وتحقّق منهما قبل الإرسال. استخدم الشريط لتحديد نطاق المنطقة التي يخدمها المركز.</div>
-        </div>
-
-        <div class="jf-field">
           <label class="jf-label" for="jfName">
             اسم المركز <span class="req">*</span>
           </label>
           <input class="jf-input" type="text" id="jfName" placeholder="مثال: مركز القيادة الأردني">
           <div class="jf-field-err" id="jfNameErr">يرجى إدخال اسم المركز</div>
+        </div>
+
+        <div class="jf-field">
+          <label class="jf-label">تحديد موقع المركز على الخريطة <span class="req">*</span></label>
+          <div id="jfMap" class="jf-map"></div>
+          <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;margin-top:10px">
+            <i class="ph ph-crosshair"></i> <span id="jfLocateBtnText">تحديد موقعي الحالي</span>
+          </button>
+          <div class="jf-geo-status" id="jfGeoStatus" style="display:none"></div>
+          <div class="jf-field-err" id="jfLocationErr" data-target="jfMap">يرجى تحديد موقع المركز على الخريطة</div>
+          <div class="jf-hint">اضغط على الخريطة أو استخدم زر "تحديد موقعي" لوضع الدبوس على موقع المركز بدقّة — سيتم تعبئة العنوان ورابط جوجل مابس تلقائيًا بالأسفل.</div>
+        </div>
+
+        <div class="jf-field">
+          <label class="jf-label" for="jfAddress">
+            العنوان <span class="req">*</span>
+          </label>
+          <input class="jf-input" type="text" id="jfAddress" placeholder="سيُملأ تلقائيًا بعد تحديد الموقع على الخريطة">
+          <div class="jf-field-err" id="jfAddressErr">يرجى إدخال العنوان</div>
+          <div class="jf-hint">يُعبَّأ تلقائيًا من موقع الدبوس، ويمكنك تعديله للتوضيح أكثر.</div>
+        </div>
+
+        <div class="jf-field">
+          <label class="jf-label" for="jfMapsLink">
+            رابط المركز على جوجل مابس <span class="req">*</span>
+          </label>
+          <input class="jf-input" type="url" id="jfMapsLink" placeholder="سيُملأ تلقائيًا بعد تحديد الموقع على الخريطة" dir="ltr">
+          <div class="jf-field-err" id="jfMapsLinkErr">يرجى إدخال رابط جوجل مابس صحيح</div>
+          <div class="jf-hint">يُعبَّأ تلقائيًا من موقع الدبوس، ويمكنك استبداله برابط صفحة المركز الفعلية على جوجل مابس إن وُجدت.</div>
         </div>
 
         <div class="jf-field">
@@ -240,40 +243,6 @@
             <input class="jf-input" type="tel" id="jfWhatsapp" placeholder="07XXXXXXXX" maxlength="10" dir="ltr" style="text-align:right">
             <button type="button" class="jf-wa-btn" id="jfWaCopy" title="استخدام رقم الهاتف نفسه">
               <i class="ph ph-copy"></i> نفس الهاتف
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- 2. الموقع -->
-    <div class="jf-card">
-      <div class="jf-card-head">
-        <div class="jf-card-head-icon"><i class="ph ph-map-pin"></i></div>
-        <h3>الموقع الجغرافي</h3>
-      </div>
-      <div class="jf-card-body">
-
-        <div class="jf-field">
-          <label class="jf-label" for="jfGov">
-            المحافظة / المدينة <span class="req">*</span>
-          </label>
-          <select class="jf-select" id="jfGov">
-            <option value="">— اختر المحافظة —</option>
-          </select>
-          <div class="jf-field-err" id="jfGovErr">يرجى اختيار المحافظة</div>
-        </div>
-
-        <div class="jf-field" id="jfAreasField" style="display:none">
-          <label class="jf-label" for="jfAreaSelect">المناطق التي يخدمها المركز</label>
-          <select class="jf-select jf-select-multi" id="jfAreaSelect" multiple disabled>
-          </select>
-          <div class="jf-hint" id="jfAreasHint" style="display:none">اضغط على المنطقة لتحديدها، واضغط مرة أخرى لإلغاء التحديد. يمكنك اختيار أكثر من منطقة.</div>
-          <div class="jf-add-area" id="jfAddAreaRow" style="display:none">
-            <input class="jf-input" type="text" id="jfNewArea" placeholder="منطقتك غير موجودة؟ أضفها هنا...">
-            <button type="button" class="jf-add-area-btn" id="jfAddAreaBtn">
-              <i class="ph ph-plus"></i> إضافة
             </button>
           </div>
         </div>
@@ -347,26 +316,14 @@
     { key: 'saturday',  label: 'السبت'    },
   ];
 
-  /* ——— ترتيب المحافظات ——— */
-  var GOV_ORDER = ['عمان','اربد','الزرقاء','البلقاء','المفرق','الكرك','جرش','مادبا','عجلون','العقبة','معان','الطفيلة'];
-
-  /* ——— حالة ——— */
-  var govsMap      = {};   // { key: { id, name } }
-  var areasMap     = {};   // { areaKey: { id, name } }
-  var currentGovId = null;
-
   /* ——— مراجع DOM ——— */
   var elForm       = document.getElementById('jfForm');
   var elSuccess    = document.getElementById('jfSuccess');
-  var elGov        = document.getElementById('jfGov');
-  var elAreasField = document.getElementById('jfAreasField');
-  var elAreaSelect = document.getElementById('jfAreaSelect');
-  var elAddAreaRow = document.getElementById('jfAddAreaRow');
-  var elNewArea    = document.getElementById('jfNewArea');
-  var elAddAreaBtn = document.getElementById('jfAddAreaBtn');
   var elWaCopy     = document.getElementById('jfWaCopy');
   var elSchedule   = document.getElementById('jfSchedule');
   var elSubmitBtn  = document.getElementById('jfSubmitBtn');
+  var elAddress    = document.getElementById('jfAddress');
+  var elMapsLink   = document.getElementById('jfMapsLink');
 
   /* ══════════════════════════════════════
      1. بناء قائمة الساعات
@@ -436,130 +393,25 @@
   }
 
   /* ══════════════════════════════════════
-     3. تحميل المحافظات
-  ══════════════════════════════════════ */
-  var govsLoaded = false;
-  var pendingGeocode = null; /* {lat,lng} إن حاول المستخدم تحديد الموقع قبل اكتمال تحميل المحافظات */
-
-  function loadGovernorates() {
-    fetch(FB_BASE + '/governorates.json')
-      .then(function(r){ return r.ok ? r.json() : {}; })
-      .then(function(raw) {
-        raw = raw || {};
-        var list = [];
-        Object.keys(raw).forEach(function(key) {
-          var val = raw[key];
-          var name = (typeof val === 'object' && val !== null) ? (val.name || val.nameAr || key) : String(val);
-          govsMap[key] = { id: key, name: name };
-          list.push({ id: key, name: name });
-        });
-        list.sort(function(a, b) {
-          var ai = GOV_ORDER.indexOf(a.name);
-          var bi = GOV_ORDER.indexOf(b.name);
-          if (ai === -1) ai = 999;
-          if (bi === -1) bi = 999;
-          return ai - bi;
-        });
-        list.forEach(function(gov) {
-          var opt = document.createElement('option');
-          opt.value = gov.id;
-          opt.textContent = gov.name;
-          elGov.appendChild(opt);
-        });
-      })
-      .catch(function() {
-        GOV_ORDER.forEach(function(name, i) {
-          var key = 'gov_' + i;
-          govsMap[key] = { id: key, name: name };
-          var opt = document.createElement('option');
-          opt.value = key;
-          opt.textContent = name;
-          elGov.appendChild(opt);
-        });
-      })
-      .then(function () {
-        govsLoaded = true;
-        if (pendingGeocode) {
-          var p = pendingGeocode; pendingGeocode = null;
-          reverseGeocodeAndFill(p.lat, p.lng);
-        }
-      });
-  }
-
-  /* ══════════════════════════════════════
-     4. تحميل المناطق
-  ══════════════════════════════════════ */
-  var loadAreasSeq = 0;
-  function loadAreas(govId, onDone) {
-    currentGovId = govId;
-    areasMap = {};
-    elAreaSelect.innerHTML = '<option value="">— جارٍ تحميل المناطق... —</option>';
-    elAreaSelect.disabled = true;
-    elAddAreaRow.style.display = 'none';
-    elAreasField.style.display = 'block';
-
-    var mySeq = ++loadAreasSeq;
-    fetch(FB_BASE + '/areas.json')
-      .then(function(r){ return r.ok ? r.json() : {}; })
-      .then(function(raw) {
-        if (mySeq !== loadAreasSeq) return; /* استُبدل هذا الطلب بطلب أحدث (تغيّرت المحافظة/الموقع) */
-        elAreaSelect.innerHTML = '<option value="">— اختر المنطقة —</option>';
-        raw = raw || {};
-        Object.keys(raw).forEach(function(key) {
-          var val = raw[key];
-          if (typeof val !== 'object' || val === null) return;
-          if (val.governorateId !== govId) return;
-          var name = val.name || val.nameAr || key;
-          areasMap[key] = { id: key, name: name };
-          addAreaOption(key, name);
-        });
-        elAreaSelect.disabled = false;
-        elAddAreaRow.style.display = 'flex';
-        document.getElementById('jfAreasHint').style.display = 'block';
-        if (onDone) onDone();
-      })
-      .catch(function() {
-        if (mySeq !== loadAreasSeq) return;
-        elAreaSelect.disabled = false;
-        elAddAreaRow.style.display = 'flex';
-        document.getElementById('jfAreasHint').style.display = 'block';
-        if (onDone) onDone();
-      });
-  }
-
-  /* ══════════════════════════════════════
-     4.1 تحديد المحافظة/المنطقة تلقائيًا من الإحداثيات
+     3. تحديد العنوان ورابط جوجل مابس تلقائيًا من الإحداثيات
   ══════════════════════════════════════ */
   var elGeoStatus = document.getElementById('jfGeoStatus');
 
-  function normalizeAr(s) {
-    return String(s || '')
-      .replace(/محافظة|لواء|قصبة|قضاء/g, '')
-      .replace(/[\u064B-\u065F\u0670]/g, '') /* تشكيل */
-      .replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
+  function buildMapsLink(lat, lng) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
   }
 
-  /* مطابقة حتمية: تطابق تام أولًا، ثم أطول تطابق جزئي (احتواء) كحلّ بديل */
-  function bestMatch(name, map) {
-    var n = normalizeAr(name);
-    if (!n) return null;
-    var exact = null, bestPartial = null, bestPartialLen = -1;
-    Object.keys(map).forEach(function (key) {
-      var mn = normalizeAr(map[key].name);
-      if (!mn) return;
-      if (mn === n) { exact = key; return; }
-      if (!exact && (n.indexOf(mn) !== -1 || mn.indexOf(n) !== -1) && mn.length > bestPartialLen) {
-        bestPartial = key; bestPartialLen = mn.length;
-      }
-    });
-    return exact || bestPartial;
+  function buildAddressFromNominatim(addr, fallback) {
+    if (!addr) return fallback || '';
+    var area = addr.suburb || addr.city_district || addr.neighbourhood || addr.town || addr.village || '';
+    var city = addr.city || addr.county || '';
+    var state = addr.state || addr.region || '';
+    var parts = [];
+    if (area && area !== city) parts.push(area);
+    if (city) parts.push(city);
+    if (state && state !== city) parts.push(state);
+    return parts.length ? parts.join('، ') : (fallback || '');
   }
-
-  function findGovByName(name) { return bestMatch(name, govsMap); }
-  function findAreaByName(name) { return bestMatch(name, areasMap); }
 
   function showGeoStatus(text, warn) {
     if (!elGeoStatus) return;
@@ -574,74 +426,31 @@
 
   var geocodeSeq = 0;
   function reverseGeocodeAndFill(lat, lng) {
-    if (!govsLoaded) { pendingGeocode = { lat: lat, lng: lng }; showGeoStatus('جارٍ تحميل قائمة المحافظات...', false); return; }
+    /* رابط جوجل مابس يُبنى فورًا من الإحداثيات، لا يحتاج انتظار الشبكة */
+    elMapsLink.value = buildMapsLink(lat, lng);
+    clearErr('jfMapsLink', 'jfMapsLinkErr');
+
     var mySeq = ++geocodeSeq;
-    showGeoStatus('جارٍ تحديد المحافظة والمنطقة تلقائيًا...', false);
-    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=ar&zoom=14')
+    showGeoStatus('جارٍ تحديد العنوان تلقائيًا...', false);
+    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=ar&zoom=16')
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (mySeq !== geocodeSeq) return; /* تحرّك الدبوس مجددًا قبل وصول هذه النتيجة — تجاهلها */
         var addr = data && data.address ? data.address : null;
-        if (!addr) { showGeoStatus('تعذّر تحديد المحافظة تلقائيًا، يرجى اختيارها يدويًا.', true); return; }
-        var stateName = addr.state || addr.region || '';
-        var areaName = addr.suburb || addr.city_district || addr.town || addr.city || addr.village || addr.county || '';
-        var govKey = findGovByName(stateName);
-        if (!govKey) {
-          showGeoStatus('لم نتمكن من مطابقة المحافظة (' + (stateName || 'غير معروفة') + ') تلقائيًا، يرجى اختيارها يدويًا.', true);
-          return;
+        var address = buildAddressFromNominatim(addr, data && data.display_name);
+        if (address) {
+          elAddress.value = address;
+          clearErr('jfAddress', 'jfAddressErr');
+          showGeoStatus('تم تحديد العنوان تلقائيًا — يرجى التأكد منه.', false);
+        } else {
+          showGeoStatus('تعذّر تحديد العنوان تلقائيًا، يرجى إدخاله يدويًا.', true);
         }
-        elGov.value = govKey;
-        clearErr('jfGov', 'jfGovErr');
-        loadAreas(govKey, function () {
-          if (mySeq !== geocodeSeq) return; /* طلب أحدث تولّى الأمر */
-          var areaKey = findAreaByName(areaName);
-          if (areaKey) {
-            Array.prototype.forEach.call(elAreaSelect.options, function (opt) { opt.selected = (opt.value === areaKey); });
-            showGeoStatus('تم تحديد: ' + govsMap[govKey].name + (areasMap[areaKey] ? ' - ' + areasMap[areaKey].name : '') + ' — يرجى التأكد.', false);
-          } else {
-            showGeoStatus('تم تحديد المحافظة: ' + govsMap[govKey].name + '. لم نجد منطقة "' + (areaName || '') + '" في القائمة، يرجى اختيار المنطقة يدويًا أو إضافتها.', true);
-          }
-        });
       })
       .catch(function () {
         if (mySeq !== geocodeSeq) return;
-        showGeoStatus('تعذّر تحديد المحافظة تلقائيًا (تحقق من الاتصال)، يرجى اختيارها يدويًا.', true);
+        showGeoStatus('تعذّر تحديد العنوان تلقائيًا (تحقق من الاتصال)، يرجى إدخاله يدويًا.', true);
       });
   }
-
-  function addAreaOption(key, name) {
-    var opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = name;
-    elAreaSelect.appendChild(opt);
-  }
-
-  /* ——— إضافة منطقة جديدة ——— */
-  elAddAreaBtn.addEventListener('click', function () {
-    var name = elNewArea.value.trim();
-    if (!name) return;
-    if (!currentGovId) return;
-
-    elAddAreaBtn.disabled = true;
-    elAddAreaBtn.innerHTML = '<i class="ph ph-circle-notch"></i>';
-
-    var db = getDb();
-    if (!db) { alert('جارٍ التحميل، حاول مرة أخرى.'); elAddAreaBtn.disabled = false; elAddAreaBtn.innerHTML = '<i class="ph ph-plus"></i> إضافة'; return; }
-    var newRef = db.ref('areas').push();
-    newRef.set({ name: name, governorateId: currentGovId }).then(function () {
-      var key = newRef.key;
-      areasMap[key] = { id: key, name: name };
-      addAreaOption(key, name);
-      elAreaSelect.value = key;
-      elNewArea.value = '';
-      elAddAreaBtn.disabled = false;
-      elAddAreaBtn.innerHTML = '<i class="ph ph-plus"></i> إضافة';
-    }).catch(function () {
-      elAddAreaBtn.disabled = false;
-      elAddAreaBtn.innerHTML = '<i class="ph ph-plus"></i> إضافة';
-      alert('تعذّر إضافة المنطقة، حاول مرة أخرى.');
-    });
-  });
 
   /* ——— نسخ رقم الهاتف للواتساب ——— */
   elWaCopy.addEventListener('click', function () {
@@ -651,19 +460,6 @@
     } else {
       document.getElementById('jfPhone').focus();
     }
-  });
-
-  /* ——— اختيار المحافظة يدويًا: يُلغي أي تحديد تلقائي قيد التنفيذ ——— */
-  elGov.addEventListener('change', function () {
-    clearErr('jfGov', 'jfGovErr');
-    geocodeSeq++; /* إبطال أي نتيجة تحديد موقع تلقائي قديمة كي لا تتجاوز اختيار المستخدم اليدوي */
-    pendingGeocode = null;
-    var govId = this.value;
-    if (!govId) {
-      elAreasField.style.display = 'none';
-      return;
-    }
-    loadAreas(govId);
   });
 
   /* ══════════════════════════════════════
@@ -686,44 +482,36 @@
     var el = document.getElementById(inputId);
     if (el) el.addEventListener('input', function () { clearErr(inputId, errId); });
   }
-  ['jfMapsLink','jfName','jfPhone'].forEach(function (id) {
+  ['jfMapsLink','jfName','jfPhone','jfAddress'].forEach(function (id) {
     addLiveValidation(id, id + 'Err');
   });
 
   /* ══════════════════════════════════════
-     5.1 تحديد الموقع الجغرافي ونطاق التغطية (lat/lng/radius)
+     5.1 تحديد موقع المركز على الخريطة (lat/lng)
   ══════════════════════════════════════ */
   var jfCoords = null;
-  var jfRadiusKm = 5;
-  var jfMap = null, jfMarker = null, jfCircle = null;
+  var jfMap = null, jfMarker = null;
   var DEFAULT_CENTER = [31.9539, 35.9106]; /* عمّان — مركز افتراضي للخريطة قبل تحديد الموقع */
 
   var elLocateBtn      = document.getElementById('jfLocateBtn');
   var elLocateBtnText  = document.getElementById('jfLocateBtnText');
-  var elRadiusSlider   = document.getElementById('jfRadiusSlider');
-  var elRadiusVal      = document.getElementById('jfRadiusVal');
   var elMapContainer   = document.getElementById('jfMap');
 
-  function placePin(lat, lng, skipGeocode) {
+  function placePin(lat, lng) {
     if (!jfMap) { jfCoords = { lat: lat, lng: lng }; return; }
     jfCoords = { lat: lat, lng: lng };
+    clearErr('jfMap', 'jfLocationErr');
     if (!jfMarker) {
       jfMarker = L.marker([lat, lng], { draggable: true }).addTo(jfMap);
       jfMarker.on('dragend', function () {
         var p = jfMarker.getLatLng();
         jfCoords = { lat: p.lat, lng: p.lng };
-        if (jfCircle) jfCircle.setLatLng(p);
         reverseGeocodeAndFill(p.lat, p.lng);
       });
-      jfCircle = L.circle([lat, lng], {
-        radius: jfRadiusKm * 1000,
-        color: '#2563eb', weight: 2, fillColor: '#2563eb', fillOpacity: .12
-      }).addTo(jfMap);
     } else {
       jfMarker.setLatLng([lat, lng]);
-      jfCircle.setLatLng([lat, lng]);
     }
-    if (!skipGeocode) reverseGeocodeAndFill(lat, lng);
+    reverseGeocodeAndFill(lat, lng);
   }
 
   if (elMapContainer && window.L) {
@@ -734,14 +522,6 @@
     }).addTo(jfMap);
     jfMap.on('click', function (e) {
       placePin(e.latlng.lat, e.latlng.lng);
-    });
-  }
-
-  if (elRadiusSlider) {
-    elRadiusSlider.addEventListener('input', function () {
-      jfRadiusKm = parseInt(elRadiusSlider.value, 10) || 5;
-      elRadiusVal.textContent = jfRadiusKm;
-      if (jfCircle) jfCircle.setRadius(jfRadiusKm * 1000);
     });
   }
 
@@ -774,20 +554,23 @@
   function validate() {
     var ok = true;
 
-    var mapsLink = document.getElementById('jfMapsLink').value.trim();
+    var name = document.getElementById('jfName').value.trim();
+    if (!name) { showErr('jfName', 'jfNameErr'); ok = false; }
+
+    if (!jfCoords) { showErr('jfMap', 'jfLocationErr'); ok = false; }
+
+    var address = elAddress.value.trim();
+    if (!address) { showErr('jfAddress', 'jfAddressErr'); ok = false; }
+
+    var mapsLink = elMapsLink.value.trim();
     if (!mapsLink || !mapsLink.startsWith('http')) {
       showErr('jfMapsLink', 'jfMapsLinkErr'); ok = false;
     }
-
-    var name = document.getElementById('jfName').value.trim();
-    if (!name) { showErr('jfName', 'jfNameErr'); ok = false; }
 
     var phone = document.getElementById('jfPhone').value.trim();
     if (!phone || !/^07\d{8}$/.test(phone)) {
       showErr('jfPhone', 'jfPhoneErr'); ok = false;
     }
-
-    if (!elGov.value) { showErr('jfGov', 'jfGovErr'); ok = false; }
 
     return ok;
   }
@@ -818,7 +601,7 @@
     e.preventDefault();
     if (!validate()) {
       // scroll to first error
-      var firstErr = elForm.querySelector('.jf-input.error, .jf-select.error');
+      var firstErr = elForm.querySelector('.jf-input.error, .jf-select.error, .jf-map.error');
       if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -826,19 +609,14 @@
     elSubmitBtn.disabled = true;
     elSubmitBtn.innerHTML = '<i class="ph ph-circle-notch"></i> <span>جارٍ الإرسال...</span>';
 
-    var govId   = elGov.value;
-    var govName = govsMap[govId] ? govsMap[govId].name : govId;
-
     var payload = {
-      mapsLink:    document.getElementById('jfMapsLink').value.trim(),
+      mapsLink:    elMapsLink.value.trim(),
       lat:         jfCoords ? jfCoords.lat : null,
       lng:         jfCoords ? jfCoords.lng : null,
-      coverageRadiusKm: jfCoords ? jfRadiusKm : null,
+      address:     elAddress.value.trim(),
       centerName:  document.getElementById('jfName').value.trim(),
       phone:       document.getElementById('jfPhone').value.trim(),
       whatsapp:    document.getElementById('jfWhatsapp').value.trim() || null,
-      governorate: { id: govId, name: govName },
-      areas:       (function() { var res = {}; Array.prototype.forEach.call(elAreaSelect.selectedOptions, function(opt) { res[opt.value] = areasMap[opt.value] ? areasMap[opt.value].name : opt.text; }); return res; }()),
       googleRating: parseFloat(document.getElementById('jfRating').value) || null,
       reviewCount:  parseInt(document.getElementById('jfReviewCount').value, 10) || null,
       schedule:    readSchedule(),
@@ -862,7 +640,6 @@
 
   /* ——— تهيئة ——— */
   buildSchedule();
-  loadGovernorates();
 
 }());
 </script>

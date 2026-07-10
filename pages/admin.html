@@ -3101,15 +3101,13 @@
     html += rdField('رقم الهاتف', '<span style="direction:ltr;display:inline-block">'+escHtml(data.phone||'—')+'</span>', false);
     if (data.whatsapp) html += rdField('واتساب', '<span style="direction:ltr;display:inline-block">'+escHtml(data.whatsapp)+'</span>', false);
     if (data.governorate&&data.governorate.name) html += rdField('المحافظة', escHtml(data.governorate.name), false);
+    if (data.address) html += rdField('العنوان', escHtml(data.address), true);
     if (data.mapsLink) {
       var safeLink=/^https?:\/\//i.test(String(data.mapsLink).trim())?data.mapsLink.trim():null;
       html += rdField('جوجل مابس', safeLink?'<a href="'+escHtml(safeLink)+'" target="_blank" rel="noopener noreferrer"><i class="ph-bold ph-map-pin"></i> فتح الخريطة</a>':'<span style="color:var(--txt3)">رابط غير صالح</span>', true);
     }
     if (data.lat!=null && data.lng!=null) {
       html += rdField('الإحداثيات (لصقها بنموذج إضافة المركز)', '<span style="direction:ltr;display:inline-block;user-select:all">'+escHtml(String(data.lat))+', '+escHtml(String(data.lng))+'</span>', true);
-    }
-    if (data.coverageRadiusKm!=null) {
-      html += rdField('نطاق التغطية المطلوب', escHtml(String(data.coverageRadiusKm))+' كم', true);
     }
     html += '</div></div>';
     if (data.areas && Object.keys(data.areas).length > 0) {
