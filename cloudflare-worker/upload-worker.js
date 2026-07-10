@@ -65,43 +65,73 @@ export default {
       });
     }
 
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+    const base = (env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+    const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders };
+
+    function keyFor(mimeType) {
+      const ext = (mimeType.split('/')[1] || 'bin').replace('jpeg', 'jpg');
+      return `questions/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+    }
+
     try {
-      const formData = await request.formData();
-      const file = formData.get('file');
-      if (!file || typeof file === 'string') {
-        return new Response(JSON.stringify({ error: 'No file provided' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        });
+      const contentType = request.headers.get('Content-Type') || '';
+
+      /* ── Mode 1: direct file upload (multipart/form-data) ── */
+      if (contentType.includes('multipart/form-data')) {
+        const formData = await request.formData();
+        const file = formData.get('file');
+        if (!file || typeof file === 'string') {
+          return new Response(JSON.stringify({ error: 'No file provided' }), { status: 400, headers: jsonHeaders });
+        }
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          return new Response(JSON.stringify({ error: 'Unsupported file type' }), { status: 400, headers: jsonHeaders });
+        }
+        if (file.size > MAX_BYTES) {
+          return new Response(JSON.stringify({ error: 'File too large (max 5MB)' }), { status: 400, headers: jsonHeaders });
+        }
+
+        const key = keyFor(file.type);
+        await env.BUCKET.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+        return new Response(JSON.stringify({ url: `${base}/${key}` }), { status: 200, headers: jsonHeaders });
       }
 
-      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      if (!allowed.includes(file.type)) {
-        return new Response(JSON.stringify({ error: 'Unsupported file type' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        });
+      /* ── Mode 2: migrate an existing external URL (server-side fetch, avoids browser CORS) ── */
+      if (contentType.includes('application/json')) {
+        const body = await request.json();
+        const sourceUrl = body && body.url;
+        if (!sourceUrl || typeof sourceUrl !== 'string' || !/^https?:\/\//i.test(sourceUrl)) {
+          return new Response(JSON.stringify({ error: 'Invalid or missing url' }), { status: 400, headers: jsonHeaders });
+        }
+
+        let resp;
+        try {
+          resp = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DriverjoImageMigrator/1.0)' } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Could not reach source URL: ' + e.message }), { status: 502, headers: jsonHeaders });
+        }
+        if (!resp.ok) {
+          return new Response(JSON.stringify({ error: `Source URL returned HTTP ${resp.status}` }), { status: 502, headers: jsonHeaders });
+        }
+        let mimeType = (resp.headers.get('Content-Type') || '').split(';')[0].trim();
+        if (!ALLOWED_TYPES.includes(mimeType)) {
+          return new Response(JSON.stringify({ error: 'Source is not a supported image type (got: ' + mimeType + ')' }), { status: 400, headers: jsonHeaders });
+        }
+
+        const buf = await resp.arrayBuffer();
+        if (buf.byteLength > MAX_BYTES) {
+          return new Response(JSON.stringify({ error: 'Source image too large (max 5MB)' }), { status: 400, headers: jsonHeaders });
+        }
+
+        const key = keyFor(mimeType);
+        await env.BUCKET.put(key, buf, { httpMetadata: { contentType: mimeType } });
+        return new Response(JSON.stringify({ url: `${base}/${key}` }), { status: 200, headers: jsonHeaders });
       }
 
-      const ext = (file.type.split('/')[1] || 'bin').replace('jpeg', 'jpg');
-      const key = `questions/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
-
-      await env.BUCKET.put(key, await file.arrayBuffer(), {
-        httpMetadata: { contentType: file.type },
-      });
-
-      const base = (env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
-      const url = `${base}/${key}`;
-
-      return new Response(JSON.stringify({ url }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return new Response(JSON.stringify({ error: 'Unsupported Content-Type' }), { status: 400, headers: jsonHeaders });
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'Upload failed: ' + err.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return new Response(JSON.stringify({ error: 'Upload failed: ' + err.message }), { status: 500, headers: jsonHeaders });
     }
   },
 };
