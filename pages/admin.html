@@ -1542,6 +1542,7 @@
               <label class="adm-label" for="adm-cf-image">رابط الصورة</label>
               <input class="adm-input" type="url" id="adm-cf-image" placeholder="https://…" style="direction:ltr">
               <div class="adm-hint"><i class="ph-bold ph-info"></i> الصق رابطاً مباشراً لصورة المركز</div>
+              <img id="adm-cf-image-preview" alt="معاينة الصورة" style="display:none;margin-top:8px;max-width:220px;max-height:140px;border-radius:10px;border:1.5px solid var(--bdr);object-fit:cover">
             </div>
           </div>
 
@@ -1581,20 +1582,6 @@
           </div>
         </form>
       </div>
-    </div>
-  </div>
-
-  <!-- ════ REQUEST DETAIL MODAL ════════════════════════ -->
-  <div id="adm-req-modal" class="adm-overlay adm-hide">
-    <div class="adm-modal adm-req-detail-wrap">
-      <div class="adm-modal-head">
-        <div class="adm-modal-title-wrap">
-          <div class="adm-modal-title" id="adm-req-modal-title">تفاصيل الطلب</div>
-          <div class="adm-modal-sub"   id="adm-req-modal-sub"></div>
-        </div>
-        <button class="adm-modal-close" id="adm-req-modal-close">&#215;</button>
-      </div>
-      <div class="adm-modal-body" id="adm-req-modal-body"></div>
     </div>
   </div>
 
@@ -2675,6 +2662,7 @@
   var cfMapSearchBtn = document.getElementById('adm-cf-mapsearch-btn');
   var cfMapSearchRes = document.getElementById('adm-cf-mapsearch-results');
   var cfImageUrl     = document.getElementById('adm-cf-image');
+  var cfImagePreview = document.getElementById('adm-cf-image-preview');
   var cfRating       = document.getElementById('adm-cf-rating');
   var cfRcount       = document.getElementById('adm-cf-rcount');
   var cfScheduleEl   = document.getElementById('adm-cf-schedule');
@@ -2683,8 +2671,9 @@
   var ctrFormSave    = document.getElementById('adm-ctr-form-save');
   var ctrFormSaveLbl = document.getElementById('adm-ctr-form-save-lbl');
 
-  var ctrFilter    = 'all';
-  var editingCtrId = null;
+  var ctrFilter      = 'all';
+  var editingCtrId   = null;
+  var reviewingReqId = null;
   var CTR_DAYS     = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 
   /* ── خريطة نموذج المركز (Google Maps) ── */
@@ -3040,6 +3029,14 @@
     delModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
   }
 
+  function updateCfImagePreview() {
+    var url = cfImageUrl.value.trim();
+    if (url) { cfImagePreview.src=url; cfImagePreview.style.display='block'; }
+    else { cfImagePreview.src=''; cfImagePreview.style.display='none'; }
+  }
+  cfImagePreview.addEventListener('error', function(){ cfImagePreview.style.display='none'; });
+  cfImageUrl.addEventListener('input', updateCfImagePreview);
+
   cfWaCopy.addEventListener('click', function(){ var ph=cfPhone.value.trim(); if (ph) cfWhatsapp.value=ph; else cfPhone.focus(); });
 
   ctrAddBtn.addEventListener('click', openAddCenterForm);
@@ -3048,7 +3045,7 @@
     editingCtrId=null; ctrFormTitle.textContent='إضافة مركز جديد'; ctrFormSub.textContent='أكمل البيانات ثم احفظ'; ctrFormSaveLbl.textContent='حفظ المركز';
     cfName.value=''; cfPhone.value=''; cfWhatsapp.value=''; cfMaplink.value=''; cfLat.value=''; cfLng.value='';
     cfAddress.value=''; cfMapSearch.value=''; cfMapSearchRes.style.display='none';
-    cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value='';
+    cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value=''; updateCfImagePreview();
     admCtrCoords=null; setCtrFormMsg('',''); buildCtrScheduleUI(null);
     ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
     setTimeout(function(){
@@ -3060,7 +3057,7 @@
     var data=allCenters[id]; if (!data) return;
     editingCtrId=id; ctrFormTitle.textContent='تعديل المركز'; ctrFormSub.textContent='عدّل ما تريد ثم احفظ'; ctrFormSaveLbl.textContent='حفظ التعديلات';
     cfName.value=data.name||''; cfPhone.value=data.phone||''; cfWhatsapp.value=data.whatsapp||'';
-    cfMaplink.value=data.mapLink||''; cfImageUrl.value=data.imageUrl||'';
+    cfMaplink.value=data.mapLink||''; cfImageUrl.value=data.imageUrl||''; updateCfImagePreview();
     cfRating.value=data.rating!=null?data.rating:''; cfRcount.value=data.reviewCount!=null?data.reviewCount:'';
     cfDesc.value=data.description||''; setCtrFormMsg('',''); buildCtrScheduleUI(data.schedule||null);
     cfAddress.value=data.address||''; cfMapSearch.value=''; cfMapSearchRes.style.display='none';
@@ -3078,7 +3075,7 @@
     }, 120);
   }
 
-  function closeCtrFormModal() { ctrFormModal.classList.add('adm-hide'); document.body.style.overflow=''; editingCtrId=null; }
+  function closeCtrFormModal() { ctrFormModal.classList.add('adm-hide'); document.body.style.overflow=''; editingCtrId=null; reviewingReqId=null; }
   ctrFormClose.addEventListener('click', closeCtrFormModal);
   ctrFormCancel.addEventListener('click', closeCtrFormModal);
   ctrFormModal.addEventListener('click', function(e){ if (e.target===ctrFormModal) closeCtrFormModal(); });
@@ -3096,22 +3093,42 @@
     var wa=cfWhatsapp.value.trim(), imgUrl=cfImageUrl.value.trim(), rat=parseFloat(cfRating.value), rcnt=parseInt(cfRcount.value,10), desc=cfDesc.value.trim();
     if (wa) payload.whatsapp=wa; if (imgUrl) payload.imageUrl=imgUrl;
     if (!isNaN(rat)) payload.rating=rat; if (!isNaN(rcnt)) payload.reviewCount=rcnt; if (desc) payload.description=desc;
-    ctrFormSave.disabled=true; ctrFormSaveLbl.textContent='جارٍ الحفظ…'; setCtrFormMsg('','');
+    var busyLbl = reviewingReqId ? 'جارٍ النشر…' : 'جارٍ الحفظ…';
+    var idleLbl = reviewingReqId ? 'تمت المراجعة ونشر' : (editingCtrId?'حفظ التعديلات':'حفظ المركز');
+    ctrFormSave.disabled=true; ctrFormSaveLbl.textContent=busyLbl; setCtrFormMsg('','');
     var d=getDb();
-    if (!d) { setCtrFormMsg('تعذّر الاتصال.','err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=editingCtrId?'حفظ التعديلات':'حفظ المركز'; return; }
-    var promise;
+    if (!d) { setCtrFormMsg('تعذّر الاتصال.','err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl; return; }
+    var promise, newCenterId=null, reqIdBeingReviewed=reviewingReqId;
     if (editingCtrId) {
       promise=d.ref('centers/'+editingCtrId).update(payload).then(function(){ Object.assign(allCenters[editingCtrId], payload); });
+    } else if (reqIdBeingReviewed) {
+      var maxId1=Object.values(allCenters).reduce(function(m,c){ return Math.max(m,c.publicId||0); },0);
+      payload.publicId=maxId1+1; payload.publishedAt=new Date().toISOString();
+      var newRef=d.ref('centers').push(); newCenterId=newRef.key;
+      var multiUpdate={};
+      multiUpdate['centers/'+newCenterId]=payload;
+      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/status']='approved';
+      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/reviewedAt']=new Date().toISOString();
+      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/publishedCenterId']=newCenterId;
+      /* كتابة واحدة متعددة المسارات: إما ينجح نشر المركز وأرشفة الطلب معاً أو يفشلان معاً */
+      promise=d.ref().update(multiUpdate).then(function(){
+        allCenters[newCenterId]=Object.assign({},payload);
+        delete allRequests[reqIdBeingReviewed];
+        var pending=Object.keys(allRequests).length;
+        setStatEl('adm-stat-reqs', pending);
+        var badge=document.getElementById('adm-sb-req-badge');
+        if (badge) { badge.textContent=pending; badge.classList.toggle('show',pending>0); }
+      });
     } else {
       var maxId=Object.values(allCenters).reduce(function(m,c){ return Math.max(m,c.publicId||0); },0);
       payload.publicId=maxId+1; payload.publishedAt=new Date().toISOString();
-      promise=d.ref('centers').push(payload).then(function(ref){ allCenters[ref.key]=Object.assign({},payload); });
+      promise=d.ref('centers').push(payload).then(function(ref){ newCenterId=ref.key; allCenters[ref.key]=Object.assign({},payload); });
     }
     promise.then(function(){
-      setCtrFormMsg(editingCtrId?'تم حفظ التعديلات ✓':'تم إضافة المركز ✓','ok');
-      ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=editingCtrId?'حفظ التعديلات':'حفظ المركز';
-      updateCtrDashCount(); setTimeout(function(){ closeCtrFormModal(); renderCenters(); }, 900);
-    }).catch(function(e){ setCtrFormMsg('خطأ: '+(e.message||''),'err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=editingCtrId?'حفظ التعديلات':'حفظ المركز'; });
+      setCtrFormMsg(reqIdBeingReviewed?'تم نشر المركز ✓':(editingCtrId?'تم حفظ التعديلات ✓':'تم إضافة المركز ✓'),'ok');
+      ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl;
+      updateCtrDashCount(); setTimeout(function(){ closeCtrFormModal(); renderCenters(); if (reqIdBeingReviewed) renderRequests(); }, 900);
+    }).catch(function(e){ setCtrFormMsg('خطأ: '+(e.message||''),'err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl; });
   });
 
   function setCtrFormMsg(text,type){ ctrFormMsg.className='adm-form-msg'+(type?' '+type:''); ctrFormMsg.textContent=text; }
@@ -3123,16 +3140,7 @@
   var reqSpinner   = document.getElementById('adm-req-spinner');
   var reqListEl    = document.getElementById('adm-req-list');
   var reqEmptyEl   = document.getElementById('adm-req-empty');
-  var reqModal     = document.getElementById('adm-req-modal');
-  var reqModalTitle= document.getElementById('adm-req-modal-title');
-  var reqModalSub  = document.getElementById('adm-req-modal-sub');
-  var reqModalBody = document.getElementById('adm-req-modal-body');
-  var reqModalClose= document.getElementById('adm-req-modal-close');
   var reqSearch    = document.getElementById('adm-req-search');
-  var openRequestId= null;
-
-  var DAYS_AR = { sunday:'الأحد', monday:'الاثنين', tuesday:'الثلاثاء', wednesday:'الأربعاء', thursday:'الخميس', friday:'الجمعة', saturday:'السبت' };
-  var DAYS_ORDER = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
   function loadPendingRequests() {
     allRequests = {}; reqSpinner.style.display='flex'; reqListEl.style.display='none'; reqEmptyEl.style.display='none';
@@ -3188,75 +3196,44 @@
         '</div>' +
       '</div>' +
       '<button class="adm-req-view-btn"><i class="ph-bold ph-eye"></i> عرض التفاصيل</button>';
-    card.querySelector('.adm-req-view-btn').addEventListener('click', function(){ openRequestDetail(id, data); });
+    card.querySelector('.adm-req-view-btn').addEventListener('click', function(){ openReviewCenterForm(id, data); });
     return card;
   }
 
-  function openRequestDetail(id, data) {
-    openRequestId=id;
-    reqModalTitle.textContent = data.centerName||'مركز بدون اسم';
-    reqModalSub.textContent   = (data.governorate&&data.governorate.name)?data.governorate.name:'';
-    var html='';
-    html += '<div class="adm-rdsec"><div class="adm-rdsec-title"><i class="ph-bold ph-buildings"></i> بيانات المركز</div><div class="adm-rd-grid">';
-    html += rdField('اسم المركز', escHtml(data.centerName||'—'), false);
-    html += rdField('رقم الهاتف', '<span style="direction:ltr;display:inline-block">'+escHtml(data.phone||'—')+'</span>', false);
-    if (data.whatsapp) html += rdField('واتساب', '<span style="direction:ltr;display:inline-block">'+escHtml(data.whatsapp)+'</span>', false);
-    if (data.governorate&&data.governorate.name) html += rdField('المحافظة', escHtml(data.governorate.name), false);
-    if (data.address) html += rdField('العنوان', escHtml(data.address), true);
-    if (data.mapsLink) {
-      var safeLink=/^https?:\/\//i.test(String(data.mapsLink).trim())?data.mapsLink.trim():null;
-      html += rdField('جوجل مابس', safeLink?'<a href="'+escHtml(safeLink)+'" target="_blank" rel="noopener noreferrer"><i class="ph-bold ph-map-pin"></i> فتح الخريطة</a>':'<span style="color:var(--txt3)">رابط غير صالح</span>', true);
-    }
-    if (data.lat!=null && data.lng!=null) {
-      html += rdField('الإحداثيات (لصقها بنموذج إضافة المركز)', '<span style="direction:ltr;display:inline-block;user-select:all">'+escHtml(String(data.lat))+', '+escHtml(String(data.lng))+'</span>', true);
-    }
-    html += '</div></div>';
-    if (data.areas && Object.keys(data.areas).length > 0) {
-      var areaNames=Object.values(data.areas);
-      html += '<div class="adm-rdsec"><div class="adm-rdsec-title"><i class="ph-bold ph-map-trifold"></i> المناطق</div>' +
-        '<div class="adm-areas-pills">' + areaNames.map(function(n){ return '<span class="adm-area-pill">'+escHtml(String(n))+'</span>'; }).join('') + '</div></div>';
-    }
-    if (data.googleRating||data.reviewCount) {
-      html += '<div class="adm-rdsec"><div class="adm-rdsec-title"><i class="ph-bold ph-star"></i> تقييم جوجل مابس</div><div class="adm-rd-grid">';
-      if (data.googleRating) html += rdField('التقييم','★ '+data.googleRating+' / 5',false);
-      if (data.reviewCount)  html += rdField('عدد المقيّمين', data.reviewCount+' شخص',false);
-      html += '</div></div>';
-    }
-    if (data.schedule) {
-      html += '<div class="adm-rdsec"><div class="adm-rdsec-title"><i class="ph-bold ph-clock"></i> أوقات الدوام</div><div class="adm-sched-rows">';
-      DAYS_ORDER.forEach(function(key){
-        var day=data.schedule[key]; if (!day) return;
-        var dayLabel=DAYS_AR[key]||key;
-        if (day.open) { html += '<div class="adm-sched-row open"><span class="adm-sched-day">'+escHtml(dayLabel)+'</span><span class="adm-sched-time">'+escHtml(day.from||'')+'—'+escHtml(day.to||'')+'</span></div>'; }
-        else          { html += '<div class="adm-sched-row"><span class="adm-sched-day">'+escHtml(dayLabel)+'</span><span class="adm-sched-closed">مغلق</span></div>'; }
+  /* يحوّل جدول دوام الطلب (كائن بمفاتيح أيام الأسبوع) إلى مصفوفة أوقات المركز (السبت أولاً) */
+  function requestScheduleToCtrSchedule(reqSchedule) {
+    if (!reqSchedule) return null;
+    var REQ_ORDER = ['saturday','sunday','monday','tuesday','wednesday','thursday','friday'];
+    return REQ_ORDER.map(function(key){
+      var day = reqSchedule[key];
+      if (!day) return { closed:true, from:'08:00', to:'16:00' };
+      return { closed: !day.open, from: day.from||'08:00', to: day.to||'16:00' };
+    });
+  }
+
+  /* يفتح نموذج المركز (نفس نموذج الإضافة/التعديل) معبأً ببيانات طلب الانضمام لمراجعته ونشره */
+  function openReviewCenterForm(id, data) {
+    editingCtrId=null; reviewingReqId=id;
+    ctrFormTitle.textContent='مراجعة الطلب ونشر المركز';
+    ctrFormSub.textContent='تحقّق من البيانات ثم انشر المركز';
+    ctrFormSaveLbl.textContent='تمت المراجعة ونشر';
+    cfName.value=data.centerName||''; cfPhone.value=data.phone||''; cfWhatsapp.value=data.whatsapp||'';
+    cfMaplink.value=data.mapsLink||''; cfImageUrl.value=data.imageUrl||''; updateCfImagePreview();
+    cfRating.value=data.googleRating!=null?data.googleRating:''; cfRcount.value=data.reviewCount!=null?data.reviewCount:'';
+    cfDesc.value=data.description||''; setCtrFormMsg('',''); buildCtrScheduleUI(requestScheduleToCtrSchedule(data.schedule));
+    cfAddress.value=data.address||''; cfMapSearch.value=''; cfMapSearchRes.style.display='none';
+    var lat=data.lat!=null?parseFloat(data.lat):null, lng=data.lng!=null?parseFloat(data.lng):null;
+    cfLat.value=lat!=null?lat:''; cfLng.value=lng!=null?lng:'';
+    admCtrCoords=(lat!=null&&lng!=null)?{lat:lat,lng:lng}:null;
+    ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
+    setTimeout(function(){
+      admInitMap(function(){
+        google.maps.event.trigger(admCtrMap, 'resize');
+        admClearMarker();
+        if (admCtrCoords) admPlacePin(admCtrCoords.lat, admCtrCoords.lng);
+        else admResetMapView();
       });
-      html += '</div></div>';
-    }
-    html += '<button class="adm-btn-reviewed" id="adm-reviewed-btn"><i class="ph-bold ph-check-circle"></i><span id="adm-reviewed-lbl">تمت المراجعة — أرشفة الطلب</span></button>';
-    reqModalBody.innerHTML = html;
-    document.getElementById('adm-reviewed-btn').addEventListener('click', function(){ archiveRequest(id); });
-    reqModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
-  }
-
-  function closeReqModal() { reqModal.classList.add('adm-hide'); document.body.style.overflow=''; openRequestId=null; }
-  reqModalClose.addEventListener('click', closeReqModal);
-  reqModal.addEventListener('click', function(e){ if (e.target===reqModal) closeReqModal(); });
-
-  function rdField(label, valHtml, full) {
-    return '<div class="adm-rd-field'+(full?' full':'')+'"><div class="adm-rd-lbl">'+escHtml(label)+'</div><div class="adm-rd-val">'+valHtml+'</div></div>';
-  }
-
-  function archiveRequest(id) {
-    var btn=document.getElementById('adm-reviewed-btn'), lbl=document.getElementById('adm-reviewed-lbl');
-    if (!btn) return; btn.disabled=true; lbl.textContent='جارٍ الأرشفة…';
-    var d=getDb(); if (!d) { btn.disabled=false; lbl.textContent='تمت المراجعة — أرشفة الطلب'; alert('تعذّر الاتصال'); return; }
-    d.ref('CenterRequests/'+id).update({status:'archived',reviewedAt:new Date().toISOString()}).then(function(){
-      delete allRequests[id]; closeReqModal(); renderRequests();
-      var pending=Object.keys(allRequests).length;
-      setStatEl('adm-stat-reqs', pending);
-      var badge=document.getElementById('adm-sb-req-badge');
-      if (badge) { badge.textContent=pending; badge.classList.toggle('show',pending>0); }
-    }).catch(function(e){ btn.disabled=false; lbl.textContent='تمت المراجعة — أرشفة الطلب'; alert('فشلت الأرشفة: '+e.message); });
+    }, 120);
   }
 
   /* ════════════════════════════════════════════════════

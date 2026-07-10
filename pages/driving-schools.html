@@ -527,6 +527,121 @@
   background-size: 200% 100%;
   animation: ctr-shimmer 1.4s infinite;
 }
+
+/* ══════════════════════════════════════
+   عرض تفاصيل المركز داخل نفس الصفحة
+══════════════════════════════════════ */
+#ctr-detail-view {
+  direction: rtl;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  color: #1c1917;
+  position: relative;
+  background: none !important;
+  padding-bottom: 25px;
+}
+@media (min-width: 768px) {
+  #ctr-detail-view { max-width: 720px; padding-top: 20px; }
+  #ctr-detail-view .ctr-hero { height: 320px !important; }
+  #ctr-detail-view .ctr-hero-name { font-size: 24px !important; }
+  #ctr-detail-view .ctr-section-title { font-size: 16px !important; }
+  #ctr-detail-view .ctr-section-text, #ctr-detail-view .ctr-addr-main, #ctr-detail-view .ctr-sched-row { font-size: 14.5px !important; }
+  #ctr-detail-view .ctr-act-btn { font-size: 13px !important; padding: 12px 6px !important; }
+}
+#ctr-detail-view *, #ctr-detail-view *::before, #ctr-detail-view *::after { box-sizing: border-box; }
+#ctr-detail-view [hidden] { display: none !important; }
+#ctr-detail-view h1, #ctr-detail-view h2, #ctr-detail-view h3,
+#ctr-detail-view p, #ctr-detail-view ul, #ctr-detail-view li,
+#ctr-detail-view a, #ctr-detail-view input, #ctr-detail-view table, #ctr-detail-view td {
+  margin: 0; padding: 0; border: 0; font: inherit; color: inherit;
+  text-decoration: none; list-style: none; background: none;
+  text-align: right; border-radius: 0;
+}
+#ctr-detail-view .ctr-hero {
+  position: relative !important; height: 240px !important; overflow: hidden !important;
+  border-radius: 16px !important; margin-bottom: 12px !important; padding: 0 !important; width: 100% !important;
+}
+#ctr-detail-view .ctr-hero-img {
+  position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;
+  object-fit: cover !important; object-position: center !important; display: block !important;
+}
+#ctr-detail-view .ctr-hero-fallback {
+  width: 100% !important; height: 100% !important; display: flex !important; align-items: center !important;
+  justify-content: center !important; font-size: 70px !important; color: rgba(255,255,255,.3) !important; background: #f0f1f3 !important;
+}
+#ctr-detail-view .ctr-hero-overlay {
+  position: absolute !important; inset: 0 !important;
+  background: linear-gradient(to bottom, rgba(0,0,0,.2) 0%, transparent 50%, rgba(0,0,0,.7) 100%) !important;
+  z-index: 1 !important;
+}
+#ctr-detail-view .ctr-hero-nav {
+  position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important;
+  display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 14px !important; z-index: 2 !important;
+}
+#ctr-detail-view .ctr-nav-btn {
+  width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,.3);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.15); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;
+}
+#ctr-detail-view .ctr-promoted-nav {
+  display: inline-flex; align-items: center; gap: 4px; background: #fbbf24; color: #78350f;
+  font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 100px;
+}
+#ctr-detail-view .ctr-hero-info { position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important; padding: 20px 14px 12px !important; z-index: 2 !important; }
+#ctr-detail-view .ctr-hero-name { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+#ctr-detail-view .ctr-hero-badges { display: flex; gap: 6px; align-items: center; }
+#ctr-detail-view .ctr-hero-badge {
+  display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,.4);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.1);
+  color: #fff; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 100px;
+}
+#ctr-detail-view .ctr-hero-badge.status-open    { background: rgba(16,185,129,.85); }
+#ctr-detail-view .ctr-hero-badge.status-opening { background: rgba(245,158,11,.85); }
+#ctr-detail-view .ctr-hero-badge.status-closed  { background: rgba(220,38,38,.85); }
+#ctr-detail-view .ctr-hero-badge.rating-badge   { background: rgba(255,255,255,.2); }
+#ctr-detail-view .ctr-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; display: inline-block; animation: pulseDot 1.5s infinite; }
+@keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+#ctr-detail-view .ctr-actions-container { margin-bottom: 12px; }
+#ctr-detail-view .ctr-actions-grid { display: flex; gap: 8px; }
+#ctr-detail-view .ctr-act-btn {
+  flex: 1; min-width: 0; display: inline-flex !important; flex-direction: column !important; align-items: center !important;
+  justify-content: center !important; text-align: center !important; padding: 10px 4px !important; box-sizing: border-box !important;
+  border-radius: 12px !important; border: 1.5px solid #e5e7eb !important; background: none !important; cursor: pointer;
+  font-size: 11.5px !important; font-weight: 700 !important; line-height: 1.2 !important; transition: all .15s;
+}
+#ctr-detail-view .ctr-act-btn i { font-size: 18px !important; display: block !important; margin-bottom: 4px !important; }
+#ctr-detail-view .ctr-act-btn.phone    { color: #b45309 !important; }
+#ctr-detail-view .ctr-act-btn.whatsapp { color: #047857 !important; }
+#ctr-detail-view .ctr-act-btn.map      { color: #1d4ed8 !important; }
+#ctr-detail-view .ctr-act-btn.share    { color: #57534e !important; }
+#ctr-detail-view .ctr-sections { display: flex; flex-direction: column; gap: 10px; }
+#ctr-detail-view .ctr-section { background: none !important; border: 1.5px solid #f0f1f3 !important; border-radius: 16px !important; padding: 12px 14px !important; }
+#ctr-detail-view .ctr-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#ctr-detail-view .ctr-section-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+#ctr-detail-view .ctr-section-icon.amber  { background: #fef3c7; color: #b45309; }
+#ctr-detail-view .ctr-section-icon.blue   { background: #dbeafe; color: #1d4ed8; }
+#ctr-detail-view .ctr-section-icon.green  { background: #d1fae5; color: #047857; }
+#ctr-detail-view .ctr-section-title { font-size: 14px; font-weight: 800; color: #111827; }
+#ctr-detail-view .ctr-section-text { font-size: 13px; line-height: 1.7; color: #4b5563; }
+#ctr-detail-view .ctr-desc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb; }
+#ctr-detail-view .ctr-tag { display: inline-flex; align-items: center; background: #f9fafb; border: 1px solid #e5e7eb; color: #4b5563; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+#ctr-detail-view .ctr-tag.area { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+#ctr-detail-view .ctr-addr-box { background: #f9fafb; border-radius: 9px; border: 1px solid #e5e7eb; padding: 10px 12px; }
+#ctr-detail-view .ctr-addr-main { font-size: 13px; font-weight: 700; color: #374151; line-height: 1.5; }
+#ctr-detail-view .ctr-sched-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f9fafb; font-size: 12.5px; }
+#ctr-detail-view .ctr-sched-row:last-child { border-bottom: none; }
+#ctr-detail-view .ctr-sched-row .day { font-weight: 700; color: #374151; display: flex; align-items: center; gap: 6px; }
+#ctr-detail-view .ctr-sched-row .hrs { font-weight: 700; color: #6b7280; direction: ltr; }
+#ctr-detail-view .ctr-sched-row.is-today { border-bottom-color: #fed7aa; }
+#ctr-detail-view .ctr-sched-row.is-today .day { color: #ea580c; font-weight: 800; }
+#ctr-detail-view .ctr-sched-row.is-today .hrs { color: #c2410c; font-weight: 800; }
+#ctr-detail-view .ctr-sched-row.is-closed .hrs { color: #dc2626; }
+#ctr-detail-view .ctr-today-badge { font-size: 9px; font-weight: 800; background: #ffedd5; color: #ea580c; padding: 1px 6px; border-radius: 5px; }
+#ctr-detail-view .ctr-stars { --rating: 0%; position: relative; display: inline-flex !important; align-items: center; gap: 2px; }
+#ctr-detail-view .rating-badge i, #ctr-detail-view .ph-star, #ctr-detail-view .ph-fill.ph-star { color: #f59e0b !important; }
 </style>
 
 <div id="faqdrive-page">
@@ -604,6 +719,86 @@
 
 </div>
 
+<!-- ══════════════ عرض تفاصيل المركز (بنفس الصفحة) ══════════════ -->
+<div id="ctr-detail-view" hidden>
+  <div class="ctr-hero">
+    <img id="dv-img" class="ctr-hero-img" alt="" loading="eager" hidden/>
+    <div id="dv-ico" class="ctr-hero-fallback"><i class="ph-fill ph-garage"></i></div>
+    <div class="ctr-hero-overlay"></div>
+
+    <div class="ctr-hero-nav">
+      <button class="ctr-nav-btn" id="dv-back" type="button">
+        <i class="ph ph-arrow-right"></i>
+      </button>
+      <div id="dv-promoted" class="ctr-promoted-nav" hidden>
+        <i class="ph-fill ph-crown"></i> مميّز
+      </div>
+    </div>
+
+    <div class="ctr-hero-info">
+      <div class="ctr-hero-name" id="dv-hero-name"></div>
+      <div class="ctr-hero-badges">
+        <span class="ctr-hero-badge" id="dv-status">
+          <span class="ctr-status-dot" id="dv-status-dot" hidden></span>
+          <i class="ph" id="dv-status-ico"></i>
+          <span id="dv-status-label"></span>
+        </span>
+        <span class="ctr-hero-badge rating-badge" id="dv-rating" hidden>
+          <i class="ph-fill ph-star"></i>
+          <span id="dv-rating-value"></span>
+          <span class="ctr-stars" id="dv-stars"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctr-actions-container">
+    <div class="ctr-actions-grid">
+      <a class="ctr-act-btn phone" id="dv-phone" target="_blank" rel="noreferrer" hidden>
+        <i class="ph ph-phone"></i><span>اتصال</span>
+      </a>
+      <a class="ctr-act-btn whatsapp" id="dv-wa" target="_blank" rel="noreferrer" hidden>
+        <i class="ph ph-whatsapp-logo"></i><span>واتساب</span>
+      </a>
+      <a class="ctr-act-btn map" id="dv-map" target="_blank" rel="noreferrer" hidden>
+        <i class="ph ph-map-pin-line"></i><span>الخريطة</span>
+      </a>
+      <button class="ctr-act-btn share" id="dv-share-btn" type="button">
+        <i class="ph ph-share-network"></i><span>مشاركة</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="ctr-sections">
+    <div class="ctr-section" id="dv-desc-sec" hidden>
+      <div class="ctr-section-head">
+        <div class="ctr-section-icon amber"><i class="ph ph-steering-wheel"></i></div>
+        <span class="ctr-section-title" id="dv-name">نبذة عن المركز</span>
+      </div>
+      <p class="ctr-section-text" id="dv-desc-text"></p>
+      <div id="dv-tags" class="ctr-desc-tags"></div>
+    </div>
+
+    <div class="ctr-section" id="dv-addr-sec" hidden>
+      <div class="ctr-section-head">
+        <div class="ctr-section-icon blue"><i class="ph ph-map-pin"></i></div>
+        <span class="ctr-section-title">الموقع والعنوان</span>
+      </div>
+      <div class="ctr-addr-box">
+        <p class="ctr-addr-main" id="dv-addr-text"></p>
+      </div>
+    </div>
+
+    <div class="ctr-section" id="dv-sched-sec" hidden>
+      <div class="ctr-section-head">
+        <div class="ctr-section-icon green"><i class="ph ph-clock"></i></div>
+        <span class="ctr-section-title">أوقات الدوام الأسبوعي</span>
+      </div>
+      <div id="dv-sched-body"></div>
+    </div>
+  </div>
+</div>
+
 <template id="ctr-card-tpl">
   <article class="ctr-card">
 
@@ -672,7 +867,6 @@
 
   // ══ الثوابت ══
   var CACHE_KEY  = 'djv3_schools_v1';   /* مفتاح مستقل — لا يتعارض مع صفحة التفاصيل */
-  var DETAIL_URL = '/p/center-details.html';
   var DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 
   var JORDAN_DAY_MAP = { 'Sat':0, 'Sun':1, 'Mon':2, 'Tue':3, 'Wed':4, 'Thu':5, 'Fri':6 };
@@ -864,12 +1058,17 @@
     var footerRow = card.querySelector('.ctr-footer-row');
     footerRow.hidden = !isPromoted;
     if (isPromoted) {
+      var centerUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(c.publicId || c._fbKey);
       card.querySelector('.ctr-share-btn').onclick = function() {
-        var url = window.location.origin + DETAIL_URL + '?id=' + encodeURIComponent(c.publicId || c._fbKey);
-        if (navigator.share) navigator.share({ title: c.name, url: url });
-        else if (navigator.clipboard) navigator.clipboard.writeText(url);
+        if (navigator.share) navigator.share({ title: c.name, url: centerUrl });
+        else if (navigator.clipboard) navigator.clipboard.writeText(centerUrl);
       };
-      card.querySelector('.ctr-detail-link').href = DETAIL_URL + '?id=' + encodeURIComponent(c.publicId || c._fbKey);
+      var detailLink = card.querySelector('.ctr-detail-link');
+      detailLink.href = centerUrl;
+      detailLink.onclick = function(e) {
+        e.preventDefault();
+        openDetail(c);
+      };
     }
   }
 
@@ -955,6 +1154,146 @@
     listEl.appendChild(frag);
   }
 
+  // ══ عرض تفاصيل المركز بنفس الصفحة ══
+  var pageEl       = document.getElementById('ctr-page');
+  var detailViewEl = document.getElementById('ctr-detail-view');
+  var dvBackBtn    = document.getElementById('dv-back');
+  var openDetailId = null;
+
+  function findCenterById(id) {
+    var keys = Object.keys(centers);
+    for (var i = 0; i < keys.length; i++) {
+      var c = Object.assign({ _fbKey: keys[i] }, centers[keys[i]]);
+      if (String(c.publicId != null ? c.publicId : c._fbKey) === String(id)) return c;
+    }
+    return null;
+  }
+
+  function fillDetailView(c) {
+    var prom = document.getElementById('dv-promoted');
+    if (prom) prom.hidden = !c.promoted;
+
+    var img = document.getElementById('dv-img');
+    var ico = document.getElementById('dv-ico');
+    if (c.imageUrl) { img.src = c.imageUrl; img.hidden = false; ico.hidden = true; }
+    else            { img.hidden = true; ico.hidden = false; }
+
+    document.getElementById('dv-hero-name').textContent = c.name || '';
+    document.getElementById('dv-name').textContent = c.name || '';
+
+    var st = getStatus(c);
+    var stEl = document.getElementById('dv-status');
+    stEl.className = 'ctr-hero-badge status-' + st.type;
+    document.getElementById('dv-status-ico').className = 'ph ' + st.icon;
+    document.getElementById('dv-status-label').textContent = st.label;
+    document.getElementById('dv-status-dot').hidden = (st.type !== 'open');
+
+    var ratSec = document.getElementById('dv-rating');
+    if (c.rating != null) {
+      ratSec.hidden = false;
+      document.getElementById('dv-rating-value').textContent = (+c.rating).toFixed(1);
+      document.getElementById('dv-stars').style.setProperty('--rating', Math.round((c.rating/5)*100)+'%');
+    } else { ratSec.hidden = true; }
+
+    var phoneEl = document.getElementById('dv-phone');
+    var waEl    = document.getElementById('dv-wa');
+    var mapEl   = document.getElementById('dv-map');
+    if (c.phone) { phoneEl.hidden = false; phoneEl.href = 'tel:' + c.phone.replace(/[^\d+]/g, ''); } else { phoneEl.hidden = true; }
+    if (c.whatsapp || c.phone) { waEl.hidden = false; waEl.href = 'https://wa.me/' + (c.whatsapp||c.phone).replace(/[^\d]/g,''); } else { waEl.hidden = true; }
+    var mapLinkVal = c.mapLink || c.mapsLink || null;
+    if (mapLinkVal) { mapEl.hidden = false; mapEl.href = mapLinkVal; } else { mapEl.hidden = true; }
+
+    document.getElementById('dv-share-btn').onclick = function() {
+      var url = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(c.publicId || c._fbKey);
+      if (navigator.share) navigator.share({ title: c.name, url: url });
+      else if (navigator.clipboard) navigator.clipboard.writeText(url);
+    };
+
+    var descSec = document.getElementById('dv-desc-sec');
+    descSec.hidden = !c.description;
+    if (c.description) document.getElementById('dv-desc-text').textContent = c.description;
+
+    var addrSec = document.getElementById('dv-addr-sec');
+    addrSec.hidden = !c.address;
+    if (c.address) document.getElementById('dv-addr-text').textContent = c.address;
+
+    var schedSec  = document.getElementById('dv-sched-sec');
+    var schedBody = document.getElementById('dv-sched-body');
+    if (c.schedule && c.schedule.length === 7) {
+      schedSec.hidden = false;
+      var today = todayIdx();
+      schedBody.innerHTML = '';
+      DAYS.forEach(function(day, i) {
+        var s = c.schedule[i] || {};
+        var isOk = !s.closed && s.from && s.to;
+        var isTdy = i === today;
+        var row = document.createElement('div');
+        row.className = 'ctr-sched-row' + (isTdy ? ' is-today' : '') + (!isOk ? ' is-closed' : '');
+        var dayDiv = document.createElement('div');
+        dayDiv.className = 'day';
+        dayDiv.appendChild(document.createTextNode(day));
+        if (isTdy) {
+          var badge = document.createElement('span');
+          badge.className = 'ctr-today-badge';
+          badge.textContent = 'اليوم';
+          dayDiv.appendChild(badge);
+        }
+        var hrsDiv = document.createElement('div');
+        hrsDiv.className = 'hrs';
+        hrsDiv.textContent = isOk ? s.from + ' - ' + s.to : 'مغلق';
+        row.appendChild(dayDiv);
+        row.appendChild(hrsDiv);
+        schedBody.appendChild(row);
+      });
+    } else { schedSec.hidden = true; }
+
+    if (c.name) document.title = c.name + ' | JO Driver';
+  }
+
+  function showDetail(c) {
+    openDetailId = c.publicId != null ? c.publicId : c._fbKey;
+    fillDetailView(c);
+    pageEl.hidden = true;
+    detailViewEl.hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  /* يفتح التفاصيل ويضيف إدخالاً في تاريخ المتصفح — الرجوع للخلف يُغلقها تلقائياً عبر popstate */
+  function openDetail(c) {
+    showDetail(c);
+    var url = window.location.pathname + '?id=' + encodeURIComponent(openDetailId);
+    window.history.pushState({ ctrDetail: openDetailId }, '', url);
+  }
+
+  /* زر الرجوع يستخدم history.back() الحقيقي بدل إضافة إدخال جديد، حتى لا يكسر تسلسل الرجوع للخلف */
+  function closeDetail() {
+    if (openDetailId != null) window.history.back();
+  }
+
+  dvBackBtn.onclick = closeDetail;
+
+  window.addEventListener('popstate', function(e) {
+    var id = e.state && e.state.ctrDetail;
+    if (id) {
+      var c = findCenterById(id);
+      if (c) { showDetail(c); return; }
+    }
+    openDetailId = null;
+    detailViewEl.hidden = true;
+    pageEl.hidden = false;
+  });
+
+  function maybeOpenFromUrl() {
+    var id = new URLSearchParams(window.location.search).get('id');
+    if (!id || openDetailId) return;
+    var c = findCenterById(id);
+    if (c) {
+      /* نثبّت رابط القائمة كنقطة أساس، ثم ندفع تفاصيل المركز فوقها — الرجوع للخلف يعيد القائمة أولاً */
+      window.history.replaceState({}, '', window.location.pathname);
+      openDetail(c);
+    }
+  }
+
   // ══ الموقع الجغرافي ══
   function setLocationButtonSuccess() {
     locBtn.innerText = '✓ الموقع مفعّل';
@@ -1018,7 +1357,7 @@
     } catch(e) {}
   }
 
-  function renderAll() { renderList(); }
+  function renderAll() { renderList(); maybeOpenFromUrl(); }
 
   function showSkeletons() {
     stateEl.hidden = true;
