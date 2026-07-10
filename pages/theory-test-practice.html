@@ -771,6 +771,174 @@
     padding: 4px; transition: color .15s;
   }
   .dex-rv-skip:hover { color: #6B7280; }
+
+  /* === شاشة مراجعة الأخطاء === */
+  .dex-wr-topbar {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1.5px solid #F3F4F6;
+  }
+  .dex-wr-back {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: #F9FAFB; border: 1.5px solid #E5E7EB;
+    color: #6B7280; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: background .15s;
+  }
+  .dex-wr-back:hover { background: #F3F4F6; }
+  .dex-wr-title { flex: 1; font-size: 14px; font-weight: 800; color: #111827; }
+  .dex-wr-chip {
+    padding: 3px 10px; border-radius: 99px; flex-shrink: 0;
+    font-size: 12px; font-weight: 700;
+    background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA;
+  }
+  .dex-wr-prog { height: 3px; background: #F3F4F6; flex-shrink: 0; }
+  .dex-wr-progbar { height: 100%; background: #DC2626; transition: width 0.35s ease; width: 0%; }
+  .dex-wr-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 0; }
+  .dex-wr-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 99px; margin-bottom: 14px;
+    font-size: 12px; font-weight: 700;
+    background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA;
+  }
+  .dex-wr-opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 11px;
+    border: 1.5px solid #E5E7EB; margin-bottom: 9px;
+  }
+  .dex-wr-opt-correct { background: #DCFCE7; border-color: #86EFAC; }
+  .dex-wr-opt-wrong   { background: #FEE2E2; border-color: #FECACA; }
+  .dex-wr-dot {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800;
+    background: #F3F4F6; color: #9CA3AF; border: 1px solid #E5E7EB;
+  }
+  .dex-wr-opt-correct .dex-wr-dot { background: #16A34A; color: #fff; border-color: #16A34A; font-size: 15px; }
+  .dex-wr-opt-wrong   .dex-wr-dot { background: #DC2626; color: #fff; border-color: #DC2626; font-size: 15px; }
+  .dex-wr-lbl { font-size: 14px; font-weight: 500; color: #374151; }
+  .dex-wr-opt-correct .dex-wr-lbl { font-weight: 700; color: #15803D; }
+  .dex-wr-opt-wrong   .dex-wr-lbl { font-weight: 700; color: #DC2626; }
+  .dex-wr-expl {
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 11px; padding: 11px 14px;
+    display: flex; gap: 10px; margin-top: 4px;
+  }
+  .dex-wr-expl i { font-size: 18px; color: #D97706; flex-shrink: 0; margin-top: 1px; }
+  .dex-wr-expl p { font-size: 13px; color: #92400E; line-height: 1.7; margin: 0; }
+
+  /* زر مراجعة الأخطاء في شاشة النتيجة */
+  .dex-review-wrongs-btn {
+    width: 100%; padding: 14px; border-radius: 14px;
+    border: 1.5px solid #FECACA; background: #FEF2F2; color: #DC2626;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .dex-review-wrongs-btn i { font-size: 20px; }
+  .dex-review-wrongs-btn:hover { background: #FEE2E2; }
+
+  /* ════ DARK MODE ════ */
+  @media (prefers-color-scheme: dark) {
+    .dex { background: #111827; }
+    .dex-rules-bg { background: #111827; }
+    .dex-rules-heading { color: #9CA3AF; }
+    .dex-info-card, .dex-rule-item { background: #1F2937; border-color: #374151; }
+    .dex-info-title { color: #F9FAFB; }
+    .dex-info-sub { color: #6B7280; }
+    .dex-notice { border-color: #1E3A5F; background: #1F2937; }
+    .dex-notice-icon { background: #1E3A5F; color: #60A5FA; }
+    .dex-notice-text { color: #9CA3AF; }
+    .dex-rule-item[data-color="blue"]   .dex-rule-icon { background: #1E3A5F; color: #60A5FA; }
+    .dex-rule-item[data-color="amber"]  .dex-rule-icon { background: #2D1F00; color: #FCD34D; }
+    .dex-rule-item[data-color="green"]  .dex-rule-icon { background: #052E16; color: #4ADE80; }
+    .dex-rule-item[data-color="red"]    .dex-rule-icon { background: #2D0A0A; color: #F87171; }
+    .dex-rule-item[data-color="purple"] .dex-rule-icon { background: #2E1065; color: #A78BFA; }
+    .dex-rule-item[data-color="cyan"]   .dex-rule-icon { background: #0C2A2F; color: #22D3EE; }
+    .dex-rule-text { color: #D1D5DB; }
+    .dex-warn-box { background: #2D1F00; border-color: #78350F; }
+    .dex-warn-text { color: #FDE68A; }
+    .dex-warn-icon { color: #FCD34D; }
+    .dex-intro-para { background: #1F2937; border-color: #374151; }
+    .dex-intro-para p { color: #D1D5DB; }
+    .dex-intro-para b { color: #60A5FA; }
+    .dex-no-qs { background: #2D0A0A; color: #F87171; }
+    /* statusbar */
+    .dex-statusbar { background: #1F2937; border-color: #374151; }
+    .dex-timer { background: #1E3A5F; }
+    .dex-timer i { color: #60A5FA; }
+    .dex-timer-text { color: #93C5FD; }
+    .dex-qnum { color: #D1D5DB; }
+    .dex-wrong-ctr { background: #1F2937; }
+    .dex-wrong-text { color: #D1D5DB; }
+    .dex-progress { background: #374151; }
+    /* exam */
+    .dex-exam-body { background: #111827; }
+    .dex-media-wrap { background: #1F2937; border-color: #374151; }
+    .dex-question-box { background: #1E3A5F; color: #F9FAFB; }
+    .dex-option { background: #1F2937; border-color: #374151; }
+    .dex-option-badge { background: #374151; color: #9CA3AF; }
+    .dex-option-text { color: #D1D5DB; }
+    .dex-option-selected { background: #1E3A5F; border-color: #3B82F6; }
+    .dex-option-selected .dex-option-badge { background: #3B82F6; }
+    .dex-option-selected .dex-option-text { color: #93C5FD; }
+    .dex-exam-footer { background: #1F2937; border-color: #374151; }
+    .dex-skip-btn { background: #374151; border-color: #4B5563; color: #9CA3AF; }
+    /* milestone */
+    .dex-milestone-overlay { background: #111827; }
+    .dex-milestone-card { background: #1F2937; }
+    .dex-milestone-title { color: #F9FAFB; }
+    .dex-milestone-msg { color: #9CA3AF; }
+    .dex-milestone-continue { background: #374151; border-color: #4B5563; color: #D1D5DB; }
+    /* result */
+    .dex-result-hero { background: #111827; border-color: #374151; }
+    .dex-result-sub { color: #9CA3AF; }
+    .dex-result-pct-label { color: #6B7280; }
+    .dex-stat-correct { background: #052E16; }
+    .dex-stat-wrong   { background: #2D0A0A; }
+    .dex-stat-skip    { background: #2D1F00; }
+    .dex-stat-total   { background: #1E3A5F; }
+    .dex-result-btns { background: #111827; }
+    /* review-wrongs */
+    .dex-wr-topbar { background: #1F2937; border-color: #374151; }
+    .dex-wr-back { background: #374151; border-color: #4B5563; color: #9CA3AF; }
+    .dex-wr-title { color: #F9FAFB; }
+    .dex-wr-prog { background: #374151; }
+    .dex-wr-body { background: #111827; }
+    .dex-question-box { background: #1E3A5F; color: #F9FAFB; }
+    .dex-wr-opt { background: #1F2937; border-color: #374151; }
+    .dex-wr-opt-correct { background: #052E16; border-color: #166534; }
+    .dex-wr-opt-wrong   { background: #2D0A0A; border-color: #7F1D1D; }
+    .dex-wr-opt-correct .dex-wr-lbl { color: #4ADE80; }
+    .dex-wr-opt-wrong   .dex-wr-lbl { color: #F87171; }
+    .dex-wr-lbl { color: #D1D5DB; }
+    .dex-wr-dot { background: #374151; color: #9CA3AF; border-color: #4B5563; }
+    .dex-wr-expl { background: #2D1F00; border-color: #78350F; }
+    .dex-wr-expl p { color: #FDE68A; }
+    .dex-wr-expl i { color: #FCD34D; }
+    /* modals */
+    .dex-modal { background: #1F2937; }
+    .dex-mstep__title { color: #F9FAFB; }
+    .dex-mstep__sub { color: #9CA3AF; }
+    .dex-google-btn { background: #374151; border-color: #4B5563; color: #F9FAFB; box-shadow: none; }
+    .dex-mphone-note { background: #1F2937; border-color: #374151; color: #9CA3AF; }
+    .dex-mphone-row { background: #374151; border-color: #4B5563; }
+    .dex-mphone-input { background: #374151; color: #F9FAFB; }
+    .dex-mphone-prefix { background: #4B5563; border-color: #6B7280; color: #D1D5DB; }
+    .dex-mwelcome-name { color: #F9FAFB; }
+    /* rv popup */
+    .dex-rv-card { background: #1F2937; }
+    .dex-rv-title { color: #F9FAFB; }
+    .dex-rv-sub { color: #9CA3AF; }
+    .dex-rv-close { background: #374151; color: #9CA3AF; }
+    .dex-rv-textarea { background: #374151; border-color: #4B5563; color: #F9FAFB; }
+    .dex-rv-anon { color: #9CA3AF; }
+    .dex-rv-skip { color: #6B7280; }
+    .dex-review-wrongs-btn { background: #2D0A0A; border-color: #7F1D1D; color: #F87171; }
+    .dex-review-wrongs-btn:hover { background: #3D0E0E; }
+  }
 </style>
 
 
@@ -824,7 +992,7 @@
 
         <!-- تحذير -->
         <!--[ Alert variant warning ]-->
-<div class='alert warning'><b>تححذير</b>
+<div class='alert warning'><b>تحذير</b>
  بمجرد بدء الاختبار يبدأ العد التنازلي ولا يمكن إيقافه. تأكد من جهوزيتك قبل الضغط على بدء.
 </div>
 
@@ -989,12 +1157,52 @@
 
     <!-- أزرار -->
     <div class="dex-result-btns">
+      <button id="dex-review-wrongs-btn" class="dex-review-wrongs-btn dex-hidden">
+        <i class="ph ph-x-circle"></i>
+        <span id="dex-review-wrongs-lbl">مراجعة الأخطاء</span>
+      </button>
       <button id="dex-retry-btn" class="dex-retry-btn">
         <i class="ph ph-arrow-clockwise"></i>
         <span>إعادة الاختبار</span>
       </button>
     </div>
 
+  </div>
+
+  <!-- شاشة مراجعة الإجابات الخاطئة -->
+  <div id="dex-wrongs" class="dex-screen">
+    <!-- شريط العلوي -->
+    <div class="dex-wr-topbar">
+      <button id="dex-wr-back" class="dex-wr-back"><i class="ph ph-arrow-right"></i></button>
+      <span class="dex-wr-title">مراجعة الإجابات الخاطئة</span>
+      <span id="dex-wr-chip" class="dex-wr-chip">1/1</span>
+    </div>
+    <!-- شريط التقدم -->
+    <div class="dex-wr-prog"><div id="dex-wr-progbar" class="dex-wr-progbar"></div></div>
+    <!-- المحتوى -->
+    <div class="dex-wr-body">
+      <div class="dex-wr-tag"><i class="ph ph-x-circle"></i>راجع أين أخطأت وما هي الإجابة الصحيحة</div>
+      <div id="dex-wr-media" class="dex-media-wrap dex-hidden">
+        <img id="dex-wr-img" class="dex-media-img dex-hidden" alt="">
+        <video id="dex-wr-vid" class="dex-media-video dex-hidden" controls></video>
+      </div>
+      <div id="dex-wr-qtxt" class="dex-question-box"></div>
+      <div id="dex-wr-opts"></div>
+      <div id="dex-wr-expl" class="dex-wr-expl dex-hidden">
+        <i class="ph ph-lightbulb"></i>
+        <p id="dex-wr-expl-txt"></p>
+      </div>
+    </div>
+    <!-- التذييل -->
+    <div class="dex-exam-footer">
+      <button id="dex-wr-prev" class="dex-skip-btn">
+        <i class="ph ph-arrow-right"></i>
+      </button>
+      <button id="dex-wr-next" class="dex-confirm-btn">
+        <i id="dex-wr-next-ico" class="ph ph-arrow-left dex-confirm-icon"></i>
+        <span id="dex-wr-next-lbl">التالي</span>
+      </button>
+    </div>
   </div>
 
 </div>
@@ -1116,6 +1324,7 @@
   var secsLeft = EXAM_MINS * 60, wrongCount = 0, correctCount = 0, timerId = null;
   var milestoneShown = false;
   var resOk = 0, resWrong = 0, resTotal = 0, resSkipped = 0;
+  var wrongLog = [], wrIdx = 0; /* سجل الإجابات الخاطئة لشاشة المراجعة */
 
   /* ——— مراجع العناصر ——— */
   var screenLoading  = document.getElementById('dex-loading');
@@ -1159,9 +1368,12 @@
   var elDPct1        = document.getElementById('dex-d-pct1');
   var elDOk2         = document.getElementById('dex-d-ok2');
   var elDTotal2      = document.getElementById('dex-d-total2');
-  var elNoQs         = document.getElementById('dex-no-qs');
-  var elStartBtn     = document.getElementById('dex-start-btn');
-  var elRetryBtn     = document.getElementById('dex-retry-btn');
+  var elNoQs              = document.getElementById('dex-no-qs');
+  var elStartBtn          = document.getElementById('dex-start-btn');
+  var elRetryBtn          = document.getElementById('dex-retry-btn');
+  var elReviewWrongsBtn   = document.getElementById('dex-review-wrongs-btn');
+  var elReviewWrongsLbl   = document.getElementById('dex-review-wrongs-lbl');
+  var screenWrongs        = document.getElementById('dex-wrongs');
 
   /* ——— متغيرات Auth والمودال ——— */
   var currentUser = null;
@@ -1182,7 +1394,7 @@
 
   /* ——— إدارة الشاشات ——— */
   function showScreen(screen) {
-    [screenLoading, screenRules, screenExam, screenResult].forEach(function (s) {
+    [screenLoading, screenRules, screenExam, screenResult, screenWrongs].forEach(function (s) {
       s.classList.remove('dex-active');
     });
     screen.classList.add('dex-active');
@@ -1200,7 +1412,7 @@
 
   /* ——— كاش محلي ——— */
   var DEX_CACHE_KEY = 'dex_questions_v1';
-  var DEX_CACHE_TTL = 7*24*60*60*1000; /* 7 أيام */
+  var DEX_CACHE_TTL = 24*60*60*1000; /* 24 ساعة */
   function dexSaveCache(d){try{localStorage.setItem(DEX_CACHE_KEY,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}}
   function dexLoadCache(){try{var r=localStorage.getItem(DEX_CACHE_KEY);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>DEX_CACHE_TTL){localStorage.removeItem(DEX_CACHE_KEY);return null}return o.data}catch(e){return null}}
 
@@ -1334,6 +1546,18 @@
     });
   }
 
+  /* ——— دالة ضربة العداد (مستقلة لإمكانية الإيقاف والاستئناف) ——— */
+  function tick() {
+    secsLeft--;
+    if (secsLeft <= 0) {
+      clearInterval(timerId);
+      timerId = null;
+      finishExam();
+    } else {
+      updateStatusBar();
+    }
+  }
+
   /* ——— بدء الامتحان ——— */
   function startExam() {
     var shuffled = allQuestions.slice().sort(function () { return Math.random() - 0.5; });
@@ -1345,21 +1569,13 @@
     wrongCount     = 0;
     correctCount   = 0;
     milestoneShown = false;
+    wrongLog = [];
     elMilestone.classList.add('dex-hidden');
 
     showScreen(screenExam);
     renderQuestion();
 
-    timerId = setInterval(function () {
-      secsLeft--;
-      if (secsLeft <= 0) {
-        clearInterval(timerId);
-        timerId = null;
-        finishExam();
-      } else {
-        updateStatusBar();
-      }
-    }, 1000);
+    timerId = setInterval(tick, 1000);
   }
 
   /* ——— تحديث شريط الحالة ——— */
@@ -1487,6 +1703,8 @@
       if (correctCount >= 51 && !milestoneShown) {
         milestoneShown = true;
         elMsCount.textContent = correctCount;
+        /* إيقاف العداد مؤقتاً أثناء نافذة النجاح */
+        clearInterval(timerId); timerId = null;
         elMilestone.classList.remove('dex-hidden');
         selected = null;
         currentIdx++;
@@ -1494,6 +1712,7 @@
       }
     } else {
       wrongCount++;
+      wrongLog.push({ q: queue[currentIdx], chosen: selected });
     }
 
     selected = null;
@@ -1518,6 +1737,14 @@
   /* ——— إشعار النجاح: متابعة الأسئلة ——— */
   function milestoneContinue() {
     elMilestone.classList.add('dex-hidden');
+    /* إذا كان السؤال الأخير قد أُجيب عليه — أنهِ الاختبار مباشرةً */
+    if (currentIdx >= queue.length) {
+      clearInterval(timerId); timerId = null;
+      finishExam();
+      return;
+    }
+    /* استئناف العداد بعد إغلاق نافذة النجاح */
+    if (!timerId) timerId = setInterval(tick, 1000);
     renderQuestion();
   }
 
@@ -1600,8 +1827,110 @@
     elDOk2.textContent    = resOk;
     elDTotal2.textContent = resTotal;
 
+    /* زر مراجعة الأخطاء — يظهر فقط إذا كان هناك أخطاء */
+    if (elReviewWrongsBtn) {
+      if (wrongLog.length > 0) {
+        elReviewWrongsLbl.textContent = 'مراجعة ' + wrongLog.length + (wrongLog.length === 1 ? ' خطأ' : ' أخطاء');
+        elReviewWrongsBtn.classList.remove('dex-hidden');
+      } else {
+        elReviewWrongsBtn.classList.add('dex-hidden');
+      }
+    }
+
     showScreen(screenResult);
     maybeShowReviewPopup();
+  }
+
+  /* ——— مراجعة الإجابات الخاطئة ——— */
+  function startWrongReview() {
+    if (!wrongLog.length) return;
+    wrIdx = 0;
+    showScreen(screenWrongs);
+    renderWrongQ();
+  }
+
+  function renderWrongQ() {
+    var entry  = wrongLog[wrIdx];
+    var q      = entry.q;
+    var total  = wrongLog.length;
+    var isLast = wrIdx >= total - 1;
+    var letters = ['A', 'B', 'C', 'D', 'E'];
+
+    document.getElementById('dex-wr-chip').textContent = (wrIdx + 1) + ' / ' + total;
+    document.getElementById('dex-wr-progbar').style.width = Math.round(((wrIdx + 1) / total) * 100) + '%';
+
+    /* الوسائط */
+    var mediaWrap = document.getElementById('dex-wr-media');
+    var mediaImg  = document.getElementById('dex-wr-img');
+    var mediaVid  = document.getElementById('dex-wr-vid');
+    mediaWrap.classList.add('dex-hidden');
+    mediaImg.classList.add('dex-hidden'); mediaImg.src = '';
+    mediaVid.classList.add('dex-hidden'); mediaVid.src = '';
+    if (q.mediaUrl && q.mediaType !== 'text') {
+      mediaWrap.classList.remove('dex-hidden');
+      if (q.mediaType === 'video') {
+        mediaVid.src = q.mediaUrl;
+        mediaVid.classList.remove('dex-hidden');
+      } else {
+        mediaImg.src = q.mediaUrl;
+        mediaImg.classList.remove('dex-hidden');
+      }
+    }
+
+    /* نص السؤال */
+    document.getElementById('dex-wr-qtxt').textContent = q.question;
+
+    /* الخيارات */
+    var optsEl = document.getElementById('dex-wr-opts');
+    optsEl.innerHTML = '';
+    (q.options || []).forEach(function (optText, i) {
+      var isCorrect = i === q.correctAnswer;
+      var isChosen  = i === entry.chosen;
+
+      var div = document.createElement('div');
+      div.className = 'dex-wr-opt' +
+        (isCorrect ? ' dex-wr-opt-correct' : (isChosen ? ' dex-wr-opt-wrong' : ''));
+
+      var dot = document.createElement('div');
+      dot.className = 'dex-wr-dot';
+      if (isCorrect) {
+        var ck = document.createElement('i'); ck.className = 'ph ph-check'; dot.appendChild(ck);
+      } else if (isChosen) {
+        var xk = document.createElement('i'); xk.className = 'ph ph-x'; dot.appendChild(xk);
+      } else {
+        dot.textContent = letters[i] || String(i + 1);
+      }
+
+      var lbl = document.createElement('span');
+      lbl.className = 'dex-wr-lbl'; lbl.textContent = optText;
+
+      div.appendChild(dot); div.appendChild(lbl);
+      optsEl.appendChild(div);
+    });
+
+    /* الشرح */
+    var expl = document.getElementById('dex-wr-expl');
+    if (q.explanation) {
+      document.getElementById('dex-wr-expl-txt').textContent = q.explanation;
+      expl.classList.remove('dex-hidden');
+    } else {
+      expl.classList.add('dex-hidden');
+    }
+
+    /* أزرار التنقل */
+    document.getElementById('dex-wr-prev').disabled = wrIdx === 0;
+    var nextLbl = document.getElementById('dex-wr-next-lbl');
+    var nextIco = document.getElementById('dex-wr-next-ico');
+    var nextBtn = document.getElementById('dex-wr-next');
+    if (isLast) {
+      nextLbl.textContent = 'إنهاء المراجعة';
+      nextIco.className = 'ph ph-check-circle dex-confirm-icon';
+      nextBtn.classList.add('dex-confirm-last');
+    } else {
+      nextLbl.textContent = 'التالي';
+      nextIco.className = 'ph ph-arrow-left dex-confirm-icon';
+      nextBtn.classList.remove('dex-confirm-last');
+    }
   }
 
   /* ——— ربط الأحداث ——— */
@@ -1611,6 +1940,13 @@
   elMsFinish.addEventListener('click', milestoneFinish);
   elMsContinue.addEventListener('click', milestoneContinue);
   elRetryBtn.addEventListener('click', function () { showScreen(screenRules); });
+  if (elReviewWrongsBtn) elReviewWrongsBtn.addEventListener('click', startWrongReview);
+  document.getElementById('dex-wr-back').addEventListener('click', function () { showScreen(screenResult); });
+  document.getElementById('dex-wr-prev').addEventListener('click', function () { if (wrIdx > 0) { wrIdx--; renderWrongQ(); } });
+  document.getElementById('dex-wr-next').addEventListener('click', function () {
+    if (wrIdx < wrongLog.length - 1) { wrIdx++; renderWrongQ(); }
+    else { showScreen(screenResult); }
+  });
 
   /* زرا الانتقال للاختبار (مستخدم جديد / عائد) */
   var gotoExamNew  = document.getElementById('dex-goto-exam-new');

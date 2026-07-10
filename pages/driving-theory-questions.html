@@ -386,6 +386,64 @@
 }
 .qax-btn-exam-go:hover{opacity:.88}
 .qax-btn-exam-go:active{transform:scale(.95)}
+
+/* ── result stats row ── */
+.qax-res-stats{display:flex;gap:10px;justify-content:center}
+.qax-rs-ok,.qax-rs-wr{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 14px;border-radius:99px;
+  font-size:13px;font-weight:700;
+}
+.qax-rs-ok{background:var(--ok-lt);color:var(--ok);border:1px solid var(--ok-bd)}
+.qax-rs-wr{background:var(--err-lt);color:var(--err);border:1px solid var(--err-bd)}
+.qax-big-err{background:var(--err-lt);color:var(--err);border:1.5px solid var(--err-bd)}
+.qax-big-err:hover{opacity:.85}
+
+/* ── seo section at bottom ── */
+.qax-seo-wrap{
+  margin-top:20px;padding:16px;
+  background:var(--bg);border:1px solid var(--bdr);border-radius:12px;
+}
+.qax-seo-wrap p{font-size:13px;color:var(--txt2);line-height:1.85;margin:0 0 12px}
+.qax-seo-wrap p:last-child{margin-bottom:0}
+.qax-seo-wrap a{color:var(--acc)}
+
+/* ════ DARK MODE ════ */
+@media (prefers-color-scheme: dark) {
+  #qax-wrap {
+    --acc:#60A5FA; --acc-lt:#1E3A5F; --acc-bd:#1D4ED8;
+    --ok:#4ADE80;  --ok-lt:#052E16;  --ok-bd:#166534;
+    --err:#F87171; --err-lt:#2D0A0A; --err-bd:#7F1D1D;
+    --txt:#F9FAFB; --txt2:#9CA3AF;
+    --bdr:#374151; --bg:#1F2937; --card:#111827;
+    background:#111827;
+  }
+  .qax-topbar{background:#1F2937}
+  .qax-qtxt{background:var(--bg);border-color:var(--bdr)}
+  .qax-ropt{background:var(--bg)}
+  .qax-expl{background:#2D1F00;border-color:#78350F}
+  .qax-expl-ico,.qax-expl-txt{color:#FDE68A}
+  .qax-back{background:#374151;border-color:#4B5563;color:#9CA3AF}
+  .qax-exam-row{border-color:var(--ok-bd);background:var(--ok-lt)}
+  .qax-exam-ico{background:var(--ok-lt);color:var(--ok)}
+  .qax-exam-name{color:var(--txt)}
+  .qax-exam-sub{color:var(--txt2)}
+  .qax-ph{border-color:var(--bdr)}
+  .qax-cat-row{background:#1F2937;border-color:var(--bdr)}
+  .qax-cat-btns{border-color:var(--bdr)}
+  .qax-all-row{background:#1F2937;border-color:var(--bdr)}
+  .qax-all-row .qax-cat-btns{border-color:var(--bdr)}
+  .qax-done-ico{background:var(--ok-lt);border-color:var(--ok-bd);color:var(--ok)}
+  .qax-big-ghost{background:#1F2937;color:var(--txt2);border-color:var(--bdr)}
+  .qax-big-err{background:var(--err-lt);color:var(--err);border-color:var(--err-bd)}
+  .qax-empty-ico{color:var(--bdr)}
+  .qax-eopt{background:var(--bg)}
+  .qax-eopt:hover:not(:disabled){background:var(--acc-lt)}
+  .qax-fb-ok{background:var(--ok-lt);color:var(--ok);border-color:var(--ok-bd)}
+  .qax-fb-bad{background:var(--err-lt);color:var(--err);border-color:var(--err-bd)}
+  .qax-btn-prev{background:var(--bg);border-color:var(--bdr)}
+  .qax-ring-pct{color:var(--txt)}
+}
 </style>
 
 <!-- ═══════════════════════ HTML ═══════════════════════ -->
@@ -398,27 +456,7 @@
   </div>
 
   <!-- ══ CATEGORIES ══ -->
-  <div id="qax-page-cats"><p>
-  أسئلة الفحص النظري 2026 — بنك شامل
-  يغطي جميع أقسام الامتحان النظري: <b>قواعد السير والمرور</b>، <b>الشواخص والخطوط والعلامات</b>،
-  <b>السلامة على الطريق</b>، <b>الميكانيك</b>، <b>الإسعافات الأولية</b>، <b>المخالفات واحتساب النقاط</b>،
-  و<b>الصور المتحركة</b>. إذا كنت تستعد لاختبار <b>الفحص النظري</b> وتريد تجاوز الفحص النظري من المرة الأولى،
-  فهذا الصفحة هي دليلك الكامل للمراجعة والتدريب.
-</p>
-
-<p>
-  جميع الأسئلة الواردة هنا مشابهة تماماً لأسئلة <b>كتاب الفحص النظري</b> المعتمد في
-  <a href="/p/driving-schools.html">مراكز تعليم القيادة</a>، وتعكس النماذج الفعلية التي تظهر في الامتحان الرسمي.
-  نحرص على مراجعة بنك الأسئلة وتحديثه باستمرار بإضافة أسئلة جديدة وحذف ما قد يكون
-  تجاوزته التعديلات الأخيرة على أنظمة السير والمرور، لضمان أن تكون مادة المراجعة لديك
-  دائماً محدَّثة ومتوافقة مع متطلبات الترخيص الحالية لعام 2026.
-</p>
-<p>إن لاحظت خطأً في إجدى الإجابات، أو لديك استفسار حول أي سؤال ،
-  لا تتردد في التواصل معنا
-  <a href="https://www.driverjo.online/p/contact-us.html" target="_blank" rel="noopener">من هنا</a>،
-  وسنعمل على مراجعة الملاحظة وتصحيحها في أقرب وقت. هدفنا أن يصل كل متقدم لاختبار
-  الفحص النظري في الأردن إلى الامتحان وهو على أتم استعداد.
-</p>
+  <div id="qax-page-cats">
 <div class="qax-exam-row">
       <div class="qax-exam-ico"><i class="ph ph-exam"></i></div>
       <div class="qax-exam-info">
@@ -452,6 +490,12 @@
           <i class="ph ph-lightning"></i>اختبار
         </button>
       </div>
+    </div>
+    <!-- نصوص SEO في الأسفل بعيداً عن مسار المستخدم -->
+    <div class="qax-seo-wrap">
+      <p>أسئلة الفحص النظري 2026 — بنك شامل يغطي جميع أقسام الامتحان النظري: <b>قواعد السير والمرور</b>، <b>الشواخص والخطوط والعلامات</b>، <b>السلامة على الطريق</b>، <b>الميكانيك</b>، <b>الإسعافات الأولية</b>، <b>المخالفات واحتساب النقاط</b>، و<b>الصور المتحركة</b>. إذا كنت تستعد لاختبار <b>الفحص النظري</b> وتريد تجاوز الفحص النظري من المرة الأولى، فهذه الصفحة هي دليلك الكامل للمراجعة والتدريب.</p>
+      <p>جميع الأسئلة الواردة هنا مشابهة تماماً لأسئلة <b>كتاب الفحص النظري</b> المعتمد في <a href="/p/driving-schools.html">مراكز تعليم القيادة</a>، وتعكس النماذج الفعلية التي تظهر في الامتحان الرسمي. نحرص على مراجعة بنك الأسئلة وتحديثه باستمرار لضمان توافقه مع متطلبات الترخيص الحالية لعام 2026.</p>
+      <p>إن لاحظت خطأً في إحدى الإجابات، أو لديك استفسار حول أي سؤال، لا تتردد في التواصل معنا <a href="https://www.driverjo.online/p/contact-us.html" target="_blank" rel="noopener">من هنا</a>.</p>
     </div>
   </div>
 
@@ -568,7 +612,14 @@
       </div>
       <div id="qax-res-h" class="qax-result-h"></div>
       <p id="qax-res-p" class="qax-result-p"></p>
+      <div id="qax-res-stats" class="qax-res-stats qax-hide">
+        <div class="qax-rs-ok"><i class="ph ph-check-circle"></i><span id="qax-rs-ok-n">0</span> صحيح</div>
+        <div class="qax-rs-wr"><i class="ph ph-x-circle"></i><span id="qax-rs-wr-n">0</span> خاطئ</div>
+      </div>
       <div class="qax-result-acts">
+        <button id="qax-res-review" class="qax-big-btn qax-big-err qax-hide">
+          <i class="ph ph-x-circle"></i><span id="qax-res-review-lbl">مراجعة الأخطاء</span>
+        </button>
         <button id="qax-res-retry" class="qax-big-btn qax-big-primary">
           <i class="ph ph-arrow-clockwise"></i>إعادة الاختبار
         </button>
@@ -585,13 +636,7 @@
 (function(){
 'use strict';
 
-/* ── Firebase ── */
-var FB={
-  apiKey: "AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ",
-  authDomain: "driverjo.firebaseapp.com",
-  databaseURL: "https://driverjo-default-rtdb.firebaseio.com",
-  projectId: "driverjo"
-};
+/* ── (Firebase SDK غير مستخدم — البيانات تُجلب عبر REST مباشرةً) ── */
 
 /* ── Categories ── */
 var CATS=[
@@ -632,7 +677,7 @@ function loadCache(){
 }
 
 /* ── state ── */
-var allQ={},catName=null,qs=[],idx=0,score=0,answered=false;
+var allQ={},catName=null,qs=[],idx=0,score=0,answered=false,wrongLog=[];
 
 /* ── pages ── */
 var P={
@@ -844,7 +889,7 @@ else dot.textContent = ['أ', 'ب', 'ج', 'د', 'هـ'][i];
 
 /* ── exam ── */
 function startExam(name,questions){
-  catName=name;qs=shuffle(questions);idx=0;score=0;answered=false;
+  catName=name;qs=shuffle(questions);idx=0;score=0;answered=false;wrongLog=[];
   var empty=document.getElementById('qax-exam-empty');
   var body=document.getElementById('qax-exam-body');
   empty.classList.add('qax-hide');body.classList.remove('qax-hide');
@@ -883,7 +928,7 @@ dot.textContent = ['أ', 'ب', 'ج', 'د', 'هـ'][i]; // التعديل هنا
 function handleAns(chosen,correct){
   if(answered)return;answered=true;
   var ok=chosen===correct;
-  if(ok){score++;document.getElementById('qax-score-num').textContent=score;sndOk()}else sndBad();
+  if(ok){score++;document.getElementById('qax-score-num').textContent=score;sndOk()}else{sndBad();wrongLog.push(qs[idx]);}
   document.getElementById('qax-exam-opts').querySelectorAll('.qax-eopt').forEach(function(b,i){
     b.disabled=true;
     if(i===chosen&&ok)b.classList.add('qax-e-ok');
@@ -923,6 +968,18 @@ function showResult(){
   var s2=document.createElement('strong');s2.textContent=total;rp.appendChild(s2);
   rp.appendChild(document.createTextNode(' سؤال بشكل صحيح'));
   qaxGo('result');
+  /* إحصائيات الصح والخطأ */
+  var wrongN=qs.length-score;
+  var statsEl=document.getElementById('qax-res-stats');
+  if(statsEl){document.getElementById('qax-rs-ok-n').textContent=score;document.getElementById('qax-rs-wr-n').textContent=wrongN;statsEl.classList.remove('qax-hide');}
+  /* زر مراجعة الأخطاء */
+  var revBtn=document.getElementById('qax-res-review');
+  if(revBtn){
+    if(wrongLog.length>0){
+      document.getElementById('qax-res-review-lbl').textContent='مراجعة '+wrongLog.length+(wrongLog.length===1?' خطأ':' أخطاء');
+      revBtn.classList.remove('qax-hide');
+    }else{revBtn.classList.add('qax-hide');}
+  }
 }
 
 /* ── events ── */
@@ -947,12 +1004,18 @@ document.getElementById('qax-rev-next').addEventListener('click',function(){
 });
 document.getElementById('qax-done-again').addEventListener('click',function(){idx=0;qaxGo('rev');renderRev()});
 document.getElementById('qax-done-cats').addEventListener('click',function(){qaxGo('cats')});
-document.getElementById('qax-exam-back').addEventListener('click',function(){qaxGo('cats')});
+document.getElementById('qax-exam-back').addEventListener('click',function(){
+  if(qs.length&&idx>0){if(!confirm('هل تريد الخروج؟ سيضيع تقدمك الحالي.'))return;}
+  qaxGo('cats');
+});
 document.getElementById('qax-exam-nxt').addEventListener('click',function(){
   if(idx<qs.length-1){idx++;renderExam()}else showResult();
 });
 document.getElementById('qax-res-retry').addEventListener('click',function(){startExam(catName,qs)});
 document.getElementById('qax-res-cats').addEventListener('click',function(){qaxGo('cats')});
+document.getElementById('qax-res-review').addEventListener('click',function(){
+  startRev('الأسئلة التي أخطأت فيها',wrongLog.slice());
+});
 
 /* ── start ── */
 load();
