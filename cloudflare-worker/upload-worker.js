@@ -12,12 +12,29 @@
  *      وأضف PUBLIC_BASE_URL بقيمة رابط r2.dev العام من الخطوة 1 (بدون / في النهاية).
  * 4) نشر (Deploy) والحصول على رابط الـ Worker (مثال: https://upload.xxxx.workers.dev)
  *    ثم زوّدني به مع قيمة UPLOAD_KEY لأربطهما بـ admin.html.
+ *
+ * ملاحظة أمنية: UPLOAD_KEY مُخزّن هنا داخل admin.html (كود عميل)، وهذا يعني أن
+ * أي شخص يستطيع رؤية مصدر الصفحة يمكنه استخراجه. تم تقييد CORS إلى نطاقات
+ * ALLOWED_ORIGINS أدناه لتقليل إساءة الاستخدام، لكن هذا لا يمنع طلبًا مباشرًا
+ * (خارج المتصفح) يحمل نفس المفتاح ونفس Origin مزيّف بأدوات مثل curl. هذا يطابق
+ * مستوى الحماية الحالي للوحة التحكم (تحقق UID بسيط دون مصادقة حقيقية)، وهو
+ * مقبول لموقع صغير، لكن لأمان أقوى لاحقًا يُفضّل توليد رمز رفع مؤقت من خادم
+ * موثوق بدل مفتاح ثابت دائم.
  */
+
+// أضف هنا كل نطاق يُسمح له فعليًا بطلب الرفع (لوحة التحكم فقط).
+const ALLOWED_ORIGINS = [
+  'https://www.driverjo.online',
+  'https://driverjo.online',
+];
 
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get('Origin') || '';
+    const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Vary': 'Origin',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, X-Upload-Key',
     };
@@ -29,6 +46,13 @@ export default {
     if (request.method !== 'POST') {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), {
         status: 405,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    if (!env.BUCKET || !env.PUBLIC_BASE_URL) {
+      return new Response(JSON.stringify({ error: 'Worker misconfigured: missing BUCKET binding or PUBLIC_BASE_URL' }), {
+        status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }

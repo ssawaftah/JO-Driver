@@ -1,0 +1,1 @@
+- [Blogger API image hosting limitation](blogger-api-image-hosting.md) — Blogger API v3 cannot rehost/host arbitrary images for third-party apps; verified by live test.

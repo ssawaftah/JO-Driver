@@ -2104,6 +2104,8 @@
   var dropzone  = document.getElementById('adm-dropzone');
   var fileInput = document.getElementById('adm-file-input');
   var MAX_PX = 800, MAX_QUAL = 0.82;
+  var UPLOAD_WORKER_URL = 'https://upload.idriverjo.workers.dev';
+  var UPLOAD_KEY = '19686130';
 
   dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('drag-over'); });
   dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('drag-over'); });
@@ -2119,14 +2121,39 @@
   function processImageFile(file) {
     if (!file.type.startsWith('image/')) { setUploadStatus('err','الملف المحدد ليس صورة'); return; }
     setUploadStatus('loading','جارٍ معالجة الصورة…');
+
+    function switchToUrlTab() {
+      activeMediaTab = 'url';
+      mediaTabs.forEach(function(b){ b.classList.toggle('active', b.dataset.mtab === 'url'); });
+      mtabUrl.classList.add('active'); mtabUpload.classList.remove('active');
+    }
+
+    function uploadBlobToWorker(blob, mimeType) {
+      setUploadStatus('loading','جارٍ رفع الصورة…');
+      var fd = new FormData();
+      var ext = mimeType === 'image/gif' ? 'gif' : mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+      fd.append('file', blob, 'upload.' + ext);
+      fetch(UPLOAD_WORKER_URL, {
+        method: 'POST',
+        headers: { 'X-Upload-Key': UPLOAD_KEY },
+        body: fd
+      })
+        .then(function(r){ return r.json().then(function(d){ if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); })
+        .then(function(d){
+          fUrl.value = d.url; updateMediaPreview(d.url); switchToUrlTab();
+          var kb = Math.round(blob.size / 1024);
+          setUploadStatus('ok','تم الرفع ✓ — ~' + kb + ' كيلوبايت');
+        })
+        .catch(function(err){ setUploadStatus('err','فشل رفع الصورة: ' + err.message); });
+    }
+
+    if (file.type === 'image/gif') {
+      uploadBlobToWorker(file, 'image/gif');
+      return;
+    }
+
     var reader = new FileReader();
     reader.onload = function(e){
-      var rawDataUrl = e.target.result;
-      if (file.type === 'image/gif') {
-        var kb = Math.round(rawDataUrl.length * 0.75 / 1024);
-        fUrl.value = rawDataUrl; updateMediaPreview(rawDataUrl); switchToUrlTab();
-        setUploadStatus('ok','تم تحميل GIF ✓ — ~' + kb + ' كيلوبايت'); return;
-      }
       var img = new Image();
       img.onload = function(){
         var w = img.naturalWidth, h = img.naturalHeight;
@@ -2141,22 +2168,16 @@
         var outType = file.type === 'image/png' ? 'image/png'
           : (file.type === 'image/webp' && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0)
             ? 'image/webp' : 'image/jpeg';
-        var dataUrl = canvas.toDataURL(outType, MAX_QUAL);
-        fUrl.value = dataUrl; updateMediaPreview(dataUrl); switchToUrlTab();
-        var kb2 = Math.round(dataUrl.length * 0.75 / 1024);
-        setUploadStatus('ok','تم التحميل ✓ — ' + w + '×' + h + 'px · ~' + kb2 + ' كيلوبايت');
+        canvas.toBlob(function(blob){
+          if (!blob) { setUploadStatus('err','تعذّرت معالجة الصورة'); return; }
+          uploadBlobToWorker(blob, outType);
+        }, outType, MAX_QUAL);
       };
       img.onerror = function(){ setUploadStatus('err','تعذّر قراءة الصورة'); };
-      img.src = rawDataUrl;
+      img.src = e.target.result;
     };
     reader.onerror = function(){ setUploadStatus('err','فشل قراءة الملف'); };
     reader.readAsDataURL(file);
-
-    function switchToUrlTab() {
-      activeMediaTab = 'url';
-      mediaTabs.forEach(function(b){ b.classList.toggle('active', b.dataset.mtab === 'url'); });
-      mtabUrl.classList.add('active'); mtabUpload.classList.remove('active');
-    }
   }
 
   function setUploadStatus(type, msg) {
