@@ -1,19 +1,15 @@
 ---
     name: driverjo Google Maps migration
-    description: How the driverjo static site loads Google Maps (server-side key injection, callback race avoidance)
+    description: Durable lessons from swapping driverjo's Leaflet/OSM map picker for Google Maps
     ---
 
-    driverjo (pages/*.html, no build step) is served by a custom server.js, not the `serve` npm package.
-    server.js templates `{{GOOGLE_MAPS_API_KEY}}` into center-join.html and admin.html from the
-    GOOGLE_MAPS_API_KEY env var at request time, and re-implements clean URLs (no .html suffix) since
-    switching away from `serve` would otherwise break existing links/bookmarks.
-
-    **Why:** the site has no build/bundler, so there's no other way to keep an API key out of the
-    static HTML source while still letting client-side Google Maps JS use it.
-
-    **Google Maps callback race:** the Maps script tag uses `callback=` with `async defer`. Because the
-    script can execute before later inline `<script>` blocks run, both pages define their ready
-    callback (window.jfOnGoogleMapsReady / window.admOnGoogleMapsReady) and a pending-callback array
-    *before* the Maps <script src> tag, then push the real init logic into that queue further down the
-    page. Defining the callback only at its "logical" point later in the page is a real (if narrow) race.
+    - driverjo is deployed by copy-pasting the page HTML directly into Blogger — there is no backend at
+    runtime in production. Never design a fix that relies on server-side templating/env injection for
+    this project; the Replit static server here is only for local editing/preview.
+    - Because of that, client-side API keys (e.g. Google Maps) are hardcoded directly in the HTML, same
+    as any standard browser-based Google Maps embed. Key restriction is done via HTTP referrer in
+    Google Cloud Console, not via secret-hiding — there's nowhere server-side to hide it.
+    - Google Maps' `callback=` script param can fire before later inline `<script>` blocks on the page
+    run. Define the ready callback (and a pending-callback queue) in a `<script>` placed *before* the
+    Maps `<script src>` tag, not after — otherwise there's a real load-order race.
     
