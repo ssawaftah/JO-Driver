@@ -1,15 +1,3 @@
-<script>
-  /* يُعرَّف مبكرًا لتفادي تسابق التحميل: قد ينفّذ Google Maps الاستدعاء
-     قبل وصول القارئ إلى الكود الفعلي لاحقًا في الصفحة. */
-  window.__jfMapsReady = false;
-  window.__jfMapsCallbacks = [];
-  window.jfOnGoogleMapsReady = function () {
-    window.__jfMapsReady = true;
-    window.__jfMapsCallbacks.forEach(function (cb) { cb(); });
-    window.__jfMapsCallbacks = [];
-  };
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_yohiJYsG228Vl0RZIknnp3sb5tf6kbY&libraries=places&language=ar&region=JO&callback=jfOnGoogleMapsReady" async defer></script>
 <style>
 /* RESET & BASE */
 .jf-wrap { max-width: 720px; margin: 0 auto; padding: 0 0 60px; }
@@ -19,7 +7,7 @@
   background: linear-gradient(135deg,#1d4ed8 0%,#2563eb 60%,#3b82f6 100%);
   border-radius: 16px;
   padding: 36px 28px 32px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   color: #fff;
   text-align: center;
 }
@@ -82,128 +70,6 @@
 .jf-wa-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 .jf-wa-btn.btn-success-active { background: #f0fdf4; border-color: #22c55e; color: #16a34a; pointer-events: none; }
 
-/* MAP CONTAINER */
-.jf-map-container {
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(37,99,235,.08);
-  margin-bottom: 10px;
-}
-
-/* MAP SEARCH */
-.jf-map-search {
-  position: relative;
-  padding: 12px 12px 0;
-  background: #f8fafc;
-}
-.jf-map-search-inner {
-  display: flex; gap: 8px; align-items: center;
-}
-.jf-map-search-input {
-  flex: 1; padding: 10px 14px; font-size: 0.9rem;
-  border: 1.5px solid #e2e8f0; border-radius: 10px;
-  outline: none; color: #1e293b; background: #fff;
-  font-family: inherit; direction: rtl;
-  transition: border-color .18s, box-shadow .18s;
-}
-.jf-map-search-input:focus {
-  border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
-}
-.jf-map-search-input::placeholder { color: #94a3b8; }
-.jf-map-search-btn {
-  padding: 10px 16px; background: #2563eb; color: #fff;
-  border: none; border-radius: 10px; cursor: pointer;
-  font-size: 0.9rem; font-weight: 600; white-space: nowrap;
-  transition: background .15s;
-  display: flex; align-items: center; gap: 6px;
-}
-.jf-map-search-btn:hover { background: #1d4ed8; }
-.jf-map-search-btn:disabled { background: #93c5fd; cursor: not-allowed; }
-.jf-map-search-results {
-  position: absolute;
-  top: calc(100% - 2px); right: 12px; left: 12px;
-  background: #fff;
-  border: 1.5px solid #2563eb;
-  border-top: none;
-  border-radius: 0 0 10px 10px;
-  max-height: 210px;
-  overflow-y: auto;
-  z-index: 9999;
-  box-shadow: 0 8px 20px rgba(0,0,0,.12);
-}
-.jf-map-search-item {
-  padding: 10px 14px; cursor: pointer;
-  font-size: 0.875rem; color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background .1s; line-height: 1.5;
-  direction: rtl;
-}
-.jf-map-search-item:last-child { border-bottom: none; }
-.jf-map-search-item:hover { background: #eff6ff; color: #2563eb; }
-.jf-map-search-item.no-result { color: #94a3b8; cursor: default; }
-.jf-map-search-item.no-result:hover { background: #fff; }
-.jf-map-search-sep { height: 8px; background: #f8fafc; }
-
-/* MAP ITSELF */
-.jf-map {
-  width: 100%; height: 320px;
-  background: #f1f5f9;
-  margin-top: 10px;
-}
-.jf-map.error { outline: 2px solid #ef4444; }
-
-/* MAP TIP OVERLAY */
-.jf-map-tip {
-  padding: 8px 14px;
-  background: #fffbeb;
-  border-top: 1px solid #fde68a;
-  font-size: 0.8rem; color: #92400e;
-  display: flex; align-items: center; gap: 6px;
-}
-
-/* GEO STATUS */
-.jf-geo-status {
-  margin-top: 8px; padding: 8px 12px; border-radius: 8px;
-  background: #eff6ff; color: #1d4ed8;
-  font-size: .84rem; display: flex; align-items: center; gap: 6px;
-}
-.jf-geo-status.jf-geo-warn { background: #fffbeb; color: #b45309; }
-
-/* ADDRESS EDITED BADGE */
-.jf-addr-edited {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.75rem; color: #16a34a; font-weight: 600;
-  background: #f0fdf4; border: 1px solid #bbf7d0;
-  border-radius: 6px; padding: 2px 8px; margin-top: 5px;
-}
-.jf-addr-edited-wrap { display: none; }
-.jf-addr-edited-wrap.show { display: block; }
-
-/* LOCATE BTN */
-.jf-locate-row {
-  display: flex; gap: 8px; margin: 10px 12px 12px;
-}
-.jf-locate-btn {
-  flex: 1; padding: 11px 14px; border: 1.5px solid #e2e8f0;
-  border-radius: 10px; background: #f8fafc; cursor: pointer;
-  color: #374151; font-size: 0.875rem; font-weight: 600;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: background .15s, border-color .15s; font-family: inherit;
-}
-.jf-locate-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
-.jf-locate-btn.btn-success-active { background: #f0fdf4; border-color: #22c55e; color: #16a34a; pointer-events: none; }
-.jf-locate-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-/* MULTI SELECT */
-.jf-select-multi {
-  height: auto; min-height: 130px; padding: 6px 0;
-  overflow-y: auto; cursor: pointer;
-}
-.jf-select-multi option { padding: 9px 14px; font-size: 0.93rem; cursor: pointer; }
-.jf-select-multi option:checked { background: #2563eb; color: #fff; }
-
 /* RATING */
 .jf-rating-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -244,6 +110,29 @@
 .jf-toggle input:checked + .jf-toggle-slider { background: #22c55e; }
 .jf-toggle input:checked + .jf-toggle-slider::after { transform: translateX(-18px); }
 
+/* STEP 1: LINK CARD */
+.jf-step1 { text-align: center; padding: 36px 24px; }
+.jf-step1-icon { font-size: 2.4rem; margin-bottom: 12px; }
+.jf-step1 h2 { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin: 0 0 8px; }
+.jf-step1 p { font-size: 0.9rem; color: #64748b; margin: 0 0 20px; line-height: 1.7; }
+.jf-step1-form { text-align: right; max-width: 480px; margin: 0 auto; }
+.jf-next-btn {
+  width: 100%; margin-top: 14px; padding: 14px; background: #2563eb; color: #fff;
+  border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 8px; transition: background .18s, transform .1s; font-family: inherit;
+}
+.jf-next-btn:hover { background: #1d4ed8; }
+.jf-next-btn:active { transform: scale(0.98); }
+
+/* NAME AUTOFILL HINT */
+.jf-autofill-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.75rem; color: #16a34a; font-weight: 600;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 6px; padding: 2px 8px; margin-top: 6px;
+}
+
 /* SUBMIT */
 .jf-submit-wrap { margin-top: 28px; }
 .jf-submit-btn {
@@ -264,7 +153,6 @@
 
 /* ERROR */
 .jf-input.error, .jf-select.error { border-color: #ef4444; }
-.jf-map-container.error .jf-map { outline: 2px solid #ef4444; }
 .jf-field-err { font-size: 0.8rem; color: #ef4444; margin-top: 4px; display: none; }
 .jf-field-err.show { display: block; }
 
@@ -283,8 +171,31 @@
     <p>&#x0633;&#x064A;&#x0631;&#x0627;&#x062C;&#x0639; &#x0641;&#x0631;&#x064A;&#x0642; Jo Driver &#x0637;&#x0644;&#x0628;&#x0643; &#x0648;&#x064A;&#x062A;&#x0648;&#x0627;&#x0635;&#x0644; &#x0645;&#x0639;&#x0643; &#x062E;&#x0644;&#x0627;&#x0644; 48 &#x0633;&#x0627;&#x0639;&#x0629; &#x0639;&#x0645;&#x0644;.<br>&#x0634;&#x0643;&#x0631;&#x0627; &#x0644;&#x062B;&#x0642;&#x062A;&#x0643; &#x0628;&#x0645;&#x0646;&#x0635;&#x0651;&#x062A;&#x0646;&#x0627;.</p>
   </div>
 
-  <!-- FORM -->
-  <form id="jfForm" novalidate>
+  <!-- STEP 1: هل تود الانضمام؟ -->
+  <div class="jf-card" id="jfStep1">
+    <div class="jf-step1">
+      <div class="jf-step1-icon">&#x1F91D;</div>
+      <h2>&#x0647;&#x0644; &#x062A;&#x0648;&#x062F; &#x0627;&#x0644;&#x0627;&#x0646;&#x0636;&#x0645;&#x0627;&#x0645; &#x0644;&#x0644;&#x0645;&#x0646;&#x0635;&#x0629;&#x061F;</h2>
+      <p>&#x0623;&#x0636;&#x0641; &#x0645;&#x0631;&#x0643;&#x0632;&#x0643; &#x0644;&#x062A;&#x0638;&#x0647;&#x0631; &#x0636;&#x0645;&#x0646; &#x0645;&#x0631;&#x0627;&#x0643;&#x0632; &#x062A;&#x0639;&#x0644;&#x064A;&#x0645; &#x0627;&#x0644;&#x0642;&#x064A;&#x0627;&#x062F;&#x0629; &#x0639;&#x0644;&#x0649; &#x0645;&#x0646;&#x0635;&#x0629; Jo Driver.<br>&#x0627;&#x0628;&#x062F;&#x0623; &#x0628;&#x0644;&#x0635;&#x0642; &#x0631;&#x0627;&#x0628;&#x0637; &#x0645;&#x0631;&#x0643;&#x0632;&#x0643; &#x0639;&#x0644;&#x0649; &#x062E;&#x0631;&#x0627;&#x0626;&#x0637; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633;.</p>
+      <div class="jf-step1-form">
+        <div class="jf-field">
+          <label class="jf-label" for="jfLinkStep">
+            &#x0631;&#x0627;&#x0628;&#x0637; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632; &#x0639;&#x0644;&#x0649; &#x062E;&#x0631;&#x0627;&#x0626;&#x0637; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633; <span class="req">*</span>
+          </label>
+          <input class="jf-input" type="url" id="jfLinkStep" placeholder="https://maps.app.goo.gl/..." dir="ltr">
+          <div class="jf-field-err" id="jfLinkStepErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0644;&#x0635;&#x0642; &#x0631;&#x0627;&#x0628;&#x0637; &#x0635;&#x062D;&#x064A;&#x062D; &#x0644;&#x0645;&#x0631;&#x0643;&#x0632;&#x0643; &#x0639;&#x0644;&#x0649; &#x062E;&#x0631;&#x0627;&#x0626;&#x0637; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633;</div>
+          <div class="jf-hint">&#x0627;&#x0641;&#x062A;&#x062D; &#x062E;&#x0631;&#x0627;&#x0626;&#x0637; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633;&#x060C; &#x0627;&#x0628;&#x062D;&#x062B; &#x0639;&#x0646; &#x0645;&#x0631;&#x0643;&#x0632;&#x0643;&#x060C; &#x062B;&#x0645; &#x0627;&#x0636;&#x063A;&#x0637; &#x0645;&#x0634;&#x0627;&#x0631;&#x0643;&#x0629; &#x0648;&#x0627;&#x0646;&#x0633;&#x062E; &#x0627;&#x0644;&#x0631;&#x0627;&#x0628;&#x0637; &#x0647;&#x0646;&#x0627;</div>
+        </div>
+        <button type="button" class="jf-next-btn" id="jfNextBtn">
+          <span>&#x0627;&#x0644;&#x062A;&#x0627;&#x0644;&#x064A;</span>
+          <span>&#x2192;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM (يظهر بعد الضغط على "التالي") -->
+  <form id="jfForm" novalidate style="display:none">
 
     <!-- 1. بيانات المركز -->
     <div class="jf-card">
@@ -300,67 +211,7 @@
           </label>
           <input class="jf-input" type="text" id="jfName" placeholder="&#x0645;&#x062B;&#x0627;&#x0644;: &#x0645;&#x0631;&#x0643;&#x0632; &#x0627;&#x0644;&#x0642;&#x064A;&#x0627;&#x062F;&#x0629; &#x0627;&#x0644;&#x0623;&#x0631;&#x062F;&#x0646;&#x064A;">
           <div class="jf-field-err" id="jfNameErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0625;&#x062F;&#x062E;&#x0627;&#x0644; &#x0627;&#x0633;&#x0645; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632;</div>
-        </div>
-
-        <!-- MAP FIELD -->
-        <div class="jf-field">
-          <label class="jf-label">&#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0645;&#x0648;&#x0642;&#x0639; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632; &#x0639;&#x0644;&#x0649; &#x0627;&#x0644;&#x062E;&#x0631;&#x064A;&#x0637;&#x0629; <span class="req">*</span></label>
-
-          <div class="jf-map-container" id="jfMapContainer">
-            <!-- Search Box -->
-            <div class="jf-map-search">
-              <div class="jf-map-search-inner">
-                <input type="text" class="jf-map-search-input" id="jfMapSearch"
-                       placeholder="&#x0627;&#x0628;&#x062D;&#x062B; &#x0639;&#x0646; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639; &#x0628;&#x0627;&#x0644;&#x0639;&#x0631;&#x0628;&#x064A;&#x0629;..." autocomplete="off">
-                <button type="button" class="jf-map-search-btn" id="jfMapSearchBtn">
-                  &#x1F50D; &#x0628;&#x062D;&#x062B;
-                </button>
-              </div>
-              <div class="jf-map-search-results" id="jfMapSearchResults" style="display:none"></div>
-            </div>
-
-            <!-- Map Tile -->
-            <div id="jfMap" class="jf-map"></div>
-
-            <!-- Tip -->
-            <div class="jf-map-tip">
-              &#x1F4CC; &#x0627;&#x0636;&#x063A;&#x0637; &#x0639;&#x0644;&#x0649; &#x0627;&#x0644;&#x062E;&#x0631;&#x064A;&#x0637;&#x0629; &#x0644;&#x0648;&#x0636;&#x0639; &#x0627;&#x0644;&#x062F;&#x0628;&#x0648;&#x0633; &#x2014; &#x0623;&#x0648; &#x0627;&#x0633;&#x062D;&#x0628;&#x0647; &#x0644;&#x062A;&#x0639;&#x062F;&#x064A;&#x0644; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639; &#x0628;&#x062F;&#x0642;&#x0651;&#x0629;
-            </div>
-
-            <!-- Locate Button -->
-            <div class="jf-locate-row">
-              <button type="button" class="jf-locate-btn" id="jfLocateBtn">
-                <span>&#x1F4E1;</span>
-                <span id="jfLocateBtnText">&#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0645;&#x0648;&#x0642;&#x0639;&#x064A; &#x0627;&#x0644;&#x062D;&#x0627;&#x0644;&#x064A;</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="jf-geo-status" id="jfGeoStatus" style="display:none"></div>
-          <div class="jf-field-err" id="jfLocationErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0645;&#x0648;&#x0642;&#x0639; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632; &#x0639;&#x0644;&#x0649; &#x0627;&#x0644;&#x062E;&#x0631;&#x064A;&#x0637;&#x0629;</div>
-        </div>
-
-        <!-- ADDRESS -->
-        <div class="jf-field">
-          <label class="jf-label" for="jfAddress">
-            &#x0627;&#x0644;&#x0639;&#x0646;&#x0648;&#x0627;&#x0646; <span class="req">*</span>
-          </label>
-          <input class="jf-input" type="text" id="jfAddress" readonly
-                 placeholder="&#x0633;&#x064A;&#x064F;&#x0645;&#x0644;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0628;&#x0639;&#x062F; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639;"
-                 style="background:#f8fafc;cursor:default">
-          <div class="jf-field-err" id="jfAddressErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639; &#x0639;&#x0644;&#x0649; &#x0627;&#x0644;&#x062E;&#x0631;&#x064A;&#x0637;&#x0629; &#x0623;&#x0648;&#x0644;&#x0627;&#x064B;</div>
-          <div class="jf-hint">&#x064A;&#x064F;&#x0639;&#x0628;&#x064E;&#x0651;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0645;&#x0646; &#x0645;&#x0648;&#x0642;&#x0639; &#x0627;&#x0644;&#x062F;&#x0628;&#x0648;&#x0633;</div>
-        </div>
-
-        <!-- MAPS LINK -->
-        <div class="jf-field">
-          <label class="jf-label" for="jfMapsLink">
-            &#x0631;&#x0627;&#x0628;&#x0637; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632; &#x0639;&#x0644;&#x0649; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633; <span class="req">*</span>
-          </label>
-          <input class="jf-input" type="url" id="jfMapsLink"
-                 placeholder="&#x0633;&#x064A;&#x064F;&#x0645;&#x0644;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0628;&#x0639;&#x062F; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639;" dir="ltr">
-          <div class="jf-field-err" id="jfMapsLinkErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0625;&#x062F;&#x062E;&#x0627;&#x0644; &#x0631;&#x0627;&#x0628;&#x0637; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633; &#x0635;&#x062D;&#x064A;&#x062D;</div>
-          <div class="jf-hint">&#x064A;&#x064F;&#x0639;&#x0628;&#x064E;&#x0651;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x2014; &#x0648;&#x064A;&#x0645;&#x0643;&#x0646;&#x0643; &#x0627;&#x0633;&#x062A;&#x0628;&#x062F;&#x0627;&#x0644;&#x0647; &#x0628;&#x0631;&#x0627;&#x0628;&#x0637; &#x0635;&#x0641;&#x062D;&#x0629; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632; &#x0627;&#x0644;&#x0641;&#x0639;&#x0644;&#x064A;&#x0629; &#x0639;&#x0644;&#x0649; &#x062C;&#x0648;&#x062C;&#x0644; &#x0645;&#x0627;&#x0628;&#x0633; &#x0625;&#x0646; &#x0648;&#x064F;&#x062C;&#x062F;&#x062A;</div>
+          <div class="jf-autofill-badge" id="jfNameAutoBadge" style="display:none">&#x2713; &#x062A;&#x0645; &#x062C;&#x0644;&#x0628; &#x0627;&#x0644;&#x0627;&#x0633;&#x0645; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0645;&#x0646; &#x0627;&#x0644;&#x0631;&#x0627;&#x0628;&#x0637; &#x2014; &#x064A;&#x0645;&#x0643;&#x0646;&#x0643; &#x062A;&#x0639;&#x062F;&#x064A;&#x0644;&#x0647;</div>
         </div>
 
         <!-- PHONE -->
@@ -383,10 +234,20 @@
           </div>
         </div>
 
+        <!-- ADDRESS -->
+        <div class="jf-field">
+          <label class="jf-label" for="jfAddress">
+            &#x0627;&#x0644;&#x0639;&#x0646;&#x0648;&#x0627;&#x0646; <span class="req">*</span>
+          </label>
+          <input class="jf-input" type="text" id="jfAddress"
+                 placeholder="&#x0645;&#x062B;&#x0644;&#x0627;&#x064B;: &#x0645;&#x0627;&#x062F;&#x0628;&#x0627;&#x060C; &#x062D;&#x0646;&#x064A;&#x0646;&#x0627;&#x060C; &#x0634;&#x0627;&#x0631;&#x0639; &#x0627;&#x0644;&#x0633;&#x0644;&#x0637;&#x0629;">
+          <div class="jf-field-err" id="jfAddressErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0625;&#x062F;&#x062E;&#x0627;&#x0644; &#x0639;&#x0646;&#x0648;&#x0627;&#x0646; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632;</div>
+        </div>
+
       </div>
     </div>
 
-    <!-- 3. تقييم جوجل -->
+    <!-- 2. تقييم جوجل -->
     <div class="jf-card">
       <div class="jf-card-head">
         <div class="jf-card-head-icon">&#x2B50;</div>
@@ -407,7 +268,7 @@
       </div>
     </div>
 
-    <!-- 4. أوقات الدوام -->
+    <!-- 3. أوقات الدوام -->
     <div class="jf-card">
       <div class="jf-card-head">
         <div class="jf-card-head-icon">&#x1F552;</div>
@@ -435,7 +296,6 @@
   'use strict';
 
   /* Firebase: REST للقراءة، SDK للكتابة */
-  var FB_BASE = 'https://driverjo-default-rtdb.firebaseio.com';
   function getDb() {
     return (window.JDAuth && JDAuth.db) ? JDAuth.db : null;
   }
@@ -452,19 +312,87 @@
   ];
 
   /* مراجع DOM */
+  var elStep1        = document.getElementById('jfStep1');
+  var elLinkStep      = document.getElementById('jfLinkStep');
+  var elNextBtn       = document.getElementById('jfNextBtn');
   var elForm          = document.getElementById('jfForm');
   var elSuccess       = document.getElementById('jfSuccess');
   var elWaCopy        = document.getElementById('jfWaCopy');
   var elSchedule      = document.getElementById('jfSchedule');
   var elSubmitBtn     = document.getElementById('jfSubmitBtn');
+  var elName          = document.getElementById('jfName');
+  var elNameAutoBadge = document.getElementById('jfNameAutoBadge');
   var elAddress       = document.getElementById('jfAddress');
-  var elMapsLink      = document.getElementById('jfMapsLink');
-  var elGeoStatus     = document.getElementById('jfGeoStatus');
 
-  /* العنوان للقراءة فقط — يُملأ تلقائياً من الجيوكودر */
+  var jfMapsLink = '';
 
   /* ══════════════════════════════════════
-     1. بناء قائمة الساعات
+     1. استخراج اسم المركز من رابط جوجل مابس
+  ══════════════════════════════════════ */
+  function extractNameFromMapsLink(url) {
+    try {
+      /* نمط: .../maps/place/اسم+المركز/@... */
+      var m = url.match(/\/maps\/place\/([^\/@?]+)/i);
+      if (m && m[1]) {
+        var raw = decodeURIComponent(m[1].replace(/\+/g, ' ')).trim();
+        /* أحياناً يكون الجزء المستخرج إحداثيات فقط، تجاهله */
+        if (raw && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(raw)) return raw;
+      }
+      /* نمط: ?q=اسم+المركز */
+      var qMatch = url.match(/[?&]q=([^&]+)/i);
+      if (qMatch && qMatch[1]) {
+        var qRaw = decodeURIComponent(qMatch[1].replace(/\+/g, ' ')).trim();
+        if (qRaw && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(qRaw)) return qRaw;
+      }
+    } catch (e) { /* روابط مشفّرة بشكل غير متوقع: تجاهل */ }
+    return '';
+  }
+
+  /* ══════════════════════════════════════
+     2. الخطوة الأولى: رابط المركز ثم "التالي"
+  ══════════════════════════════════════ */
+  function isGoogleMapsLink(url) {
+    if (!/^https?:\/\//i.test(url)) return false;
+    try {
+      var host = new URL(url).hostname.replace(/^www\./i, '');
+      return (
+        host === 'google.com' || /\.google\.com$/i.test(host) ||
+        host === 'goo.gl' || host === 'maps.app.goo.gl'
+      ) && /maps|goo\.gl/i.test(host + url);
+    } catch (e) { return false; }
+  }
+
+  function goToStep2() {
+    var link = elLinkStep.value.trim();
+    if (!link || !isGoogleMapsLink(link)) {
+      showErr('jfLinkStep', 'jfLinkStepErr');
+      return;
+    }
+    clearErr('jfLinkStep', 'jfLinkStepErr');
+    jfMapsLink = link;
+
+    var guessedName = extractNameFromMapsLink(link);
+    if (guessedName) {
+      elName.value = guessedName;
+      elNameAutoBadge.style.display = 'inline-flex';
+    } else {
+      elNameAutoBadge.style.display = 'none';
+    }
+
+    elStep1.style.display = 'none';
+    elForm.style.display = 'block';
+    elForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  elNextBtn.addEventListener('click', goToStep2);
+  elLinkStep.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); goToStep2(); }
+  });
+  elLinkStep.addEventListener('input', function () { clearErr('jfLinkStep', 'jfLinkStepErr'); });
+  elName.addEventListener('input', function () { elNameAutoBadge.style.display = 'none'; });
+
+  /* ══════════════════════════════════════
+     3. بناء قائمة الساعات
   ══════════════════════════════════════ */
   function buildTimeOptions() {
     var opts = '<option value="">\u2014</option>';
@@ -484,7 +412,7 @@
   var TIME_OPTIONS = buildTimeOptions();
 
   /* ══════════════════════════════════════
-     2. بناء جدول الدوام
+     4. بناء جدول الدوام
   ══════════════════════════════════════ */
   function buildSchedule() {
     DAYS.forEach(function (day) {
@@ -530,212 +458,7 @@
   }
 
   /* ══════════════════════════════════════
-     3. Google Geocoding: عنوان عكسي + بحث
-  ══════════════════════════════════════ */
-  function buildMapsLink(lat, lng) {
-    return 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
-  }
-
-  function buildAddressFromGoogleComponents(components, fallback) {
-    if (!components || !components.length) return fallback || '';
-    function pick(types) {
-      for (var i = 0; i < components.length; i++) {
-        for (var j = 0; j < types.length; j++) {
-          if (components[i].types.indexOf(types[j]) !== -1) return components[i].long_name;
-        }
-      }
-      return '';
-    }
-    var area  = pick(['sublocality', 'neighborhood', 'locality']);
-    var city  = pick(['administrative_area_level_2', 'locality']);
-    var state = pick(['administrative_area_level_1']);
-    var parts = [];
-    if (area && area !== city) parts.push(area);
-    if (city) parts.push(city);
-    if (state && state !== city) parts.push(state);
-    return parts.length ? parts.join('\u060c ') : (fallback || '');
-  }
-
-  function showGeoStatus(text, warn) {
-    if (!elGeoStatus) return;
-    elGeoStatus.style.display = 'flex';
-    elGeoStatus.className = 'jf-geo-status' + (warn ? ' jf-geo-warn' : '');
-    elGeoStatus.textContent = (warn ? '\u26a0\ufe0f ' : '\u2705 ') + text;
-  }
-
-  var geocodeSeq = 0;
-  function reverseGeocodeAndFill(lat, lng) {
-    elMapsLink.value = buildMapsLink(lat, lng);
-    clearErr('jfMapsLink', 'jfMapsLinkErr');
-
-    var mySeq = ++geocodeSeq;
-    showGeoStatus('\u062c\u0627\u0631\u064d \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627...', false);
-
-    if (!jfGeocoder) return;
-    jfGeocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ar' }, function (results, status) {
-      if (mySeq !== geocodeSeq) return;
-      if (status === 'OK' && results && results.length) {
-        var address = buildAddressFromGoogleComponents(results[0].address_components, results[0].formatted_address);
-        elAddress.value = address;
-        clearErr('jfAddress', 'jfAddressErr');
-        showGeoStatus('\u062a\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u2014 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u062f \u0645\u0646\u0647.', false);
-      } else {
-        /* استخدام الإحداثيات كعنوان احتياطي */
-        elAddress.value = lat.toFixed(5) + '\u060c ' + lng.toFixed(5);
-        clearErr('jfAddress', 'jfAddressErr');
-        showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
-      }
-    });
-  }
-
-  /* ══════════════════════════════════════
-     4. خريطة Google Maps
-  ══════════════════════════════════════ */
-  var jfCoords = null;
-  var jfMap    = null, jfMarker = null, jfGeocoder = null, jfPlaces = null;
-  var DEFAULT_CENTER = { lat: 31.9539, lng: 35.9106 }; /* عمّان */
-
-  var elLocateBtn     = document.getElementById('jfLocateBtn');
-  var elLocateBtnText = document.getElementById('jfLocateBtnText');
-  var elMapContainer  = document.getElementById('jfMap');
-
-  function placePin(lat, lng) {
-    if (!jfMap) { jfCoords = { lat: lat, lng: lng }; return; }
-    jfCoords = { lat: lat, lng: lng };
-    clearErr('jfMapContainer', 'jfLocationErr');
-    var pos = { lat: lat, lng: lng };
-    if (!jfMarker) {
-      jfMarker = new google.maps.Marker({ position: pos, map: jfMap, draggable: true });
-      jfMarker.addListener('dragend', function () {
-        var p = jfMarker.getPosition();
-        jfCoords = { lat: p.lat(), lng: p.lng() };
-        reverseGeocodeAndFill(p.lat(), p.lng());
-      });
-    } else {
-      jfMarker.setPosition(pos);
-    }
-    jfMap.setCenter(pos);
-    if (jfMap.getZoom() < 15) jfMap.setZoom(15);
-    reverseGeocodeAndFill(lat, lng);
-  }
-
-  function jfInitGoogleMaps() {
-    if (!elMapContainer) return;
-    jfMap = new google.maps.Map(elMapContainer, {
-      center: DEFAULT_CENTER,
-      zoom: 8,
-      streetViewControl: false,
-      mapTypeControl: false,
-      fullscreenControl: false
-    });
-    jfGeocoder = new google.maps.Geocoder();
-    jfPlaces = new google.maps.places.PlacesService(jfMap);
-    jfMap.addListener('click', function (e) {
-      placePin(e.latLng.lat(), e.latLng.lng());
-    });
-    if (jfCoords) placePin(jfCoords.lat, jfCoords.lng);
-  }
-  if (window.__jfMapsReady) { jfInitGoogleMaps(); } else { window.__jfMapsCallbacks.push(jfInitGoogleMaps); }
-
-  /* زر تحديد الموقع الحالي */
-  if (elLocateBtn) {
-    elLocateBtn.addEventListener('click', function () {
-      if (!navigator.geolocation) {
-        alert('\u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062f\u0639\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0642\u0639.');
-        return;
-      }
-      elLocateBtn.disabled = true;
-      elLocateBtnText.textContent = '\u062c\u0627\u0631\u064d \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0642\u0639...';
-      navigator.geolocation.getCurrentPosition(
-        function (pos) {
-          var lat = pos.coords.latitude, lng = pos.coords.longitude;
-          placePin(lat, lng);
-          elLocateBtn.disabled = false;
-          elLocateBtn.classList.add('btn-success-active');
-          elLocateBtnText.textContent = '\u2713 \u062a\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0646\u062c\u0627\u062d';
-        },
-        function () {
-          elLocateBtn.disabled = false;
-          elLocateBtnText.textContent = '\u062a\u062d\u062f\u064a\u062f \u0645\u0648\u0642\u0639\u064a \u0627\u0644\u062d\u0627\u0644\u064a';
-          alert('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0645\u0648\u0642\u0639\u0643. \u064a\u0631\u062c\u0649 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u0645\u0648\u0642\u0639 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0648\u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.');
-        }
-      );
-    });
-  }
-
-  /* ══════════════════════════════════════
-     5. صندوق البحث في الخريطة
-  ══════════════════════════════════════ */
-  var elSearch        = document.getElementById('jfMapSearch');
-  var elSearchBtn     = document.getElementById('jfMapSearchBtn');
-  var elSearchResults = document.getElementById('jfMapSearchResults');
-  var searchDebounce  = null;
-  var searchSeq       = 0;
-
-  function doSearch(q) {
-    if (!q || q.length < 2) { elSearchResults.style.display = 'none'; return; }
-    if (!jfPlaces) { elSearchResults.style.display = 'none'; return; }
-    var mySeq = ++searchSeq;
-    elSearchBtn.disabled = true;
-    elSearchBtn.textContent = '\u23F3';
-    jfPlaces.textSearch({ query: q, region: 'jo', language: 'ar' }, function (results, status) {
-      /* تجاهل النتائج إن وصل طلب أحدث قبلها */
-      if (mySeq !== searchSeq) return;
-      elSearchBtn.disabled = false;
-      elSearchBtn.innerHTML = '\uD83D\uDD0D \u0628\u062d\u062b';
-      elSearchResults.innerHTML = '';
-      if (status !== 'OK' || !results || !results.length) {
-        var noResult = document.createElement('div');
-        noResult.className = 'jf-map-search-item no-result';
-        noResult.textContent = '\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u062a\u0627\u0626\u062c \u0644\u0644\u0628\u062d\u062b';
-        elSearchResults.appendChild(noResult);
-      } else {
-        results.forEach(function (item) {
-          var div = document.createElement('div');
-          div.className = 'jf-map-search-item';
-          div.textContent = item.name + (item.formatted_address ? ' \u2014 ' + item.formatted_address : '');
-          div.addEventListener('click', function () {
-            var lat = item.geometry.location.lat();
-            var lng = item.geometry.location.lng();
-            elSearchResults.style.display = 'none';
-            elSearch.value = '';
-            placePin(lat, lng);
-          });
-          elSearchResults.appendChild(div);
-        });
-      }
-      elSearchResults.style.display = 'block';
-    });
-  }
-
-  if (elSearch) {
-    elSearch.addEventListener('input', function () {
-      clearTimeout(searchDebounce);
-      var q = elSearch.value.trim();
-      if (!q) { elSearchResults.style.display = 'none'; return; }
-      searchDebounce = setTimeout(function () { doSearch(q); }, 500);
-    });
-    elSearch.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchDebounce); doSearch(elSearch.value.trim()); }
-      if (e.key === 'Escape') { elSearchResults.style.display = 'none'; }
-    });
-  }
-  if (elSearchBtn) {
-    elSearchBtn.addEventListener('click', function () {
-      clearTimeout(searchDebounce);
-      doSearch(elSearch.value.trim());
-    });
-  }
-
-  /* إغلاق نتائج البحث عند الضغط خارجها */
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest('.jf-map-search')) {
-      elSearchResults.style.display = 'none';
-    }
-  });
-
-  /* ══════════════════════════════════════
-     6. نسخ رقم الهاتف للواتساب
+     5. نسخ رقم الهاتف للواتساب
   ══════════════════════════════════════ */
   elWaCopy.addEventListener('click', function () {
     var phone = document.getElementById('jfPhone').value.trim();
@@ -747,7 +470,7 @@
   });
 
   /* ══════════════════════════════════════
-     7. Validation
+     6. Validation
   ══════════════════════════════════════ */
   function showErr(inputId, errId, msg) {
     var el    = document.getElementById(inputId);
@@ -766,36 +489,50 @@
     var el = document.getElementById(inputId);
     if (el) el.addEventListener('input', function () { clearErr(inputId, errId); });
   }
-  ['jfMapsLink','jfName','jfPhone'].forEach(function (id) {
+  ['jfName','jfPhone','jfAddress'].forEach(function (id) {
     addLiveValidation(id, id + 'Err');
   });
 
   function validate() {
     var ok = true;
 
-    var name = document.getElementById('jfName').value.trim();
+    var name = elName.value.trim();
     if (!name) { showErr('jfName', 'jfNameErr'); ok = false; }
-
-    if (!jfCoords) { showErr('jfMapContainer', 'jfLocationErr'); ok = false; }
-
-    var address = elAddress.value.trim();
-    if (!address) { showErr('jfAddress', 'jfAddressErr'); ok = false; }
-
-    var mapsLink = elMapsLink.value.trim();
-    if (!mapsLink || !mapsLink.startsWith('http')) {
-      showErr('jfMapsLink', 'jfMapsLinkErr'); ok = false;
-    }
 
     var phone = document.getElementById('jfPhone').value.trim();
     if (!phone || !/^07\d{8}$/.test(phone)) {
       showErr('jfPhone', 'jfPhoneErr'); ok = false;
     }
 
+    var address = elAddress.value.trim();
+    if (!address) { showErr('jfAddress', 'jfAddressErr'); ok = false; }
+
+    if (!jfMapsLink || !isGoogleMapsLink(jfMapsLink)) {
+      /* حالة غير متوقعة (تجاوز الخطوة الأولى) — أعد المستخدم إليها */
+      elStep1.style.display = 'block';
+      elForm.style.display = 'none';
+      showErr('jfLinkStep', 'jfLinkStepErr');
+      elStep1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      ok = false;
+    }
+
+    var ratingEl = document.getElementById('jfRating');
+    var ratingVal = parseFloat(ratingEl.value);
+    if (ratingEl.value && (isNaN(ratingVal) || ratingVal < 1 || ratingVal > 5)) {
+      ratingEl.value = '';
+    }
+
+    var reviewEl = document.getElementById('jfReviewCount');
+    var reviewVal = parseInt(reviewEl.value, 10);
+    if (reviewEl.value && (isNaN(reviewVal) || reviewVal < 0)) {
+      reviewEl.value = '';
+    }
+
     return ok;
   }
 
   /* ══════════════════════════════════════
-     8. قراءة الجدول الأسبوعي
+     7. قراءة الجدول الأسبوعي
   ══════════════════════════════════════ */
   function readSchedule() {
     var schedule = {};
@@ -814,12 +551,12 @@
   }
 
   /* ══════════════════════════════════════
-     9. الإرسال
+     8. الإرسال
   ══════════════════════════════════════ */
   elForm.addEventListener('submit', function (e) {
     e.preventDefault();
     if (!validate()) {
-      var firstErr = elForm.querySelector('.jf-input.error, .jf-select.error, .jf-map-container.error');
+      var firstErr = elForm.querySelector('.jf-input.error, .jf-select.error');
       if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -828,11 +565,9 @@
     elSubmitBtn.innerHTML = '<span class="jf-spin">\u29d7</span> <span>\u062c\u0627\u0631\u064d \u0627\u0644\u0625\u0631\u0633\u0627\u0644...</span>';
 
     var payload = {
-      mapsLink:     elMapsLink.value.trim(),
-      lat:          jfCoords ? jfCoords.lat : null,
-      lng:          jfCoords ? jfCoords.lng : null,
+      mapsLink:     jfMapsLink,
       address:      elAddress.value.trim(),
-      centerName:   document.getElementById('jfName').value.trim(),
+      centerName:   elName.value.trim(),
       phone:        document.getElementById('jfPhone').value.trim(),
       whatsapp:     document.getElementById('jfWhatsapp').value.trim() || null,
       googleRating: parseFloat(document.getElementById('jfRating').value) || null,

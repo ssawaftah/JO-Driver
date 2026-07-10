@@ -1,2 +1,3 @@
 - [JO-Driver location map](jo-driver-location-map.md) — center-join.html uses Leaflet+OSM (no API key) for pin/radius picking; keep this choice consistent if extending to admin.html.
 - [driverjo Google Maps migration](driverjo-google-maps.md) — server.js injects GOOGLE_MAPS_API_KEY server-side; define Maps callback before the script tag to avoid a load race.
+- [center-join link-first flow](center-join-link-first-flow.md) — name is guessed client-side by parsing the Google Maps URL, no Places/Geocoding API call needed.
