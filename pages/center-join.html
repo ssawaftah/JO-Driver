@@ -77,6 +77,8 @@
 .jf-radius-row label { white-space: nowrap; }
 .jf-radius-row b { color: #1e293b; }
 .jf-radius-row input[type="range"] { flex: 1; accent-color: #2563eb; }
+.jf-geo-status { margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; font-size: .84rem; display: flex; align-items: center; gap: 6px; }
+.jf-geo-status.jf-geo-warn { background: #fffbeb; color: #b45309; }
 
 /* ——— MULTI SELECT ——— */
 .jf-select-multi {
@@ -212,7 +214,8 @@
           <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;margin-top:10px">
             <i class="ph ph-crosshair"></i> <span id="jfLocateBtnText">تحديد موقعي الحالي</span>
           </button>
-          <div class="jf-hint">اضغط على الخريطة أو استخدم زر "تحديد موقعي" لوضع الدبوس على موقع المركز بدقّة، ثم اسحب الشريط لتحديد نطاق المنطقة التي يخدمها المركز — تماماً كما في أشهر التطبيقات.</div>
+          <div class="jf-geo-status" id="jfGeoStatus" style="display:none"></div>
+          <div class="jf-hint">اضغط على الخريطة أو استخدم زر "تحديد موقعي" لوضع الدبوس على موقع المركز بدقّة — ستُحدَّد المحافظة والمنطقة تلقائيًا، وتحقّق منهما قبل الإرسال. استخدم الشريط لتحديد نطاق المنطقة التي يخدمها المركز.</div>
         </div>
 
         <div class="jf-field">
@@ -435,6 +438,9 @@
   /* ══════════════════════════════════════
      3. تحميل المحافظات
   ══════════════════════════════════════ */
+  var govsLoaded = false;
+  var pendingGeocode = null; /* {lat,lng} إن حاول المستخدم تحديد الموقع قبل اكتمال تحميل المحافظات */
+
   function loadGovernorates() {
     fetch(FB_BASE + '/governorates.json')
       .then(function(r){ return r.ok ? r.json() : {}; })
@@ -470,13 +476,21 @@
           opt.textContent = name;
           elGov.appendChild(opt);
         });
+      })
+      .then(function () {
+        govsLoaded = true;
+        if (pendingGeocode) {
+          var p = pendingGeocode; pendingGeocode = null;
+          reverseGeocodeAndFill(p.lat, p.lng);
+        }
       });
   }
 
   /* ══════════════════════════════════════
      4. تحميل المناطق
   ══════════════════════════════════════ */
-  function loadAreas(govId) {
+  var loadAreasSeq = 0;
+  function loadAreas(govId, onDone) {
     currentGovId = govId;
     areasMap = {};
     elAreaSelect.innerHTML = '<option value="">— جارٍ تحميل المناطق... —</option>';
@@ -484,9 +498,11 @@
     elAddAreaRow.style.display = 'none';
     elAreasField.style.display = 'block';
 
+    var mySeq = ++loadAreasSeq;
     fetch(FB_BASE + '/areas.json')
       .then(function(r){ return r.ok ? r.json() : {}; })
       .then(function(raw) {
+        if (mySeq !== loadAreasSeq) return; /* استُبدل هذا الطلب بطلب أحدث (تغيّرت المحافظة/الموقع) */
         elAreaSelect.innerHTML = '<option value="">— اختر المنطقة —</option>';
         raw = raw || {};
         Object.keys(raw).forEach(function(key) {
@@ -500,11 +516,96 @@
         elAreaSelect.disabled = false;
         elAddAreaRow.style.display = 'flex';
         document.getElementById('jfAreasHint').style.display = 'block';
+        if (onDone) onDone();
       })
       .catch(function() {
+        if (mySeq !== loadAreasSeq) return;
         elAreaSelect.disabled = false;
         elAddAreaRow.style.display = 'flex';
         document.getElementById('jfAreasHint').style.display = 'block';
+        if (onDone) onDone();
+      });
+  }
+
+  /* ══════════════════════════════════════
+     4.1 تحديد المحافظة/المنطقة تلقائيًا من الإحداثيات
+  ══════════════════════════════════════ */
+  var elGeoStatus = document.getElementById('jfGeoStatus');
+
+  function normalizeAr(s) {
+    return String(s || '')
+      .replace(/محافظة|لواء|قصبة|قضاء/g, '')
+      .replace(/[\u064B-\u065F\u0670]/g, '') /* تشكيل */
+      .replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  /* مطابقة حتمية: تطابق تام أولًا، ثم أطول تطابق جزئي (احتواء) كحلّ بديل */
+  function bestMatch(name, map) {
+    var n = normalizeAr(name);
+    if (!n) return null;
+    var exact = null, bestPartial = null, bestPartialLen = -1;
+    Object.keys(map).forEach(function (key) {
+      var mn = normalizeAr(map[key].name);
+      if (!mn) return;
+      if (mn === n) { exact = key; return; }
+      if (!exact && (n.indexOf(mn) !== -1 || mn.indexOf(n) !== -1) && mn.length > bestPartialLen) {
+        bestPartial = key; bestPartialLen = mn.length;
+      }
+    });
+    return exact || bestPartial;
+  }
+
+  function findGovByName(name) { return bestMatch(name, govsMap); }
+  function findAreaByName(name) { return bestMatch(name, areasMap); }
+
+  function showGeoStatus(text, warn) {
+    if (!elGeoStatus) return;
+    elGeoStatus.style.display = 'flex';
+    elGeoStatus.classList.toggle('jf-geo-warn', !!warn);
+    elGeoStatus.innerHTML = '';
+    var icon = document.createElement('i');
+    icon.className = 'ph-bold ' + (warn ? 'ph-warning' : 'ph-check-circle');
+    elGeoStatus.appendChild(icon);
+    elGeoStatus.appendChild(document.createTextNode(' ' + text));
+  }
+
+  var geocodeSeq = 0;
+  function reverseGeocodeAndFill(lat, lng) {
+    if (!govsLoaded) { pendingGeocode = { lat: lat, lng: lng }; showGeoStatus('جارٍ تحميل قائمة المحافظات...', false); return; }
+    var mySeq = ++geocodeSeq;
+    showGeoStatus('جارٍ تحديد المحافظة والمنطقة تلقائيًا...', false);
+    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=ar&zoom=14')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (mySeq !== geocodeSeq) return; /* تحرّك الدبوس مجددًا قبل وصول هذه النتيجة — تجاهلها */
+        var addr = data && data.address ? data.address : null;
+        if (!addr) { showGeoStatus('تعذّر تحديد المحافظة تلقائيًا، يرجى اختيارها يدويًا.', true); return; }
+        var stateName = addr.state || addr.region || '';
+        var areaName = addr.suburb || addr.city_district || addr.town || addr.city || addr.village || addr.county || '';
+        var govKey = findGovByName(stateName);
+        if (!govKey) {
+          showGeoStatus('لم نتمكن من مطابقة المحافظة (' + (stateName || 'غير معروفة') + ') تلقائيًا، يرجى اختيارها يدويًا.', true);
+          return;
+        }
+        elGov.value = govKey;
+        clearErr('jfGov', 'jfGovErr');
+        loadAreas(govKey, function () {
+          if (mySeq !== geocodeSeq) return; /* طلب أحدث تولّى الأمر */
+          var areaKey = findAreaByName(areaName);
+          if (areaKey) {
+            Array.prototype.forEach.call(elAreaSelect.options, function (opt) { opt.selected = (opt.value === areaKey); });
+            showGeoStatus('تم تحديد: ' + govsMap[govKey].name + (areasMap[areaKey] ? ' - ' + areasMap[areaKey].name : '') + ' — يرجى التأكد.', false);
+          } else {
+            showGeoStatus('تم تحديد المحافظة: ' + govsMap[govKey].name + '. لم نجد منطقة "' + (areaName || '') + '" في القائمة، يرجى اختيار المنطقة يدويًا أو إضافتها.', true);
+          }
+        });
+      })
+      .catch(function () {
+        if (mySeq !== geocodeSeq) return;
+        showGeoStatus('تعذّر تحديد المحافظة تلقائيًا (تحقق من الاتصال)، يرجى اختيارها يدويًا.', true);
       });
   }
 
@@ -552,9 +653,11 @@
     }
   });
 
-  /* ——— اختيار المحافظة ——— */
+  /* ——— اختيار المحافظة يدويًا: يُلغي أي تحديد تلقائي قيد التنفيذ ——— */
   elGov.addEventListener('change', function () {
     clearErr('jfGov', 'jfGovErr');
+    geocodeSeq++; /* إبطال أي نتيجة تحديد موقع تلقائي قديمة كي لا تتجاوز اختيار المستخدم اليدوي */
+    pendingGeocode = null;
     var govId = this.value;
     if (!govId) {
       elAreasField.style.display = 'none';
@@ -601,7 +704,7 @@
   var elRadiusVal      = document.getElementById('jfRadiusVal');
   var elMapContainer   = document.getElementById('jfMap');
 
-  function placePin(lat, lng) {
+  function placePin(lat, lng, skipGeocode) {
     if (!jfMap) { jfCoords = { lat: lat, lng: lng }; return; }
     jfCoords = { lat: lat, lng: lng };
     if (!jfMarker) {
@@ -610,6 +713,7 @@
         var p = jfMarker.getLatLng();
         jfCoords = { lat: p.lat, lng: p.lng };
         if (jfCircle) jfCircle.setLatLng(p);
+        reverseGeocodeAndFill(p.lat, p.lng);
       });
       jfCircle = L.circle([lat, lng], {
         radius: jfRadiusKm * 1000,
@@ -619,6 +723,7 @@
       jfMarker.setLatLng([lat, lng]);
       jfCircle.setLatLng([lat, lng]);
     }
+    if (!skipGeocode) reverseGeocodeAndFill(lat, lng);
   }
 
   if (elMapContainer && window.L) {
