@@ -1,5 +1,15 @@
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  /* يُعرَّف مبكرًا لتفادي تسابق التحميل: قد ينفّذ Google Maps الاستدعاء
+     قبل وصول القارئ إلى الكود الفعلي لاحقًا في الصفحة. */
+  window.__jfMapsReady = false;
+  window.__jfMapsCallbacks = [];
+  window.jfOnGoogleMapsReady = function () {
+    window.__jfMapsReady = true;
+    window.__jfMapsCallbacks.forEach(function (cb) { cb(); });
+    window.__jfMapsCallbacks = [];
+  };
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAPS_API_KEY}}&libraries=places&language=ar&region=JO&callback=jfOnGoogleMapsReady" async defer></script>
 <style>
 /* RESET & BASE */
 .jf-wrap { max-width: 720px; margin: 0 auto; padding: 0 0 60px; }
@@ -143,7 +153,6 @@
   margin-top: 10px;
 }
 .jf-map.error { outline: 2px solid #ef4444; }
-.jf-map .leaflet-control-attribution { font-size: 9px; }
 
 /* MAP TIP OVERLAY */
 .jf-map-tip {
@@ -521,17 +530,25 @@
   }
 
   /* ══════════════════════════════════════
-     3. Nominatim: عنوان عكسي + بحث
+     3. Google Geocoding: عنوان عكسي + بحث
   ══════════════════════════════════════ */
   function buildMapsLink(lat, lng) {
     return 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
   }
 
-  function buildAddressFromNominatim(addr, fallback) {
-    if (!addr) return fallback || '';
-    var area  = addr.suburb || addr.city_district || addr.neighbourhood || addr.town || addr.village || '';
-    var city  = addr.city || addr.county || '';
-    var state = addr.state || addr.region || '';
+  function buildAddressFromGoogleComponents(components, fallback) {
+    if (!components || !components.length) return fallback || '';
+    function pick(types) {
+      for (var i = 0; i < components.length; i++) {
+        for (var j = 0; j < types.length; j++) {
+          if (components[i].types.indexOf(types[j]) !== -1) return components[i].long_name;
+        }
+      }
+      return '';
+    }
+    var area  = pick(['sublocality', 'neighborhood', 'locality']);
+    var city  = pick(['administrative_area_level_2', 'locality']);
+    var state = pick(['administrative_area_level_1']);
     var parts = [];
     if (area && area !== city) parts.push(area);
     if (city) parts.push(city);
@@ -554,38 +571,29 @@
     var mySeq = ++geocodeSeq;
     showGeoStatus('\u062c\u0627\u0631\u064d \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627...', false);
 
-    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=ar&zoom=16')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (mySeq !== geocodeSeq) return;
-        var addr    = data && data.address ? data.address : null;
-        var address = buildAddressFromNominatim(addr, data && data.display_name);
-        if (address) {
-          elAddress.value = address;
-          clearErr('jfAddress', 'jfAddressErr');
-          showGeoStatus('\u062a\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u2014 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u062f \u0645\u0646\u0647.', false);
-        } else {
-          /* استخدام الإحداثيات كعنوان احتياطي */
-          elAddress.value = lat.toFixed(5) + '\u060c ' + lng.toFixed(5);
-          clearErr('jfAddress', 'jfAddressErr');
-          showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
-        }
-      })
-      .catch(function () {
-        if (mySeq !== geocodeSeq) return;
-        /* استخدام الإحداثيات كعنوان احتياطي عند فشل الاتصال */
+    if (!jfGeocoder) return;
+    jfGeocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ar' }, function (results, status) {
+      if (mySeq !== geocodeSeq) return;
+      if (status === 'OK' && results && results.length) {
+        var address = buildAddressFromGoogleComponents(results[0].address_components, results[0].formatted_address);
+        elAddress.value = address;
+        clearErr('jfAddress', 'jfAddressErr');
+        showGeoStatus('\u062a\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u2014 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u062f \u0645\u0646\u0647.', false);
+      } else {
+        /* استخدام الإحداثيات كعنوان احتياطي */
         elAddress.value = lat.toFixed(5) + '\u060c ' + lng.toFixed(5);
         clearErr('jfAddress', 'jfAddressErr');
-        showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 (\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0627\u062a\u0635\u0627\u0644)\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
-      });
+        showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
+      }
+    });
   }
 
   /* ══════════════════════════════════════
-     4. خريطة Leaflet
+     4. خريطة Google Maps
   ══════════════════════════════════════ */
   var jfCoords = null;
-  var jfMap    = null, jfMarker = null;
-  var DEFAULT_CENTER = [31.9539, 35.9106]; /* عمّان */
+  var jfMap    = null, jfMarker = null, jfGeocoder = null, jfPlaces = null;
+  var DEFAULT_CENTER = { lat: 31.9539, lng: 35.9106 }; /* عمّان */
 
   var elLocateBtn     = document.getElementById('jfLocateBtn');
   var elLocateBtnText = document.getElementById('jfLocateBtnText');
@@ -595,30 +603,39 @@
     if (!jfMap) { jfCoords = { lat: lat, lng: lng }; return; }
     jfCoords = { lat: lat, lng: lng };
     clearErr('jfMapContainer', 'jfLocationErr');
+    var pos = { lat: lat, lng: lng };
     if (!jfMarker) {
-      jfMarker = L.marker([lat, lng], { draggable: true }).addTo(jfMap);
-      jfMarker.on('dragend', function () {
-        var p = jfMarker.getLatLng();
-        jfCoords = { lat: p.lat, lng: p.lng };
-        reverseGeocodeAndFill(p.lat, p.lng);
+      jfMarker = new google.maps.Marker({ position: pos, map: jfMap, draggable: true });
+      jfMarker.addListener('dragend', function () {
+        var p = jfMarker.getPosition();
+        jfCoords = { lat: p.lat(), lng: p.lng() };
+        reverseGeocodeAndFill(p.lat(), p.lng());
       });
     } else {
-      jfMarker.setLatLng([lat, lng]);
+      jfMarker.setPosition(pos);
     }
-    jfMap.setView([lat, lng], Math.max(jfMap.getZoom(), 15));
+    jfMap.setCenter(pos);
+    if (jfMap.getZoom() < 15) jfMap.setZoom(15);
     reverseGeocodeAndFill(lat, lng);
   }
 
-  if (elMapContainer && window.L) {
-    jfMap = L.map('jfMap', { attributionControl: true }).setView(DEFAULT_CENTER, 8);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
-    }).addTo(jfMap);
-    jfMap.on('click', function (e) {
-      placePin(e.latlng.lat, e.latlng.lng);
+  function jfInitGoogleMaps() {
+    if (!elMapContainer) return;
+    jfMap = new google.maps.Map(elMapContainer, {
+      center: DEFAULT_CENTER,
+      zoom: 8,
+      streetViewControl: false,
+      mapTypeControl: false,
+      fullscreenControl: false
     });
+    jfGeocoder = new google.maps.Geocoder();
+    jfPlaces = new google.maps.places.PlacesService(jfMap);
+    jfMap.addListener('click', function (e) {
+      placePin(e.latLng.lat(), e.latLng.lng());
+    });
+    if (jfCoords) placePin(jfCoords.lat, jfCoords.lng);
   }
+  if (window.__jfMapsReady) { jfInitGoogleMaps(); } else { window.__jfMapsCallbacks.push(jfInitGoogleMaps); }
 
   /* زر تحديد الموقع الحالي */
   if (elLocateBtn) {
@@ -657,47 +674,38 @@
 
   function doSearch(q) {
     if (!q || q.length < 2) { elSearchResults.style.display = 'none'; return; }
+    if (!jfPlaces) { elSearchResults.style.display = 'none'; return; }
     var mySeq = ++searchSeq;
     elSearchBtn.disabled = true;
     elSearchBtn.textContent = '\u23F3';
-    fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&q=' + encodeURIComponent(q) + '&accept-language=ar&limit=6&countrycodes=jo')
-      .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (results) {
-        /* تجاهل النتائج إن وصل طلب أحدث قبلها */
-        if (mySeq !== searchSeq) return;
-        elSearchBtn.disabled = false;
-        elSearchBtn.innerHTML = '\uD83D\uDD0D \u0628\u062d\u062b';
-        elSearchResults.innerHTML = '';
-        if (!results || !results.length) {
-          var noResult = document.createElement('div');
-          noResult.className = 'jf-map-search-item no-result';
-          noResult.textContent = '\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u062a\u0627\u0626\u062c \u0644\u0644\u0628\u062d\u062b';
-          elSearchResults.appendChild(noResult);
-        } else {
-          results.forEach(function (item) {
-            var div = document.createElement('div');
-            div.className = 'jf-map-search-item';
-            div.textContent = item.display_name;
-            div.addEventListener('click', function () {
-              var lat = parseFloat(item.lat);
-              var lng = parseFloat(item.lon);
-              elSearchResults.style.display = 'none';
-              elSearch.value = '';
-              placePin(lat, lng);
-            });
-            elSearchResults.appendChild(div);
+    jfPlaces.textSearch({ query: q, region: 'jo', language: 'ar' }, function (results, status) {
+      /* تجاهل النتائج إن وصل طلب أحدث قبلها */
+      if (mySeq !== searchSeq) return;
+      elSearchBtn.disabled = false;
+      elSearchBtn.innerHTML = '\uD83D\uDD0D \u0628\u062d\u062b';
+      elSearchResults.innerHTML = '';
+      if (status !== 'OK' || !results || !results.length) {
+        var noResult = document.createElement('div');
+        noResult.className = 'jf-map-search-item no-result';
+        noResult.textContent = '\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u062a\u0627\u0626\u062c \u0644\u0644\u0628\u062d\u062b';
+        elSearchResults.appendChild(noResult);
+      } else {
+        results.forEach(function (item) {
+          var div = document.createElement('div');
+          div.className = 'jf-map-search-item';
+          div.textContent = item.name + (item.formatted_address ? ' \u2014 ' + item.formatted_address : '');
+          div.addEventListener('click', function () {
+            var lat = item.geometry.location.lat();
+            var lng = item.geometry.location.lng();
+            elSearchResults.style.display = 'none';
+            elSearch.value = '';
+            placePin(lat, lng);
           });
-        }
-        elSearchResults.style.display = 'block';
-      })
-      .catch(function () {
-        if (mySeq !== searchSeq) return;
-        elSearchBtn.disabled = false;
-        elSearchBtn.innerHTML = '\uD83D\uDD0D \u0628\u062d\u062b';
-        /* إخفاء النتائج القديمة عند الخطأ */
-        elSearchResults.style.display = 'none';
-        elSearchResults.innerHTML = '';
-      });
+          elSearchResults.appendChild(div);
+        });
+      }
+      elSearchResults.style.display = 'block';
+    });
   }
 
   if (elSearch) {

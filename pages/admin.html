@@ -1,6 +1,15 @@
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  /* يُعرَّف مبكرًا لتفادي تسابق التحميل مع Google Maps. */
+  window.__admMapsReady = false;
+  window.__admMapsCallbacks = [];
+  window.admOnGoogleMapsReady = function () {
+    window.__admMapsReady = true;
+    window.__admMapsCallbacks.forEach(function (cb) { cb(); });
+    window.__admMapsCallbacks = [];
+  };
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAPS_API_KEY}}&libraries=places&language=ar&region=JO&callback=admOnGoogleMapsReady" async defer></script>
 
 <style>
 /* ══════════════════════════════════════════════════════
@@ -2678,93 +2687,117 @@
   var editingCtrId = null;
   var CTR_DAYS     = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 
-  /* ── خريطة نموذج المركز ── */
-  var admCtrMap    = null;
-  var admCtrMarker = null;
-  var admCtrCoords = null;
+  /* ── خريطة نموذج المركز (Google Maps) ── */
+  var admCtrMap      = null;
+  var admCtrMarker   = null;
+  var admCtrCoords   = null;
+  var admGeocoder    = null;
+  var admPlaces      = null;
   var admMapSearchSeq = 0;
   var admMapSearchDebounce = null;
-  var ADM_MAP_DEFAULT = [31.9539, 35.9106];
+  var ADM_MAP_DEFAULT = { lat: 31.9539, lng: 35.9106 };
 
-  function admInitMap() {
-    if (admCtrMap) return;
-    admCtrMap = L.map('adm-cf-map', { attributionControl: true }).setView(ADM_MAP_DEFAULT, 8);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap'
-    }).addTo(admCtrMap);
-    admCtrMap.on('click', function(e){ admPlacePin(e.latlng.lat, e.latlng.lng); });
+  /* يُهيئ الخريطة (إن لم تكن جاهزة) ثم ينفّذ onReady بعد جاهزيتها. */
+  function admInitMap(onReady) {
+    if (!window.__admMapsReady) { window.__admMapsCallbacks.push(function(){ admInitMap(onReady); }); return; }
+    if (!admCtrMap) {
+      var el = document.getElementById('adm-cf-map');
+      if (!el) return;
+      admCtrMap = new google.maps.Map(el, {
+        center: ADM_MAP_DEFAULT, zoom: 8,
+        streetViewControl: false, mapTypeControl: false, fullscreenControl: false
+      });
+      admGeocoder = new google.maps.Geocoder();
+      admPlaces = new google.maps.places.PlacesService(admCtrMap);
+      admCtrMap.addListener('click', function(e){ admPlacePin(e.latLng.lat(), e.latLng.lng()); });
+    }
+    if (onReady) onReady();
+  }
+
+  function admClearMarker() {
+    if (admCtrMarker) { admCtrMarker.setMap(null); admCtrMarker = null; }
+  }
+
+  function admResetMapView() {
+    google.maps.event.trigger(admCtrMap, 'resize');
+    admCtrMap.setCenter(ADM_MAP_DEFAULT);
+    admCtrMap.setZoom(8);
   }
 
   function admPlacePin(lat, lng) {
     admCtrCoords = { lat: lat, lng: lng };
     cfLat.value = lat; cfLng.value = lng;
+    if (!admCtrMap) return;
+    var pos = { lat: lat, lng: lng };
     if (!admCtrMarker) {
-      admCtrMarker = L.marker([lat, lng], { draggable: true }).addTo(admCtrMap);
-      admCtrMarker.on('dragend', function(){
-        var p = admCtrMarker.getLatLng();
-        admCtrCoords = { lat: p.lat, lng: p.lng };
-        cfLat.value = p.lat; cfLng.value = p.lng;
-        admReverseGeocode(p.lat, p.lng);
+      admCtrMarker = new google.maps.Marker({ position: pos, map: admCtrMap, draggable: true });
+      admCtrMarker.addListener('dragend', function(){
+        var p = admCtrMarker.getPosition();
+        admCtrCoords = { lat: p.lat(), lng: p.lng() };
+        cfLat.value = p.lat(); cfLng.value = p.lng();
+        admReverseGeocode(p.lat(), p.lng());
       });
-    } else { admCtrMarker.setLatLng([lat, lng]); }
-    admCtrMap.setView([lat, lng], Math.max(admCtrMap.getZoom(), 15));
+    } else { admCtrMarker.setPosition(pos); }
+    admCtrMap.setCenter(pos);
+    if (admCtrMap.getZoom() < 15) admCtrMap.setZoom(15);
     admReverseGeocode(lat, lng);
   }
 
   var admGeoSeq = 0;
   function admReverseGeocode(lat, lng) {
+    if (!admGeocoder) return;
     var seq = ++admGeoSeq;
-    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lng+'&accept-language=ar&zoom=16')
-      .then(function(r){ return r.ok?r.json():null; })
-      .then(function(data){
-        if (seq !== admGeoSeq) return;
-        if (!data) return;
-        var a = data.address||{};
-        var parts = [];
-        var area  = a.suburb||a.city_district||a.neighbourhood||a.town||a.village||'';
-        var city  = a.city||a.county||'';
-        var state = a.state||a.region||'';
-        if (area && area!==city) parts.push(area);
-        if (city) parts.push(city);
-        if (state && state!==city) parts.push(state);
-        var addr = parts.length ? parts.join('، ') : (data.display_name||'');
-        if (addr) cfAddress.value = addr;
-      }).catch(function(){});
+    admGeocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ar' }, function(results, status){
+      if (seq !== admGeoSeq) return;
+      if (status !== 'OK' || !results || !results.length) return;
+      var components = results[0].address_components || [];
+      function pick(types) {
+        for (var i = 0; i < components.length; i++) {
+          for (var j = 0; j < types.length; j++) {
+            if (components[i].types.indexOf(types[j]) !== -1) return components[i].long_name;
+          }
+        }
+        return '';
+      }
+      var area  = pick(['sublocality', 'neighborhood', 'locality']);
+      var city  = pick(['administrative_area_level_2', 'locality']);
+      var state = pick(['administrative_area_level_1']);
+      var parts = [];
+      if (area && area!==city) parts.push(area);
+      if (city) parts.push(city);
+      if (state && state!==city) parts.push(state);
+      var addr = parts.length ? parts.join('، ') : (results[0].formatted_address||'');
+      if (addr) cfAddress.value = addr;
+    });
   }
 
   function admDoMapSearch(q) {
     if (!q || q.length < 2) { cfMapSearchRes.style.display='none'; return; }
+    if (!admPlaces) { cfMapSearchRes.style.display='none'; return; }
     var seq = ++admMapSearchSeq;
     cfMapSearchBtn.disabled = true; cfMapSearchBtn.textContent = '...';
-    fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&q='+encodeURIComponent(q)+'&accept-language=ar&limit=5&countrycodes=jo')
-      .then(function(r){ return r.ok?r.json():[]; })
-      .then(function(results){
-        if (seq !== admMapSearchSeq) return;
-        cfMapSearchBtn.disabled=false; cfMapSearchBtn.textContent='بحث';
-        cfMapSearchRes.innerHTML='';
-        if (!results||!results.length) {
-          cfMapSearchRes.innerHTML='<div style="padding:10px 14px;font-size:13px;color:#94a3b8">لا توجد نتائج</div>';
-        } else {
-          results.forEach(function(item){
-            var div=document.createElement('div');
-            div.style.cssText='padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9;direction:rtl';
-            div.textContent=item.display_name;
-            div.onmouseenter=function(){ div.style.background='#eff6ff'; };
-            div.onmouseleave=function(){ div.style.background=''; };
-            div.onclick=function(){
-              cfMapSearchRes.style.display='none'; cfMapSearch.value='';
-              admPlacePin(parseFloat(item.lat), parseFloat(item.lon));
-            };
-            cfMapSearchRes.appendChild(div);
-          });
-        }
-        cfMapSearchRes.style.display='block';
-      })
-      .catch(function(){
-        if (seq !== admMapSearchSeq) return;
-        cfMapSearchBtn.disabled=false; cfMapSearchBtn.textContent='بحث';
-        cfMapSearchRes.style.display='none';
-      });
+    admPlaces.textSearch({ query: q, region: 'jo', language: 'ar' }, function(results, status){
+      if (seq !== admMapSearchSeq) return;
+      cfMapSearchBtn.disabled=false; cfMapSearchBtn.textContent='بحث';
+      cfMapSearchRes.innerHTML='';
+      if (status !== 'OK' || !results||!results.length) {
+        cfMapSearchRes.innerHTML='<div style="padding:10px 14px;font-size:13px;color:#94a3b8">لا توجد نتائج</div>';
+      } else {
+        results.forEach(function(item){
+          var div=document.createElement('div');
+          div.style.cssText='padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9;direction:rtl';
+          div.textContent=item.name + (item.formatted_address ? ' — ' + item.formatted_address : '');
+          div.onmouseenter=function(){ div.style.background='#eff6ff'; };
+          div.onmouseleave=function(){ div.style.background=''; };
+          div.onclick=function(){
+            cfMapSearchRes.style.display='none'; cfMapSearch.value='';
+            admPlacePin(item.geometry.location.lat(), item.geometry.location.lng());
+          };
+          cfMapSearchRes.appendChild(div);
+        });
+      }
+      cfMapSearchRes.style.display='block';
+    });
   }
 
   cfMapSearch && cfMapSearch.addEventListener('input', function(){
@@ -3018,7 +3051,9 @@
     cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value='';
     admCtrCoords=null; setCtrFormMsg('',''); buildCtrScheduleUI(null);
     ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
-    setTimeout(function(){ admInitMap(); admCtrMap.invalidateSize(); if (admCtrMarker){ admCtrMap.removeLayer(admCtrMarker); admCtrMarker=null; } admCtrMap.setView(ADM_MAP_DEFAULT,8); }, 120);
+    setTimeout(function(){
+      admInitMap(function(){ admClearMarker(); admResetMapView(); });
+    }, 120);
   }
 
   function openEditCenterForm(id) {
@@ -3034,10 +3069,12 @@
     admCtrCoords=(lat!=null&&lng!=null)?{lat:lat,lng:lng}:null;
     ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
     setTimeout(function(){
-      admInitMap(); admCtrMap.invalidateSize();
-      if (admCtrMarker){ admCtrMap.removeLayer(admCtrMarker); admCtrMarker=null; }
-      if (admCtrCoords) { admPlacePin(admCtrCoords.lat, admCtrCoords.lng); if (cfAddress.value) { /* keep existing addr, don't reverse-geocode again */ admGeoSeq++; } }
-      else admCtrMap.setView(ADM_MAP_DEFAULT,8);
+      admInitMap(function(){
+        google.maps.event.trigger(admCtrMap, 'resize');
+        admClearMarker();
+        if (admCtrCoords) { admPlacePin(admCtrCoords.lat, admCtrCoords.lng); if (cfAddress.value) { /* keep existing addr, don't reverse-geocode again */ admGeoSeq++; } }
+        else admResetMapView();
+      });
     }, 120);
   }
 
