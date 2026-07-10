@@ -1,0 +1,1 @@
+- [JO-Driver location map](jo-driver-location-map.md) — center-join.html uses Leaflet+OSM (no API key) for pin/radius picking; keep this choice consistent if extending to admin.html.

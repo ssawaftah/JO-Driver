@@ -3108,6 +3108,9 @@
     if (data.lat!=null && data.lng!=null) {
       html += rdField('الإحداثيات (لصقها بنموذج إضافة المركز)', '<span style="direction:ltr;display:inline-block;user-select:all">'+escHtml(String(data.lat))+', '+escHtml(String(data.lng))+'</span>', true);
     }
+    if (data.coverageRadiusKm!=null) {
+      html += rdField('نطاق التغطية المطلوب', escHtml(String(data.coverageRadiusKm))+' كم', true);
+    }
     html += '</div></div>';
     if (data.areas && Object.keys(data.areas).length > 0) {
       var areaNames=Object.values(data.areas);

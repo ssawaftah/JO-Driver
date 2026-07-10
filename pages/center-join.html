@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
 /* ——— RESET & BASE ——— */
 .jf-wrap { max-width: 720px; margin: 0 auto; padding: 0 0 60px; }
@@ -69,6 +71,12 @@
 }
 .jf-wa-btn:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 .jf-wa-btn.btn-success-active { background: #f0fdf4; border-color: #22c55e; color: #16a34a; pointer-events: none; }
+.jf-map { width: 100%; height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 10px; background: #f1f5f9; }
+.jf-map .leaflet-control-attribution { font-size: 9px; }
+.jf-radius-row { display: flex; align-items: center; gap: 12px; font-size: .87rem; color: #64748b; }
+.jf-radius-row label { white-space: nowrap; }
+.jf-radius-row b { color: #1e293b; }
+.jf-radius-row input[type="range"] { flex: 1; accent-color: #2563eb; }
 
 /* ——— MULTI SELECT ——— */
 .jf-select-multi {
@@ -195,11 +203,16 @@
         </div>
 
         <div class="jf-field">
-          <label class="jf-label">تحديد موقع المركز على الخريطة</label>
-          <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;">
+          <label class="jf-label">تحديد موقع المركز والمنطقة التي يخدمها</label>
+          <div id="jfMap" class="jf-map"></div>
+          <div class="jf-radius-row">
+            <label for="jfRadiusSlider">نطاق التغطية: <b id="jfRadiusVal">5</b> كم</label>
+            <input type="range" id="jfRadiusSlider" min="1" max="30" step="1" value="5">
+          </div>
+          <button type="button" class="jf-wa-btn" id="jfLocateBtn" style="width:100%;justify-content:center;display:flex;align-items:center;gap:8px;margin-top:10px">
             <i class="ph ph-crosshair"></i> <span id="jfLocateBtnText">تحديد موقعي الحالي</span>
           </button>
-          <div class="jf-hint">فعّل هذا الخيار وأنت داخل المركز أو أمامه، حتى تظهر مسافته بدقّة للمستخدمين الباحثين عن أقرب مركز لهم.</div>
+          <div class="jf-hint">اضغط على الخريطة أو استخدم زر "تحديد موقعي" لوضع الدبوس على موقع المركز بدقّة، ثم اسحب الشريط لتحديد نطاق المنطقة التي يخدمها المركز — تماماً كما في أشهر التطبيقات.</div>
         </div>
 
         <div class="jf-field">
@@ -575,11 +588,58 @@
   });
 
   /* ══════════════════════════════════════
-     5.1 تحديد الموقع الجغرافي (lat/lng)
+     5.1 تحديد الموقع الجغرافي ونطاق التغطية (lat/lng/radius)
   ══════════════════════════════════════ */
   var jfCoords = null;
-  var elLocateBtn     = document.getElementById('jfLocateBtn');
+  var jfRadiusKm = 5;
+  var jfMap = null, jfMarker = null, jfCircle = null;
+  var DEFAULT_CENTER = [31.9539, 35.9106]; /* عمّان — مركز افتراضي للخريطة قبل تحديد الموقع */
+
+  var elLocateBtn      = document.getElementById('jfLocateBtn');
   var elLocateBtnText  = document.getElementById('jfLocateBtnText');
+  var elRadiusSlider   = document.getElementById('jfRadiusSlider');
+  var elRadiusVal      = document.getElementById('jfRadiusVal');
+  var elMapContainer   = document.getElementById('jfMap');
+
+  function placePin(lat, lng) {
+    if (!jfMap) { jfCoords = { lat: lat, lng: lng }; return; }
+    jfCoords = { lat: lat, lng: lng };
+    if (!jfMarker) {
+      jfMarker = L.marker([lat, lng], { draggable: true }).addTo(jfMap);
+      jfMarker.on('dragend', function () {
+        var p = jfMarker.getLatLng();
+        jfCoords = { lat: p.lat, lng: p.lng };
+        if (jfCircle) jfCircle.setLatLng(p);
+      });
+      jfCircle = L.circle([lat, lng], {
+        radius: jfRadiusKm * 1000,
+        color: '#2563eb', weight: 2, fillColor: '#2563eb', fillOpacity: .12
+      }).addTo(jfMap);
+    } else {
+      jfMarker.setLatLng([lat, lng]);
+      jfCircle.setLatLng([lat, lng]);
+    }
+  }
+
+  if (elMapContainer && window.L) {
+    jfMap = L.map('jfMap', { attributionControl: true }).setView(DEFAULT_CENTER, 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(jfMap);
+    jfMap.on('click', function (e) {
+      placePin(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
+  if (elRadiusSlider) {
+    elRadiusSlider.addEventListener('input', function () {
+      jfRadiusKm = parseInt(elRadiusSlider.value, 10) || 5;
+      elRadiusVal.textContent = jfRadiusKm;
+      if (jfCircle) jfCircle.setRadius(jfRadiusKm * 1000);
+    });
+  }
+
   if (elLocateBtn) {
     elLocateBtn.addEventListener('click', function () {
       if (!navigator.geolocation) {
@@ -590,7 +650,9 @@
       elLocateBtnText.textContent = 'جارٍ تحديد الموقع...';
       navigator.geolocation.getCurrentPosition(
         function (pos) {
-          jfCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          var lat = pos.coords.latitude, lng = pos.coords.longitude;
+          if (jfMap) jfMap.setView([lat, lng], 15);
+          placePin(lat, lng);
           elLocateBtn.disabled = false;
           elLocateBtn.classList.add('btn-success-active');
           elLocateBtnText.textContent = '✓ تم تحديد الموقع بنجاح';
@@ -666,6 +728,7 @@
       mapsLink:    document.getElementById('jfMapsLink').value.trim(),
       lat:         jfCoords ? jfCoords.lat : null,
       lng:         jfCoords ? jfCoords.lng : null,
+      coverageRadiusKm: jfCoords ? jfRadiusKm : null,
       centerName:  document.getElementById('jfName').value.trim(),
       phone:       document.getElementById('jfPhone').value.trim(),
       whatsapp:    document.getElementById('jfWhatsapp').value.trim() || null,
