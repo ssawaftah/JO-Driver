@@ -755,7 +755,17 @@
     return 'يبعد: ' + (km < 1 ? Math.round(km * 1000) + ' م' : km.toFixed(1) + ' كم');
   }
 
+  function hasScheduleData(c) {
+    return !!(
+      (c.schedule && c.schedule.length === 7 && c.schedule.some(function(s){ return s && (s.closed || (s.from && s.to)); })) ||
+      c.workingHours ||
+      (c.workingDays && c.workingDays.length)
+    );
+  }
+
   function getStatus(c) {
+    if (!hasScheduleData(c)) return { type:'none', label:'', icon:'' };
+
     var jordanNow = getJordanNow(), nm = jordanNow.minutesOfDay;
     var ti = todayIdx(), from = null, to = null, closed = false;
 
@@ -810,9 +820,14 @@
     if (govText) govText.textContent = gName || '';
 
     var stEl = card.querySelector('.ctr-card__status');
-    stEl.className = 'ctr-card__status status-' + st.type;
-    stEl.querySelector('i').className = 'ph ' + st.icon;
-    stEl.querySelector('.ctr-card__status-label').textContent = st.label;
+    if (st.type === 'none') {
+      stEl.hidden = true;
+    } else {
+      stEl.hidden = false;
+      stEl.className = 'ctr-card__status status-' + st.type;
+      stEl.querySelector('i').className = 'ph ' + st.icon;
+      stEl.querySelector('.ctr-card__status-label').textContent = st.label;
+    }
 
     var ratingEl = card.querySelector('.ctr-card__rating');
     if (c.rating != null) {
