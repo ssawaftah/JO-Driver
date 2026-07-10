@@ -158,6 +158,25 @@
 
 @keyframes jf-spin { to { transform: rotate(360deg); } }
 .jf-spin { display: inline-block; animation: jf-spin .8s linear infinite; }
+
+/* IMAGE UPLOAD (center photo) */
+.jf-dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 24px 16px; border: 2px dashed #e2e8f0;
+  border-radius: 14px; background: #f8fafc; cursor: pointer;
+  transition: border-color .15s, background .15s; text-align: center; position: relative;
+}
+.jf-dropzone:hover, .jf-dropzone.drag-over { border-color: #2563eb; background: #eff6ff; }
+.jf-dropzone input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.jf-dropzone-icon { font-size: 28px; pointer-events: none; }
+.jf-dropzone-label { font-size: 0.85rem; font-weight: 700; color: #374151; pointer-events: none; }
+.jf-dropzone-hint { font-size: 0.75rem; color: #94a3b8; pointer-events: none; }
+.jf-upload-status { font-size: 0.8rem; font-weight: 700; padding: 8px 12px; border-radius: 10px; display: none; align-items: center; gap: 7px; margin-top: 8px; }
+.jf-upload-status.ok { display: flex; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.jf-upload-status.err { display: flex; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+.jf-upload-status.loading { display: flex; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.jf-image-preview { display: none; max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 10px; object-fit: cover; }
+.jf-image-remove { margin-top: 8px; font-size: 0.8rem; color: #ef4444; background: none; border: none; cursor: pointer; text-decoration: underline; font-family: inherit; display: none; }
 </style>
 
 <!-- Firebase محمل من القالب -->
@@ -244,6 +263,26 @@
           <div class="jf-field-err" id="jfAddressErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0625;&#x062F;&#x062E;&#x0627;&#x0644; &#x0639;&#x0646;&#x0648;&#x0627;&#x0646; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632;</div>
         </div>
 
+        <!-- DESCRIPTION -->
+        <div class="jf-field">
+          <label class="jf-label" for="jfDescription">&#x0648;&#x0635;&#x0641; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632;</label>
+          <textarea class="jf-textarea" id="jfDescription" rows="4" placeholder="&#x0645;&#x062B;&#x0627;&#x0644;: &#x0645;&#x0631;&#x0643;&#x0632; &#x0645;&#x062A;&#x062E;&#x0635;&#x0651;&#x0635; &#x0641;&#x064A; &#x062A;&#x0639;&#x0644;&#x064A;&#x0645; &#x0627;&#x0644;&#x0642;&#x064A;&#x0627;&#x062F;&#x0629; &#x0645;&#x0646;&#x0630; 2010&#x060C; &#x0641;&#x0631;&#x064A;&#x0642; &#x0645;&#x062F;&#x0631;&#x0651;&#x0628;&#x064A;&#x0646; &#x0645;&#x0639;&#x062A;&#x0645;&#x062F;&#x064A;&#x0646;..."></textarea>
+        </div>
+
+        <!-- CENTER IMAGE -->
+        <div class="jf-field">
+          <label class="jf-label" for="jfFileInput">&#x0635;&#x0648;&#x0631;&#x0629; &#x0627;&#x0644;&#x0645;&#x0631;&#x0643;&#x0632;</label>
+          <label class="jf-dropzone" id="jfDropzone">
+            <input type="file" id="jfFileInput" accept="image/*">
+            <span class="jf-dropzone-icon">&#x1F4F7;</span>
+            <span class="jf-dropzone-label">&#x0627;&#x0636;&#x0641;&#x0637; &#x0644;&#x0627;&#x062E;&#x062A;&#x064A;&#x0627;&#x0631; &#x0635;&#x0648;&#x0631;&#x0629; &#x0623;&#x0648; &#x0627;&#x0633;&#x062D;&#x0628;&#x0647;&#x0627; &#x0647;&#x0646;&#x0627;</span>
+            <span class="jf-dropzone-hint">PNG · JPG · WEBP &#x2014; &#x064A;&#x064F;&#x0636;&#x0642;&#x0637; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627;</span>
+          </label>
+          <div class="jf-upload-status" id="jfUploadStatus"></div>
+          <img class="jf-image-preview" id="jfImagePreview" alt="&#x0645;&#x0639;&#x0627;&#x064A;&#x0646;&#x0629; &#x0627;&#x0644;&#x0635;&#x0648;&#x0631;&#x0629;">
+          <button type="button" class="jf-image-remove" id="jfImageRemove">&#x0625;&#x0632;&#x0627;&#x0644;&#x0629; &#x0627;&#x0644;&#x0635;&#x0648;&#x0631;&#x0629;</button>
+        </div>
+
       </div>
     </div>
 
@@ -323,8 +362,104 @@
   var elName          = document.getElementById('jfName');
   var elNameAutoBadge = document.getElementById('jfNameAutoBadge');
   var elAddress       = document.getElementById('jfAddress');
+  var elDescription   = document.getElementById('jfDescription');
+  var elDropzone      = document.getElementById('jfDropzone');
+  var elFileInput     = document.getElementById('jfFileInput');
+  var elUploadStatus  = document.getElementById('jfUploadStatus');
+  var elImagePreview  = document.getElementById('jfImagePreview');
+  var elImageRemove   = document.getElementById('jfImageRemove');
 
   var jfMapsLink = '';
+  var jfImageUrl = '';
+  var jfImageUploading = false;
+
+  /* ══════════════════════════════════════
+     0. رفع صورة المركز (Cloudflare R2)
+  ══════════════════════════════════════ */
+  var UPLOAD_WORKER_URL = 'https://upload.idriverjo.workers.dev';
+  var UPLOAD_KEY = '19686130';
+  var MAX_PX = 800, MAX_QUAL = 0.82;
+
+  function setUploadStatus(kind, msg) {
+    elUploadStatus.className = 'jf-upload-status' + (kind ? ' ' + kind : '');
+    elUploadStatus.textContent = msg || '';
+  }
+
+  elDropzone.addEventListener('dragover', function (e) { e.preventDefault(); elDropzone.classList.add('drag-over'); });
+  elDropzone.addEventListener('dragleave', function () { elDropzone.classList.remove('drag-over'); });
+  elDropzone.addEventListener('drop', function (e) {
+    e.preventDefault(); elDropzone.classList.remove('drag-over');
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files[0]) processImageFile(files[0]);
+  });
+  elFileInput.addEventListener('change', function () {
+    if (elFileInput.files && elFileInput.files[0]) { processImageFile(elFileInput.files[0]); elFileInput.value = ''; }
+  });
+  elImageRemove.addEventListener('click', function () {
+    jfImageUrl = '';
+    elImagePreview.style.display = 'none';
+    elImagePreview.src = '';
+    elImageRemove.style.display = 'none';
+    setUploadStatus('', '');
+  });
+
+  function uploadBlobToWorker(blob, mimeType) {
+    setUploadStatus('loading', '\u062C\u0627\u0631\u064D \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631\u0629\u2026');
+    jfImageUploading = true;
+    var fd = new FormData();
+    var ext = mimeType === 'image/gif' ? 'gif' : mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+    fd.append('file', blob, 'upload.' + ext);
+    fetch(UPLOAD_WORKER_URL, {
+      method: 'POST',
+      headers: { 'X-Upload-Key': UPLOAD_KEY },
+      body: fd
+    })
+      .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); })
+      .then(function (d) {
+        jfImageUrl = d.url;
+        elImagePreview.src = d.url;
+        elImagePreview.style.display = 'block';
+        elImageRemove.style.display = 'inline-block';
+        var kb = Math.round(blob.size / 1024);
+        setUploadStatus('ok', '\u062A\u0645 \u0627\u0644\u0631\u0641\u0639 \u2713 \u2014 ~' + kb + ' \u0643\u064A\u0644\u0648\u0628\u0627\u064A\u062A');
+      })
+      .catch(function (err) { setUploadStatus('err', '\u0641\u0634\u0644 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631\u0629: ' + err.message); })
+      .then(function () { jfImageUploading = false; });
+  }
+
+  function processImageFile(file) {
+    if (!file.type.startsWith('image/')) { setUploadStatus('err', '\u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0645\u062D\u062F\u062F \u0644\u064A\u0633 \u0635\u0648\u0631\u0629'); return; }
+    setUploadStatus('loading', '\u062C\u0627\u0631\u064D \u0645\u0639\u0627\u0644\u062C\u0629 \u0627\u0644\u0635\u0648\u0631\u0629\u2026');
+
+    if (file.type === 'image/gif') { uploadBlobToWorker(file, 'image/gif'); return; }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (w > MAX_PX || h > MAX_PX) {
+          if (w >= h) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+          else { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+        var outType = file.type === 'image/png' ? 'image/png'
+          : (file.type === 'image/webp' && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0)
+            ? 'image/webp' : 'image/jpeg';
+        canvas.toBlob(function (blob) {
+          if (!blob) { setUploadStatus('err', '\u062A\u0639\u0630\u0651\u0631\u062A \u0645\u0639\u0627\u0644\u062C\u0629 \u0627\u0644\u0635\u0648\u0631\u0629'); return; }
+          uploadBlobToWorker(blob, outType);
+        }, outType, MAX_QUAL);
+      };
+      img.onerror = function () { setUploadStatus('err', '\u062A\u0639\u0630\u0651\u0631 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0648\u0631\u0629'); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () { setUploadStatus('err', '\u0641\u0634\u0644 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0645\u0644\u0641'); };
+    reader.readAsDataURL(file);
+  }
 
   /* ══════════════════════════════════════
      1. استخراج اسم المركز من رابط جوجل مابس
@@ -561,6 +696,12 @@
       return;
     }
 
+    if (jfImageUploading) {
+      setUploadStatus('loading', '\u064A\u064F\u0631\u062C\u0649 \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631 \u062D\u062A\u0649 \u0627\u0646\u062A\u0647\u0627\u0621 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631\u0629...');
+      elDropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     elSubmitBtn.disabled = true;
     elSubmitBtn.innerHTML = '<span class="jf-spin">\u29d7</span> <span>\u062c\u0627\u0631\u064d \u0627\u0644\u0625\u0631\u0633\u0627\u0644...</span>';
 
@@ -568,6 +709,8 @@
       mapsLink:     jfMapsLink,
       address:      elAddress.value.trim(),
       centerName:   elName.value.trim(),
+      description:  elDescription.value.trim() || null,
+      imageUrl:     jfImageUrl || null,
       phone:        document.getElementById('jfPhone').value.trim(),
       whatsapp:     document.getElementById('jfWhatsapp').value.trim() || null,
       googleRating: parseFloat(document.getElementById('jfRating').value) || null,
