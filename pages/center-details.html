@@ -491,7 +491,7 @@ h1.post-title,
     return { type:'closed', label:'مغلق الآن', icon:'ph-moon' };
   }
 
-  function fillDetail(c, govs) {
+  function fillDetail(c) {
     var prom = document.getElementById('d-promoted');
     if (prom) prom.hidden = !c.promoted;
 
@@ -531,18 +531,7 @@ h1.post-title,
     }
 
     var tagsEl = document.getElementById('d-tags');
-    if (tagsEl) {
-      tagsEl.innerHTML = '';
-      var gName = c.governorateId && govs[c.governorateId] ? govs[c.governorateId].name : '';
-      function addTag(text, cls) {
-        var s = document.createElement('span');
-        s.className = 'ctr-tag' + (cls ? ' '+cls : '');
-        s.textContent = text;
-        tagsEl.appendChild(s);
-      }
-      if (gName) addTag(gName);
-      (c.areas || []).forEach(function(a) { addTag(a.name, 'area'); });
-    }
+    if (tagsEl) tagsEl.innerHTML = '';
 
     var phoneEl = document.getElementById('d-phone');
     var waEl    = document.getElementById('d-wa');
@@ -567,10 +556,9 @@ h1.post-title,
       };
     }
 
-    var hasTags = !!(gName || (c.areas && c.areas.length));
     var descSec = document.getElementById('d-desc-sec');
     var descTxt = document.getElementById('d-desc-text');
-    if ((c.description || hasTags) && descSec) {
+    if (c.description && descSec) {
       descSec.hidden = false;
       if (c.description && descTxt) descTxt.textContent = c.description;
     }
@@ -645,37 +633,32 @@ h1.post-title,
     return;
   }
 
-  var govs = {}, centers = {};
+  var centers = {};
   try {
     var raw = localStorage.getItem(CACHE_KEY);
     if (raw) {
       var d = JSON.parse(raw);
-      govs    = d.govs    || {};
       centers = d.centers || {};
       var cached = findCenter(centerId, centers);
-      if (cached) { fillDetail(cached, govs); }
+      if (cached) { fillDetail(cached); }
     }
   } catch(e) {}
 
   // جلب البيانات عبر REST مباشرةً — بدون SDK أو Auth
-  Promise.all([
-    fetch(FB_BASE + '/governorates.json').then(function(r){ return r.ok ? r.json() : {}; }),
-    fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
-  ]).then(function(results) {
-    govs    = results[0] || {};
-    centers = results[1] || {};
+  fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
+  .then(function(result) {
+    centers = result || {};
 
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         ts: Date.now(),
-        govs: govs,
         centers: centers
       }));
     } catch(e) {}
 
     var c = findCenter(centerId, centers);
     if (c) {
-      fillDetail(c, govs);
+      fillDetail(c);
       
       if (c.name) {
         // 1. تحديث عنوان التبويب في المتصفح

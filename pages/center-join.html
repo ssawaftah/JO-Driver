@@ -336,13 +336,11 @@
           <label class="jf-label" for="jfAddress">
             &#x0627;&#x0644;&#x0639;&#x0646;&#x0648;&#x0627;&#x0646; <span class="req">*</span>
           </label>
-          <input class="jf-input" type="text" id="jfAddress"
-                 placeholder="&#x0633;&#x064A;&#x064F;&#x0645;&#x0644;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0628;&#x0639;&#x062F; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639;">
-          <div class="jf-addr-edited-wrap" id="jfAddrEditedWrap">
-            <span class="jf-addr-edited">&#x2705; &#x062A;&#x0645; &#x062A;&#x0639;&#x062F;&#x064A;&#x0644; &#x0627;&#x0644;&#x0639;&#x0646;&#x0648;&#x0627;&#x0646; &#x064A;&#x062F;&#x0648;&#x064A;&#x064B;&#x0627;</span>
-          </div>
-          <div class="jf-field-err" id="jfAddressErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x0625;&#x062F;&#x062E;&#x0627;&#x0644; &#x0627;&#x0644;&#x0639;&#x0646;&#x0648;&#x0627;&#x0646;</div>
-          <div class="jf-hint">&#x064A;&#x064F;&#x0639;&#x0628;&#x064E;&#x0651;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0645;&#x0646; &#x0645;&#x0648;&#x0642;&#x0639; &#x0627;&#x0644;&#x062F;&#x0628;&#x0648;&#x0633; &#x2014; &#x0648;&#x064A;&#x0645;&#x0643;&#x0646;&#x0643; &#x062A;&#x0639;&#x062F;&#x064A;&#x0644;&#x0647; &#x064A;&#x062F;&#x0648;&#x064A;&#x064B;&#x0627; &#x0644;&#x0644;&#x062A;&#x0648;&#x0636;&#x064A;&#x062D; &#x0623;&#x0643;&#x062B;&#x0631;</div>
+          <input class="jf-input" type="text" id="jfAddress" readonly
+                 placeholder="&#x0633;&#x064A;&#x064F;&#x0645;&#x0644;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0628;&#x0639;&#x062F; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639;"
+                 style="background:#f8fafc;cursor:default">
+          <div class="jf-field-err" id="jfAddressErr">&#x064A;&#x0631;&#x062C;&#x0649; &#x062A;&#x062D;&#x062F;&#x064A;&#x062F; &#x0627;&#x0644;&#x0645;&#x0648;&#x0642;&#x0639; &#x0639;&#x0644;&#x0649; &#x0627;&#x0644;&#x062E;&#x0631;&#x064A;&#x0637;&#x0629; &#x0623;&#x0648;&#x0644;&#x0627;&#x064B;</div>
+          <div class="jf-hint">&#x064A;&#x064F;&#x0639;&#x0628;&#x064E;&#x0651;&#x0623; &#x062A;&#x0644;&#x0642;&#x0627;&#x0626;&#x064A;&#x064B;&#x0627; &#x0645;&#x0646; &#x0645;&#x0648;&#x0642;&#x0639; &#x0627;&#x0644;&#x062F;&#x0628;&#x0648;&#x0633;</div>
         </div>
 
         <!-- MAPS LINK -->
@@ -453,15 +451,8 @@
   var elAddress       = document.getElementById('jfAddress');
   var elMapsLink      = document.getElementById('jfMapsLink');
   var elGeoStatus     = document.getElementById('jfGeoStatus');
-  var elAddrEditedWrap= document.getElementById('jfAddrEditedWrap');
 
-  /* تتبع التعديل اليدوي على حقل العنوان */
-  var addressManuallyEdited = false;
-  elAddress.addEventListener('input', function () {
-    addressManuallyEdited = true;
-    elAddrEditedWrap.classList.add('show');
-    clearErr('jfAddress', 'jfAddressErr');
-  });
+  /* العنوان للقراءة فقط — يُملأ تلقائياً من الجيوكودر */
 
   /* ══════════════════════════════════════
      1. بناء قائمة الساعات
@@ -570,19 +561,22 @@
         var addr    = data && data.address ? data.address : null;
         var address = buildAddressFromNominatim(addr, data && data.display_name);
         if (address) {
-          /* لا تستبدل العنوان إن عدّله المستخدم يدويًا */
-          if (!addressManuallyEdited) {
-            elAddress.value = address;
-            clearErr('jfAddress', 'jfAddressErr');
-          }
+          elAddress.value = address;
+          clearErr('jfAddress', 'jfAddressErr');
           showGeoStatus('\u062a\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u2014 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u062f \u0645\u0646\u0647.', false);
         } else {
-          showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627\u060c \u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644\u0647 \u064a\u062f\u0648\u064a\u064b\u0627.', true);
+          /* استخدام الإحداثيات كعنوان احتياطي */
+          elAddress.value = lat.toFixed(5) + '\u060c ' + lng.toFixed(5);
+          clearErr('jfAddress', 'jfAddressErr');
+          showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
         }
       })
       .catch(function () {
         if (mySeq !== geocodeSeq) return;
-        showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 (\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0627\u062a\u0635\u0627\u0644)\u060c \u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644\u0647 \u064a\u062f\u0648\u064a\u064b\u0627.', true);
+        /* استخدام الإحداثيات كعنوان احتياطي عند فشل الاتصال */
+        elAddress.value = lat.toFixed(5) + '\u060c ' + lng.toFixed(5);
+        clearErr('jfAddress', 'jfAddressErr');
+        showGeoStatus('\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0646\u0648\u0627\u0646 (\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0627\u062a\u0635\u0627\u0644)\u060c \u0633\u064a\u064f\u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0642\u0639 \u0628\u0627\u0644\u0625\u062d\u062f\u0627\u062b\u064a\u0627\u062a.', true);
       });
   }
 

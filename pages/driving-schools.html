@@ -567,22 +567,16 @@
     <div class="ctr-toprow">
       <div class="ctr-search">
         <i class="ph ph-magnifying-glass"></i>
-        <input type="text" id="ctr-search" placeholder="ابحث باسم المركز أو المنطقة…" />
+        <input type="text" id="ctr-search" placeholder="ابحث بالاسم أو العنوان…" />
       </div>
       <div class="ctr-sort-wrap">
         <i class="ph ph-caret-down"></i>
         <select id="ctr-sort">
+          <option value="nearest">الأقرب</option>
           <option value="rating">الأعلى تقييماً</option>
           <option value="newest">الأحدث</option>
-          <option value="nearest">الأقرب</option>
         </select>
       </div>
-    </div>
-
-    <div class="ctr-chips" id="ctr-gov-chips"></div>
-
-    <div class="ctr-area-row" id="ctr-area-row">
-      <div class="ctr-chips" id="ctr-area-chips"></div>
     </div>
 
     <div class="ctr-loc-banner" id="ctr-loc-banner">
@@ -704,13 +698,9 @@
   function todayIdx() { return getJordanNow().dayIdx; }
 
   // ══ الحالة ══
-  var govs       = {};
-  var areas      = {};
   var centers    = {};
-  var activeGov  = null;
-  var activeArea = null;
   var searchQ    = '';
-  var sortMode   = localStorage.getItem('dex_sort') || 'rating';
+  var sortMode   = localStorage.getItem('dex_sort') || 'nearest';
   var userCoords = null;
 
   try {
@@ -721,9 +711,6 @@
   // ══ عناصر DOM ══
   var searchInp  = document.getElementById('ctr-search');
   var sortSel    = document.getElementById('ctr-sort');
-  var govChips   = document.getElementById('ctr-gov-chips');
-  var areaRow    = document.getElementById('ctr-area-row');
-  var areaChips  = document.getElementById('ctr-area-chips');
   var locBanner  = document.getElementById('ctr-loc-banner');
   var locBtn     = document.getElementById('ctr-loc-btn');
   var listEl     = document.getElementById('ctr-list');
@@ -798,7 +785,6 @@
   function fillCard(card, c) {
     var now   = Date.now();
     var st    = getStatus(c);
-    var gName = c.governorateId && govs[c.governorateId] ? govs[c.governorateId].name : '';
 
     // التمييز — يحترم تاريخ الانتهاء، حدود ذهبية فقط بدون شارة
     var isPromoted = !!c.promoted && (!c.promotedUntil || c.promotedUntil > now);
@@ -817,7 +803,7 @@
     card.querySelector('.ctr-card__name').textContent = c.name || '';
 
     var govText = card.querySelector('.ctr-card__gov-text');
-    if (govText) govText.textContent = gName || '';
+    if (govText) govText.textContent = '';
 
     var stEl = card.querySelector('.ctr-card__status');
     if (st.type === 'none') {
@@ -840,18 +826,12 @@
 
     var areasEl = card.querySelector('.ctr-card__areas');
     areasEl.innerHTML = '';
-    if (gName) {
-      var govTag = document.createElement('span');
-      govTag.className = 'ctr-tag gov';
-      govTag.innerHTML = '<i class="ph ph-map-pin" style="font-size:11px;"></i> ' + gName;
-      areasEl.appendChild(govTag);
+    if (c.address) {
+      var addrTag = document.createElement('span');
+      addrTag.className = 'ctr-tag gov';
+      addrTag.innerHTML = '<i class="ph ph-map-pin" style="font-size:11px;"></i> ' + c.address;
+      areasEl.appendChild(addrTag);
     }
-    (c.areas || []).slice(0, 5).forEach(function(a) {
-      var t = document.createElement('span');
-      t.className = 'ctr-tag area';
-      t.textContent = a.name;
-      areasEl.appendChild(t);
-    });
 
     var distEl = card.querySelector('.ctr-card__dist');
     var distKm = c._dist != null ? distLabel(c._dist) : null;
@@ -877,8 +857,9 @@
       waEl.href = 'https://wa.me/' + (c.whatsapp||c.phone).replace(/[^\d]/g,'');
     } else { waEl.hidden = true; }
 
-    if (c.mapLink) { mapEl.hidden = false; mapEl.href = c.mapLink; }
-    else           { mapEl.hidden = true; }
+    var mapLinkVal = c.mapLink || c.mapsLink || null;
+    if (mapLinkVal) { mapEl.hidden = false; mapEl.href = mapLinkVal; }
+    else            { mapEl.hidden = true; }
 
     var footerRow = card.querySelector('.ctr-footer-row');
     footerRow.hidden = !isPromoted;
@@ -920,22 +901,42 @@
       var q = searchQ.toLowerCase();
       list = list.filter(function(c) {
         return (c.name||'').toLowerCase().includes(q) ||
-               (c.address||'').toLowerCase().includes(q) ||
-               (c.areas||[]).some(function(a){ return a.name.toLowerCase().includes(q); });
+               (c.address||'').toLowerCase().includes(q);
       });
     }
-    if (activeGov)  list = list.filter(function(c) { return c.governorateId === activeGov; });
-    if (activeArea) list = list.filter(function(c) {
-      return (c.areas||[]).some(function(a) { return a.id === activeArea; });
-    });
 
-    if (sortMode === 'rating')  list.sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
-    if (sortMode === 'newest')  list.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
-    if (sortMode === 'nearest') list.sort(function(a,b){ return (a._dist??Infinity)-(b._dist??Infinity); });
+    var now2 = Date.now();
+    var PROMO_KM = 30;
 
-    /* المثبّتة تأتي أولاً مع نفس الترتيب */
-    if (sortMode === 'nearest') pinned.sort(function(a,b){ return (a._dist??Infinity)-(b._dist??Infinity); });
-    var combined = pinned.concat(list);
+    /* المميّزة والعادية */
+    var promoted = list.filter(function(c) { return !!c.promoted && (!c.promotedUntil || c.promotedUntil > now2); });
+    var regular  = list.filter(function(c) { return !c.promoted || (c.promotedUntil && c.promotedUntil <= now2); });
+
+    /* المميّزة القريبة ≤30 كم (إن كان الموقع متاحاً)؛ وإلا نعرض كل المميّزة أولاً */
+    var promotedNear, promotedFar;
+    if (userCoords) {
+      promotedNear = promoted.filter(function(c) { return c._dist == null || c._dist <= PROMO_KM; });
+      promotedFar  = promoted.filter(function(c) { return c._dist != null && c._dist > PROMO_KM; });
+    } else {
+      promotedNear = promoted.slice();
+      promotedFar  = [];
+    }
+
+    /* ترتيب المميّزة القريبة حسب وضع الفرز */
+    if (sortMode === 'nearest')     promotedNear.sort(function(a,b){ return (a._dist==null?Infinity:a._dist)-(b._dist==null?Infinity:b._dist); });
+    else if (sortMode === 'rating') promotedNear.sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
+
+    /* بقية المراكز = العادية + المميّزة البعيدة */
+    var rest = regular.concat(promotedFar);
+
+    /* ترتيب بقية المراكز */
+    if (sortMode === 'rating')       rest.sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
+    else if (sortMode === 'newest')  rest.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+    else if (sortMode === 'nearest') rest.sort(function(a,b){ return (a._dist==null?Infinity:a._dist)-(b._dist==null?Infinity:b._dist); });
+
+    /* المثبّتة تُصنَّف بالمسافة إن أمكن، وتأتي أولاً دائماً */
+    if (sortMode === 'nearest') pinned.sort(function(a,b){ return (a._dist==null?Infinity:a._dist)-(b._dist==null?Infinity:b._dist); });
+    var combined = pinned.concat(promotedNear).concat(rest);
 
     Array.from(listEl.querySelectorAll('.ctr-card')).forEach(function(el){ el.remove(); });
 
@@ -952,46 +953,6 @@
       frag.appendChild(node);
     });
     listEl.appendChild(frag);
-  }
-
-  // ══ شرائح المحافظة والمنطقة ══
-  function renderGovChips() {
-    var list = [{ id: null, name: 'الكل' }].concat(
-      Object.keys(govs).map(function(k){ return Object.assign({id:k}, govs[k]); })
-        .sort(function(a,b){ return a.name.localeCompare(b.name,'ar'); })
-    );
-    govChips.innerHTML = '';
-    list.forEach(function(g) {
-      var btn = document.createElement('button');
-      btn.className = 'ctr-chip' + (activeGov === g.id ? ' active' : '');
-      var cnt = g.id === null
-        ? Object.keys(centers).length
-        : Object.values(centers).filter(function(c){ return c.governorateId === g.id; }).length;
-      btn.innerHTML = g.name + '<span class="ctr-chip-cnt">' + cnt + '</span>';
-      btn.onclick = function() {
-        activeGov = g.id; activeArea = null;
-        renderGovChips(); renderAreaChips(); renderList();
-      };
-      govChips.appendChild(btn);
-    });
-  }
-
-  function renderAreaChips() {
-    if (!activeGov) { areaRow.classList.remove('show'); return; }
-    var list = [{ id: null, name: 'كل المناطق' }].concat(
-      Object.keys(areas).map(function(k){ return Object.assign({id:k}, areas[k]); })
-        .filter(function(a){ return a.governorateId === activeGov; })
-        .sort(function(a,b){ return a.name.localeCompare(b.name,'ar'); })
-    );
-    areaChips.innerHTML = '';
-    list.forEach(function(a) {
-      var btn = document.createElement('button');
-      btn.className = 'ctr-chip small' + (activeArea === a.id ? ' active' : '');
-      btn.textContent = a.name;
-      btn.onclick = function() { activeArea = a.id; renderAreaChips(); renderList(); };
-      areaChips.appendChild(btn);
-    });
-    areaRow.classList.add('show');
   }
 
   // ══ الموقع الجغرافي ══
@@ -1052,12 +1013,12 @@
   function saveCache() {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
-        ts: Date.now(), govs: govs, areas: areas, centers: centers
+        ts: Date.now(), centers: centers
       }));
     } catch(e) {}
   }
 
-  function renderAll() { renderGovChips(); renderAreaChips(); renderList(); }
+  function renderAll() { renderList(); }
 
   function showSkeletons() {
     stateEl.hidden = true;
@@ -1083,14 +1044,9 @@
   }
 
   function fetchFresh(silent) {
-    return Promise.all([
-      fetch(FB_BASE + '/governorates.json').then(function(r){ return r.ok ? r.json() : {}; }),
-      fetch(FB_BASE + '/areas.json').then(function(r){ return r.ok ? r.json() : {}; }),
-      fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
-    ]).then(function(results) {
-      govs    = results[0] || {};
-      areas   = results[1] || {};
-      centers = results[2] || {};
+    return fetch(FB_BASE + '/centers.json').then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(result) {
+      centers = result || {};
       saveCache();
       clearSkeletons();
       renderAll();
@@ -1105,8 +1061,6 @@
   var _now    = Date.now();
 
   if (_cached && Object.keys(_cached.centers || {}).length) {
-    govs    = _cached.govs    || {};
-    areas   = _cached.areas   || {};
     centers = _cached.centers || {};
     renderAll();
     // جلب في الخلفية فقط إذا كان الكاش قديماً
