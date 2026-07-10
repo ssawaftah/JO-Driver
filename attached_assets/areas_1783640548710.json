@@ -1,0 +1,1718 @@
+{
+  "-OwZi53y_--t9oDWlrHn": {
+    "governorateId": "JO-MAD",
+    "name": "حنينا"
+  },
+  "AJL-001": {
+    "governorateId": "JO-AJL",
+    "name": "عجلون"
+  },
+  "AJL-002": {
+    "governorateId": "JO-AJL",
+    "name": "عنجرة"
+  },
+  "AJL-003": {
+    "governorateId": "JO-AJL",
+    "name": "كفرنجة"
+  },
+  "AJL-004": {
+    "governorateId": "JO-AJL",
+    "name": "عبين"
+  },
+  "AJL-005": {
+    "governorateId": "JO-AJL",
+    "name": "صخرة"
+  },
+  "AJL-006": {
+    "governorateId": "JO-AJL",
+    "name": "راجب"
+  },
+  "AJL-007": {
+    "governorateId": "JO-AJL",
+    "name": "الوهادنة"
+  },
+  "AJL-008": {
+    "governorateId": "JO-AJL",
+    "name": "حي العين"
+  },
+  "AJL-009": {
+    "governorateId": "JO-AJL",
+    "name": "حي الزيتون"
+  },
+  "AJL-010": {
+    "governorateId": "JO-AJL",
+    "name": "حي الكرمل"
+  },
+  "AMM-001": {
+    "governorateId": "JO-AMM",
+    "name": "العبدلي"
+  },
+  "AMM-002": {
+    "governorateId": "JO-AMM",
+    "name": "رأس العين"
+  },
+  "AMM-003": {
+    "governorateId": "JO-AMM",
+    "name": "المدينة"
+  },
+  "AMM-004": {
+    "governorateId": "JO-AMM",
+    "name": "زهران"
+  },
+  "AMM-005": {
+    "governorateId": "JO-AMM",
+    "name": "اليرموك"
+  },
+  "AMM-006": {
+    "governorateId": "JO-AMM",
+    "name": "بدر"
+  },
+  "AMM-007": {
+    "governorateId": "JO-AMM",
+    "name": "ماركا"
+  },
+  "AMM-008": {
+    "governorateId": "JO-AMM",
+    "name": "النصر"
+  },
+  "AMM-009": {
+    "governorateId": "JO-AMM",
+    "name": "طارق"
+  },
+  "AMM-010": {
+    "governorateId": "JO-AMM",
+    "name": "بسمان"
+  },
+  "AMM-011": {
+    "governorateId": "JO-AMM",
+    "name": "القويسمة"
+  },
+  "AMM-012": {
+    "governorateId": "JO-AMM",
+    "name": "الجويدة"
+  },
+  "AMM-013": {
+    "governorateId": "JO-AMM",
+    "name": "أبو علندا"
+  },
+  "AMM-014": {
+    "governorateId": "JO-AMM",
+    "name": "الرجيب"
+  },
+  "AMM-015": {
+    "governorateId": "JO-AMM",
+    "name": "خريبة السوق"
+  },
+  "AMM-016": {
+    "governorateId": "JO-AMM",
+    "name": "جاوا"
+  },
+  "AMM-017": {
+    "governorateId": "JO-AMM",
+    "name": "اليادودة"
+  },
+  "AMM-018": {
+    "governorateId": "JO-AMM",
+    "name": "أم قصير"
+  },
+  "AMM-019": {
+    "governorateId": "JO-AMM",
+    "name": "المقابلين"
+  },
+  "AMM-020": {
+    "governorateId": "JO-AMM",
+    "name": "الجبيهة"
+  },
+  "AMM-021": {
+    "governorateId": "JO-AMM",
+    "name": "صويلح"
+  },
+  "AMM-022": {
+    "governorateId": "JO-AMM",
+    "name": "تلاع العلي"
+  },
+  "AMM-023": {
+    "governorateId": "JO-AMM",
+    "name": "خلدا"
+  },
+  "AMM-024": {
+    "governorateId": "JO-AMM",
+    "name": "أم السماق"
+  },
+  "AMM-025": {
+    "governorateId": "JO-AMM",
+    "name": "أبو نصير"
+  },
+  "AMM-026": {
+    "governorateId": "JO-AMM",
+    "name": "شفا بدران"
+  },
+  "AMM-027": {
+    "governorateId": "JO-AMM",
+    "name": "الكمالية"
+  },
+  "AMM-028": {
+    "governorateId": "JO-AMM",
+    "name": "وادي السير"
+  },
+  "AMM-029": {
+    "governorateId": "JO-AMM",
+    "name": "بدر الجديدة"
+  },
+  "AMM-030": {
+    "governorateId": "JO-AMM",
+    "name": "مرج الحمام"
+  },
+  "AMM-031": {
+    "governorateId": "JO-AMM",
+    "name": "البصة"
+  },
+  "AMM-032": {
+    "governorateId": "JO-AMM",
+    "name": "عراق الأمير"
+  },
+  "AMM-033": {
+    "governorateId": "JO-AMM",
+    "name": "أبو السوس"
+  },
+  "AMM-034": {
+    "governorateId": "JO-AMM",
+    "name": "البحاث"
+  },
+  "AMM-035": {
+    "governorateId": "JO-AMM",
+    "name": "الألمانية"
+  },
+  "AMM-036": {
+    "governorateId": "JO-AMM",
+    "name": "القصبات"
+  },
+  "AMM-037": {
+    "governorateId": "JO-AMM",
+    "name": "الرجاحة"
+  },
+  "AMM-038": {
+    "governorateId": "JO-AMM",
+    "name": "الثغرة"
+  },
+  "AMM-039": {
+    "governorateId": "JO-AMM",
+    "name": "الحامدية"
+  },
+  "AMM-040": {
+    "governorateId": "JO-AMM",
+    "name": "وادي الشتا"
+  },
+  "AMM-041": {
+    "governorateId": "JO-AMM",
+    "name": "الطبقة"
+  },
+  "AMM-042": {
+    "governorateId": "JO-AMM",
+    "name": "الدبة"
+  },
+  "AMM-043": {
+    "governorateId": "JO-AMM",
+    "name": "أم نجاصة"
+  },
+  "AMM-044": {
+    "governorateId": "JO-AMM",
+    "name": "سحاب"
+  },
+  "AMM-045": {
+    "governorateId": "JO-AMM",
+    "name": "العبدلية"
+  },
+  "AMM-046": {
+    "governorateId": "JO-AMM",
+    "name": "زملة العليا"
+  },
+  "AMM-047": {
+    "governorateId": "JO-AMM",
+    "name": "الخشافية الشمالية"
+  },
+  "AMM-048": {
+    "governorateId": "JO-AMM",
+    "name": "الخشافية الجنوبية"
+  },
+  "AMM-049": {
+    "governorateId": "JO-AMM",
+    "name": "المناخر"
+  },
+  "AMM-050": {
+    "governorateId": "JO-AMM",
+    "name": "قعفور"
+  },
+  "AMM-051": {
+    "governorateId": "JO-AMM",
+    "name": "الجيزة"
+  },
+  "AMM-052": {
+    "governorateId": "JO-AMM",
+    "name": "أم العمد"
+  },
+  "AMM-053": {
+    "governorateId": "JO-AMM",
+    "name": "نتل"
+  },
+  "AMM-054": {
+    "governorateId": "JO-AMM",
+    "name": "اللبن"
+  },
+  "AMM-055": {
+    "governorateId": "JO-AMM",
+    "name": "القسطل"
+  },
+  "AMM-056": {
+    "governorateId": "JO-AMM",
+    "name": "منجا"
+  },
+  "AMM-057": {
+    "governorateId": "JO-AMM",
+    "name": "أم الوليد"
+  },
+  "AMM-058": {
+    "governorateId": "JO-AMM",
+    "name": "حوارة"
+  },
+  "AMM-059": {
+    "governorateId": "JO-AMM",
+    "name": "أرينبه الغربي"
+  },
+  "AMM-060": {
+    "governorateId": "JO-AMM",
+    "name": "العامرية"
+  },
+  "AMM-061": {
+    "governorateId": "JO-AMM",
+    "name": "جلول"
+  },
+  "AMM-062": {
+    "governorateId": "JO-AMM",
+    "name": "الطنيب"
+  },
+  "AMM-063": {
+    "governorateId": "JO-AMM",
+    "name": "المنارة"
+  },
+  "AMM-064": {
+    "governorateId": "JO-AMM",
+    "name": "الخضراء"
+  },
+  "AMM-065": {
+    "governorateId": "JO-AMM",
+    "name": "الزيتونة"
+  },
+  "AMM-066": {
+    "governorateId": "JO-AMM",
+    "name": "أرينبه الشرقية"
+  },
+  "AMM-067": {
+    "governorateId": "JO-AMM",
+    "name": "الزعفران"
+  },
+  "AMM-068": {
+    "governorateId": "JO-AMM",
+    "name": "صوفه"
+  },
+  "AMM-069": {
+    "governorateId": "JO-AMM",
+    "name": "زيزيا"
+  },
+  "AMM-070": {
+    "governorateId": "JO-AMM",
+    "name": "ضبعه"
+  },
+  "AMM-071": {
+    "governorateId": "JO-AMM",
+    "name": "زينب"
+  },
+  "AMM-072": {
+    "governorateId": "JO-AMM",
+    "name": "الدليلة"
+  },
+  "AMM-073": {
+    "governorateId": "JO-AMM",
+    "name": "أم رمانة"
+  },
+  "AMM-074": {
+    "governorateId": "JO-AMM",
+    "name": "الهربج"
+  },
+  "AMM-075": {
+    "governorateId": "JO-AMM",
+    "name": "القنيطرة"
+  },
+  "AMM-076": {
+    "governorateId": "JO-AMM",
+    "name": "العرين"
+  },
+  "AMM-077": {
+    "governorateId": "JO-AMM",
+    "name": "الناصرية"
+  },
+  "AMM-078": {
+    "governorateId": "JO-AMM",
+    "name": "ضبيعه"
+  },
+  "AMM-079": {
+    "governorateId": "JO-AMM",
+    "name": "الزميله"
+  },
+  "AMM-080": {
+    "governorateId": "JO-AMM",
+    "name": "المبروكة"
+  },
+  "AMM-081": {
+    "governorateId": "JO-AMM",
+    "name": "الشهباء"
+  },
+  "AMM-082": {
+    "governorateId": "JO-AMM",
+    "name": "الخالدية"
+  },
+  "AMM-083": {
+    "governorateId": "JO-AMM",
+    "name": "الخريم"
+  },
+  "AMM-084": {
+    "governorateId": "JO-AMM",
+    "name": "الغبية"
+  },
+  "AMM-085": {
+    "governorateId": "JO-AMM",
+    "name": "منشية الجيزة"
+  },
+  "AMM-086": {
+    "governorateId": "JO-AMM",
+    "name": "السيفية"
+  },
+  "AMM-087": {
+    "governorateId": "JO-AMM",
+    "name": "الباسلية"
+  },
+  "AMM-088": {
+    "governorateId": "JO-AMM",
+    "name": "الراشدية"
+  },
+  "AMM-089": {
+    "governorateId": "JO-AMM",
+    "name": "الثمد"
+  },
+  "AMM-090": {
+    "governorateId": "JO-AMM",
+    "name": "الصلاحية"
+  },
+  "AMM-091": {
+    "governorateId": "JO-AMM",
+    "name": "الموقر"
+  },
+  "AMM-092": {
+    "governorateId": "JO-AMM",
+    "name": "النقيرة"
+  },
+  "AMM-093": {
+    "governorateId": "JO-AMM",
+    "name": "الفيصلية"
+  },
+  "AMM-094": {
+    "governorateId": "JO-AMM",
+    "name": "مغاير مهنا"
+  },
+  "AMM-095": {
+    "governorateId": "JO-AMM",
+    "name": "الذهيبة الشرقية"
+  },
+  "AMM-096": {
+    "governorateId": "JO-AMM",
+    "name": "المشاش"
+  },
+  "AMM-097": {
+    "governorateId": "JO-AMM",
+    "name": "المنشية"
+  },
+  "AMM-098": {
+    "governorateId": "JO-AMM",
+    "name": "أم بطمة"
+  },
+  "AMM-099": {
+    "governorateId": "JO-AMM",
+    "name": "الحاتمية"
+  },
+  "AMM-100": {
+    "governorateId": "JO-AMM",
+    "name": "غزالة"
+  },
+  "AMM-101": {
+    "governorateId": "JO-AMM",
+    "name": "السومرية"
+  },
+  "AMM-102": {
+    "governorateId": "JO-AMM",
+    "name": "روضة السحين"
+  },
+  "AMM-103": {
+    "governorateId": "JO-AMM",
+    "name": "الحنيفية"
+  },
+  "AMM-104": {
+    "governorateId": "JO-AMM",
+    "name": "الفالج"
+  },
+  "AMM-105": {
+    "governorateId": "JO-AMM",
+    "name": "الزميلات"
+  },
+  "AMM-106": {
+    "governorateId": "JO-AMM",
+    "name": "المطبة"
+  },
+  "AMM-107": {
+    "governorateId": "JO-AMM",
+    "name": "ناعور"
+  },
+  "AMM-108": {
+    "governorateId": "JO-AMM",
+    "name": "العدسية"
+  },
+  "AMM-109": {
+    "governorateId": "JO-AMM",
+    "name": "أم القطين"
+  },
+  "AMM-110": {
+    "governorateId": "JO-AMM",
+    "name": "قرة تركي"
+  },
+  "AMM-111": {
+    "governorateId": "JO-AMM",
+    "name": "أدبيان"
+  },
+  "AMM-112": {
+    "governorateId": "JO-AMM",
+    "name": "المنصورة"
+  },
+  "AMM-113": {
+    "governorateId": "JO-AMM",
+    "name": "البنيات"
+  },
+  "AMM-114": {
+    "governorateId": "JO-AMM",
+    "name": "أم السماق"
+  },
+  "AMM-115": {
+    "governorateId": "JO-AMM",
+    "name": "بصة ناعور"
+  },
+  "AMM-116": {
+    "governorateId": "JO-AMM",
+    "name": "سيل حسبان"
+  },
+  "AMM-117": {
+    "governorateId": "JO-AMM",
+    "name": "العالية"
+  },
+  "AMM-118": {
+    "governorateId": "JO-AMM",
+    "name": "بلعاس"
+  },
+  "AMM-119": {
+    "governorateId": "JO-AMM",
+    "name": "زبود"
+  },
+  "AMM-120": {
+    "governorateId": "JO-AMM",
+    "name": "أبو نقله"
+  },
+  "AMM-121": {
+    "governorateId": "JO-AMM",
+    "name": "رجم الشامي الغربي"
+  },
+  "AMM-122": {
+    "governorateId": "JO-AMM",
+    "name": "سالم"
+  },
+  "AMM-123": {
+    "governorateId": "JO-AMM",
+    "name": "الهاشمية"
+  },
+  "AMM-124": {
+    "governorateId": "JO-AMM",
+    "name": "رجم الشامي الشرقي"
+  },
+  "AMM-125": {
+    "governorateId": "JO-AMM",
+    "name": "الذهيبة الغربية"
+  },
+  "AMM-126": {
+    "governorateId": "JO-AMM",
+    "name": "الكتيفة"
+  },
+  "AMM-127": {
+    "governorateId": "JO-AMM",
+    "name": "اللسين"
+  },
+  "AMM-128": {
+    "governorateId": "JO-AMM",
+    "name": "الماجدية"
+  },
+  "AMM-129": {
+    "governorateId": "JO-AMM",
+    "name": "الرابية"
+  },
+  "AMM-130": {
+    "governorateId": "JO-AMM",
+    "name": "أم الرصاص"
+  },
+  "AMM-131": {
+    "governorateId": "JO-AMM",
+    "name": "الرامة"
+  },
+  "AMM-132": {
+    "governorateId": "JO-AMM",
+    "name": "الرميل"
+  },
+  "AMM-133": {
+    "governorateId": "JO-AMM",
+    "name": "طور الحشاش"
+  },
+  "AMM-134": {
+    "governorateId": "JO-AMM",
+    "name": "سالية"
+  },
+  "AMM-135": {
+    "governorateId": "JO-AMM",
+    "name": "سواقة"
+  },
+  "AMM-136": {
+    "governorateId": "JO-AMM",
+    "name": "الدامخي"
+  },
+  "AMM-137": {
+    "governorateId": "JO-AMM",
+    "name": "الياهون"
+  },
+  "AMM-138": {
+    "governorateId": "JO-AMM",
+    "name": "عليان"
+  },
+  "AMM-139": {
+    "governorateId": "JO-AMM",
+    "name": "رجم عقاب"
+  },
+  "AMM-140": {
+    "governorateId": "JO-AMM",
+    "name": "جميل"
+  },
+  "AMM-141": {
+    "governorateId": "JO-AMM",
+    "name": "الثريا"
+  },
+  "AMM-142": {
+    "governorateId": "JO-AMM",
+    "name": "المشيرفة"
+  },
+  "AMM-143": {
+    "governorateId": "JO-AMM",
+    "name": "رجم فهيد"
+  },
+  "AMM-144": {
+    "governorateId": "JO-AMM",
+    "name": "أبو الحصانيا"
+  },
+  "AMM-145": {
+    "governorateId": "JO-AMM",
+    "name": "أبو حليليفة"
+  },
+  "AMM-146": {
+    "governorateId": "JO-AMM",
+    "name": "الندوة"
+  },
+  "AMM-147": {
+    "governorateId": "JO-AMM",
+    "name": "المصيطة"
+  },
+  "AMM-148": {
+    "governorateId": "JO-AMM",
+    "name": "النهضة"
+  },
+  "AMM-149": {
+    "governorateId": "JO-AMM",
+    "name": "أم البساتين"
+  },
+  "AMM-150": {
+    "governorateId": "JO-AMM",
+    "name": "السامك"
+  },
+  "AMM-151": {
+    "governorateId": "JO-AMM",
+    "name": "أم العساكر"
+  },
+  "AMM-152": {
+    "governorateId": "JO-AMM",
+    "name": "أم الكندم"
+  },
+  "AMM-153": {
+    "governorateId": "JO-AMM",
+    "name": "أم البرك"
+  },
+  "AMM-154": {
+    "governorateId": "JO-AMM",
+    "name": "ماسوح"
+  },
+  "AMM-155": {
+    "governorateId": "JO-AMM",
+    "name": "حسبان"
+  },
+  "AMM-156": {
+    "governorateId": "JO-AMM",
+    "name": "سبان"
+  },
+  "AMM-157": {
+    "governorateId": "JO-AMM",
+    "name": "المشقر"
+  },
+  "AMM-158": {
+    "governorateId": "JO-AMM",
+    "name": "الروضة"
+  },
+  "AMM-159": {
+    "governorateId": "JO-AMM",
+    "name": "عال"
+  },
+  "AMM-160": {
+    "governorateId": "JO-AMM",
+    "name": "أم أذينة"
+  },
+  "AMM-161": {
+    "governorateId": "JO-AMM",
+    "name": "الذراع الغربي"
+  },
+  "AMM-162": {
+    "governorateId": "JO-AMM",
+    "name": "المحطة"
+  },
+  "AMM-163": {
+    "governorateId": "JO-AMM",
+    "name": "الهاشمي الشمالي"
+  },
+  "AMM-164": {
+    "governorateId": "JO-AMM",
+    "name": "بيادر وادي السير"
+  },
+  "AMM-165": {
+    "governorateId": "JO-AMM",
+    "name": "جبل الأشرفية"
+  },
+  "AMM-166": {
+    "governorateId": "JO-AMM",
+    "name": "جبل التاج"
+  },
+  "AMM-167": {
+    "governorateId": "JO-AMM",
+    "name": "جبل الجوفة"
+  },
+  "AMM-168": {
+    "governorateId": "JO-AMM",
+    "name": "جبل الحسين"
+  },
+  "AMM-169": {
+    "governorateId": "JO-AMM",
+    "name": "جبل القصور"
+  },
+  "AMM-170": {
+    "governorateId": "JO-AMM",
+    "name": "جبل اللويبدة"
+  },
+  "AMM-171": {
+    "governorateId": "JO-AMM",
+    "name": "جبل المريخ"
+  },
+  "AMM-172": {
+    "governorateId": "JO-AMM",
+    "name": "جبل النزهة"
+  },
+  "AMM-173": {
+    "governorateId": "JO-AMM",
+    "name": "جبل النظيف"
+  },
+  "AMM-174": {
+    "governorateId": "JO-AMM",
+    "name": "جبل عمان"
+  },
+  "AMM-175": {
+    "governorateId": "JO-AMM",
+    "name": "حي الرابية"
+  },
+  "AMM-176": {
+    "governorateId": "JO-AMM",
+    "name": "حي الطفايلة"
+  },
+  "AMM-177": {
+    "governorateId": "JO-AMM",
+    "name": "حي المزارع"
+  },
+  "AMM-178": {
+    "governorateId": "JO-AMM",
+    "name": "حي غمدان"
+  },
+  "AMM-179": {
+    "governorateId": "JO-AMM",
+    "name": "حي نزال"
+  },
+  "AMM-180": {
+    "governorateId": "JO-AMM",
+    "name": "ضاحية النخيل"
+  },
+  "AMM-181": {
+    "governorateId": "JO-AMM",
+    "name": "ضاحية الياسمين"
+  },
+  "AMM-182": {
+    "governorateId": "JO-AMM",
+    "name": "طبربور"
+  },
+  "AMM-183": {
+    "governorateId": "JO-AMM",
+    "name": "عبدون"
+  },
+  "AMM-184": {
+    "governorateId": "JO-AMM",
+    "name": "عمان الشرقية"
+  },
+  "AMM-185": {
+    "governorateId": "JO-AMM",
+    "name": "عمان الغربية"
+  },
+  "AMM-186": {
+    "governorateId": "JO-AMM",
+    "name": "الشميساني"
+  },
+  "AMM-187": {
+    "governorateId": "JO-AMM",
+    "name": "الصويفية"
+  },
+  "AMM-188": {
+    "governorateId": "JO-AMM",
+    "name": "دابوق"
+  },
+  "AQA-001": {
+    "governorateId": "JO-AQA",
+    "name": "العقبة"
+  },
+  "AQA-002": {
+    "governorateId": "JO-AQA",
+    "name": "وادي عربة"
+  },
+  "AQA-003": {
+    "governorateId": "JO-AQA",
+    "name": "القويرة"
+  },
+  "AQA-004": {
+    "governorateId": "JO-AQA",
+    "name": "الرأس"
+  },
+  "AQA-005": {
+    "governorateId": "JO-AQA",
+    "name": "الشيخ حماد"
+  },
+  "AQA-006": {
+    "governorateId": "JO-AQA",
+    "name": "حي الأمل"
+  },
+  "AQA-007": {
+    "governorateId": "JO-AQA",
+    "name": "حي النزهة"
+  },
+  "AQA-008": {
+    "governorateId": "JO-AQA",
+    "name": "حي الشاطئ"
+  },
+  "AQA-009": {
+    "governorateId": "JO-AQA",
+    "name": "حي النخيل"
+  },
+  "BAL-001": {
+    "governorateId": "JO-BAL",
+    "name": "السلط"
+  },
+  "BAL-002": {
+    "governorateId": "JO-BAL",
+    "name": "الشونة الجنوبية"
+  },
+  "BAL-003": {
+    "governorateId": "JO-BAL",
+    "name": "دير علا"
+  },
+  "BAL-004": {
+    "governorateId": "JO-BAL",
+    "name": "الأغوار الشمالية"
+  },
+  "BAL-005": {
+    "governorateId": "JO-BAL",
+    "name": "فحص"
+  },
+  "BAL-006": {
+    "governorateId": "JO-BAL",
+    "name": "الروضة"
+  },
+  "BAL-007": {
+    "governorateId": "JO-BAL",
+    "name": "الرامة"
+  },
+  "BAL-008": {
+    "governorateId": "JO-BAL",
+    "name": "الزي"
+  },
+  "BAL-009": {
+    "governorateId": "JO-BAL",
+    "name": "يعبد"
+  },
+  "BAL-010": {
+    "governorateId": "JO-BAL",
+    "name": "حي السلط الجديدة"
+  },
+  "BAL-011": {
+    "governorateId": "JO-BAL",
+    "name": "حي العارضة"
+  },
+  "BAL-012": {
+    "governorateId": "JO-BAL",
+    "name": "حي الخضر"
+  },
+  "BAL-013": {
+    "governorateId": "JO-BAL",
+    "name": "حي المرج"
+  },
+  "BAL-014": {
+    "governorateId": "JO-BAL",
+    "name": "حي المعاذ"
+  },
+  "BAL-015": {
+    "governorateId": "JO-BAL",
+    "name": "حي الرفيد"
+  },
+  "BAL-016": {
+    "governorateId": "JO-BAL",
+    "name": "حي الزيتون"
+  },
+  "BAL-017": {
+    "governorateId": "JO-BAL",
+    "name": "حي الكرمل"
+  },
+  "BAL-018": {
+    "governorateId": "JO-BAL",
+    "name": "حي الطرة"
+  },
+  "BAL-019": {
+    "governorateId": "JO-BAL",
+    "name": "حي الرشيد"
+  },
+  "BAL-020": {
+    "governorateId": "JO-BAL",
+    "name": "حي الأمل"
+  },
+  "IRB-001": {
+    "governorateId": "JO-IRB",
+    "name": "إربد (المركز)"
+  },
+  "IRB-002": {
+    "governorateId": "JO-IRB",
+    "name": "البارحة"
+  },
+  "IRB-003": {
+    "governorateId": "JO-IRB",
+    "name": "زبدة فركوح"
+  },
+  "IRB-004": {
+    "governorateId": "JO-IRB",
+    "name": "الرمثا"
+  },
+  "IRB-005": {
+    "governorateId": "JO-IRB",
+    "name": "إيدون"
+  },
+  "IRB-006": {
+    "governorateId": "JO-IRB",
+    "name": "الصريح"
+  },
+  "IRB-007": {
+    "governorateId": "JO-IRB",
+    "name": "بيت راس"
+  },
+  "IRB-008": {
+    "governorateId": "JO-IRB",
+    "name": "الحصن"
+  },
+  "IRB-009": {
+    "governorateId": "JO-IRB",
+    "name": "الطرة"
+  },
+  "IRB-010": {
+    "governorateId": "JO-IRB",
+    "name": "دير أبي سعيد"
+  },
+  "IRB-011": {
+    "governorateId": "JO-IRB",
+    "name": "النعيمة"
+  },
+  "IRB-012": {
+    "governorateId": "JO-IRB",
+    "name": "الشجرة"
+  },
+  "IRB-013": {
+    "governorateId": "JO-IRB",
+    "name": "المشارع"
+  },
+  "IRB-014": {
+    "governorateId": "JO-IRB",
+    "name": "حوارة"
+  },
+  "IRB-015": {
+    "governorateId": "JO-IRB",
+    "name": "كفر يوبا"
+  },
+  "IRB-016": {
+    "governorateId": "JO-IRB",
+    "name": "كريمة"
+  },
+  "IRB-017": {
+    "governorateId": "JO-IRB",
+    "name": "الطيبة"
+  },
+  "IRB-018": {
+    "governorateId": "JO-IRB",
+    "name": "المزار الشمالي"
+  },
+  "IRB-019": {
+    "governorateId": "JO-IRB",
+    "name": "بشرى"
+  },
+  "IRB-020": {
+    "governorateId": "JO-IRB",
+    "name": "جديتا"
+  },
+  "IRB-021": {
+    "governorateId": "JO-IRB",
+    "name": "الشونة الشمالية"
+  },
+  "IRB-022": {
+    "governorateId": "JO-IRB",
+    "name": "كفر الماء"
+  },
+  "IRB-023": {
+    "governorateId": "JO-IRB",
+    "name": "المغير"
+  },
+  "IRB-024": {
+    "governorateId": "JO-IRB",
+    "name": "صما"
+  },
+  "IRB-025": {
+    "governorateId": "JO-IRB",
+    "name": "حكما"
+  },
+  "IRB-026": {
+    "governorateId": "JO-IRB",
+    "name": "الأشرفية"
+  },
+  "IRB-027": {
+    "governorateId": "JO-IRB",
+    "name": "كفر أسد"
+  },
+  "IRB-028": {
+    "governorateId": "JO-IRB",
+    "name": "إرحابا"
+  },
+  "IRB-029": {
+    "governorateId": "JO-IRB",
+    "name": "كفر عوان"
+  },
+  "IRB-030": {
+    "governorateId": "JO-IRB",
+    "name": "بيت يافا"
+  },
+  "IRB-031": {
+    "governorateId": "JO-IRB",
+    "name": "دير يوسف"
+  },
+  "IRB-032": {
+    "governorateId": "JO-IRB",
+    "name": "ملكا"
+  },
+  "IRB-033": {
+    "governorateId": "JO-IRB",
+    "name": "كفر أبيل"
+  },
+  "IRB-034": {
+    "governorateId": "JO-IRB",
+    "name": "الشيخ حسين"
+  },
+  "IRB-035": {
+    "governorateId": "JO-IRB",
+    "name": "كفر سوم"
+  },
+  "IRB-036": {
+    "governorateId": "JO-IRB",
+    "name": "سال"
+  },
+  "IRB-037": {
+    "governorateId": "JO-IRB",
+    "name": "سموع"
+  },
+  "IRB-038": {
+    "governorateId": "JO-IRB",
+    "name": "البويضة"
+  },
+  "IRB-039": {
+    "governorateId": "JO-IRB",
+    "name": "سوم"
+  },
+  "IRB-040": {
+    "governorateId": "JO-IRB",
+    "name": "عنبة"
+  },
+  "IRB-041": {
+    "governorateId": "JO-IRB",
+    "name": "سحم"
+  },
+  "IRB-042": {
+    "governorateId": "JO-IRB",
+    "name": "تبنة"
+  },
+  "IRB-043": {
+    "governorateId": "JO-IRB",
+    "name": "حاتم"
+  },
+  "IRB-044": {
+    "governorateId": "JO-IRB",
+    "name": "خرجا"
+  },
+  "IRB-045": {
+    "governorateId": "JO-IRB",
+    "name": "كتم"
+  },
+  "IRB-046": {
+    "governorateId": "JO-IRB",
+    "name": "دوقرة"
+  },
+  "IRB-047": {
+    "governorateId": "JO-IRB",
+    "name": "دير السعنة"
+  },
+  "IRB-048": {
+    "governorateId": "JO-IRB",
+    "name": "قميم"
+  },
+  "IRB-049": {
+    "governorateId": "JO-IRB",
+    "name": "حي الجامعة"
+  },
+  "IRB-050": {
+    "governorateId": "JO-IRB",
+    "name": "الحي الجنوبي"
+  },
+  "IRB-051": {
+    "governorateId": "JO-IRB",
+    "name": "حي الأبرار"
+  },
+  "IRB-052": {
+    "governorateId": "JO-IRB",
+    "name": "حي الفضيلة"
+  },
+  "IRB-053": {
+    "governorateId": "JO-IRB",
+    "name": "حي المنارة"
+  },
+  "IRB-054": {
+    "governorateId": "JO-IRB",
+    "name": "حي الملعب"
+  },
+  "IRB-055": {
+    "governorateId": "JO-IRB",
+    "name": "حي الجامع"
+  },
+  "IRB-056": {
+    "governorateId": "JO-IRB",
+    "name": "حي العودة"
+  },
+  "IRB-057": {
+    "governorateId": "JO-IRB",
+    "name": "حي الأفراح"
+  },
+  "IRB-058": {
+    "governorateId": "JO-IRB",
+    "name": "الرابية"
+  },
+  "IRB-059": {
+    "governorateId": "JO-IRB",
+    "name": "الروضة"
+  },
+  "IRB-060": {
+    "governorateId": "JO-IRB",
+    "name": "النزهة"
+  },
+  "IRB-061": {
+    "governorateId": "JO-IRB",
+    "name": "النصر"
+  },
+  "IRB-062": {
+    "governorateId": "JO-IRB",
+    "name": "الهاشمية"
+  },
+  "IRB-063": {
+    "governorateId": "JO-IRB",
+    "name": "حور"
+  },
+  "IRB-064": {
+    "governorateId": "JO-IRB",
+    "name": "علعال"
+  },
+  "IRB-065": {
+    "governorateId": "JO-IRB",
+    "name": "فوعرا"
+  },
+  "IRB-066": {
+    "governorateId": "JO-IRB",
+    "name": "كفرجايز"
+  },
+  "IRB-067": {
+    "governorateId": "JO-IRB",
+    "name": "مرو"
+  },
+  "JER-001": {
+    "governorateId": "JO-JER",
+    "name": "جرش"
+  },
+  "JER-002": {
+    "governorateId": "JO-JER",
+    "name": "سوف"
+  },
+  "JER-003": {
+    "governorateId": "JO-JER",
+    "name": "كفرخلة"
+  },
+  "JER-004": {
+    "governorateId": "JO-JER",
+    "name": "مصطبة"
+  },
+  "JER-005": {
+    "governorateId": "JO-JER",
+    "name": "برما"
+  },
+  "JER-006": {
+    "governorateId": "JO-JER",
+    "name": "المنشية"
+  },
+  "JER-007": {
+    "governorateId": "JO-JER",
+    "name": "النازل"
+  },
+  "JER-008": {
+    "governorateId": "JO-JER",
+    "name": "حي الشرف"
+  },
+  "JER-009": {
+    "governorateId": "JO-JER",
+    "name": "حي النزهة"
+  },
+  "JER-010": {
+    "governorateId": "JO-JER",
+    "name": "حي الروضة"
+  },
+  "JO-MAD": {
+    "-Owxr188HIfn-c1roxIJ": {
+      "name": "حنينا"
+    },
+    "-Owxr3-1e8NaPFjMo_Da": {
+      "name": "تست"
+    }
+  },
+  "KAR-001": {
+    "governorateId": "JO-KAR",
+    "name": "الكرك"
+  },
+  "KAR-002": {
+    "governorateId": "JO-KAR",
+    "name": "القطرانة"
+  },
+  "KAR-003": {
+    "governorateId": "JO-KAR",
+    "name": "غور الصافي"
+  },
+  "KAR-004": {
+    "governorateId": "JO-KAR",
+    "name": "المزار الجنوبي"
+  },
+  "KAR-005": {
+    "governorateId": "JO-KAR",
+    "name": "العي"
+  },
+  "KAR-006": {
+    "governorateId": "JO-KAR",
+    "name": "الربة"
+  },
+  "KAR-007": {
+    "governorateId": "JO-KAR",
+    "name": "فقوع"
+  },
+  "KAR-008": {
+    "governorateId": "JO-KAR",
+    "name": "العدسية"
+  },
+  "KAR-009": {
+    "governorateId": "JO-KAR",
+    "name": "حي القلعة"
+  },
+  "KAR-010": {
+    "governorateId": "JO-KAR",
+    "name": "حي الحسين"
+  },
+  "KAR-011": {
+    "governorateId": "JO-KAR",
+    "name": "حي الزيتون"
+  },
+  "MAD-001": {
+    "governorateId": "JO-MAD",
+    "name": "مأدبا"
+  },
+  "MAD-002": {
+    "governorateId": "JO-MAD",
+    "name": "ذيبان"
+  },
+  "MAD-003": {
+    "governorateId": "JO-MAD",
+    "name": "الفيصلية"
+  },
+  "MAD-004": {
+    "governorateId": "JO-MAD",
+    "name": "ماعين"
+  },
+  "MAD-005": {
+    "governorateId": "JO-MAD",
+    "name": "جرينة"
+  },
+  "MAD-006": {
+    "governorateId": "JO-MAD",
+    "name": "العريض"
+  },
+  "MAD-007": {
+    "governorateId": "JO-MAD",
+    "name": "الخريجة"
+  },
+  "MAD-008": {
+    "governorateId": "JO-MAD",
+    "name": "مليح"
+  },
+  "MAD-009": {
+    "governorateId": "JO-MAD",
+    "name": "حي الزهور"
+  },
+  "MAD-010": {
+    "governorateId": "JO-MAD",
+    "name": "حي النزهة"
+  },
+  "MAD-011": {
+    "governorateId": "JO-MAD",
+    "name": "حي السلام"
+  },
+  "MAD-012": {
+    "governorateId": "JO-MAD",
+    "name": "حي الأمل"
+  },
+  "MAD-013": {
+    "governorateId": "JO-MAD",
+    "name": "حي الروضة"
+  },
+  "MAF-001": {
+    "governorateId": "JO-MAF",
+    "name": "المفرق"
+  },
+  "MAF-002": {
+    "governorateId": "JO-MAF",
+    "name": "الرويشد"
+  },
+  "MAF-003": {
+    "governorateId": "JO-MAF",
+    "name": "الصفاوي"
+  },
+  "MAF-004": {
+    "governorateId": "JO-MAF",
+    "name": "الحمرا"
+  },
+  "MAF-005": {
+    "governorateId": "JO-MAF",
+    "name": "بلعما"
+  },
+  "MAF-006": {
+    "governorateId": "JO-MAF",
+    "name": "البصية"
+  },
+  "MAF-007": {
+    "governorateId": "JO-MAF",
+    "name": "الشريعة"
+  },
+  "MAF-008": {
+    "governorateId": "JO-MAF",
+    "name": "الأزرق الشمالي"
+  },
+  "MAF-009": {
+    "governorateId": "JO-MAF",
+    "name": "حي البدو"
+  },
+  "MAF-010": {
+    "governorateId": "JO-MAF",
+    "name": "حي النور"
+  },
+  "MAF-011": {
+    "governorateId": "JO-MAF",
+    "name": "حي الهدى"
+  },
+  "MAF-012": {
+    "governorateId": "JO-MAF",
+    "name": "حي الكرامة"
+  },
+  "MAN-001": {
+    "governorateId": "JO-MAN",
+    "name": "معان"
+  },
+  "MAN-002": {
+    "governorateId": "JO-MAN",
+    "name": "الشوبك"
+  },
+  "MAN-003": {
+    "governorateId": "JO-MAN",
+    "name": "البتراء"
+  },
+  "MAN-004": {
+    "governorateId": "JO-MAN",
+    "name": "جران"
+  },
+  "MAN-005": {
+    "governorateId": "JO-MAN",
+    "name": "المرتفعة"
+  },
+  "MAN-006": {
+    "governorateId": "JO-MAN",
+    "name": "إيل"
+  },
+  "MAN-007": {
+    "governorateId": "JO-MAN",
+    "name": "وادي موسى"
+  },
+  "MAN-008": {
+    "governorateId": "JO-MAN",
+    "name": "حي النهضة"
+  },
+  "MAN-009": {
+    "governorateId": "JO-MAN",
+    "name": "حي الروضة"
+  },
+  "TAF-001": {
+    "governorateId": "JO-TAF",
+    "name": "الطفيلة"
+  },
+  "TAF-002": {
+    "governorateId": "JO-TAF",
+    "name": "بصيرا"
+  },
+  "TAF-003": {
+    "governorateId": "JO-TAF",
+    "name": "الحسا"
+  },
+  "TAF-004": {
+    "governorateId": "JO-TAF",
+    "name": "عين البيضاء"
+  },
+  "TAF-005": {
+    "governorateId": "JO-TAF",
+    "name": "الرشادية"
+  },
+  "TAF-006": {
+    "governorateId": "JO-TAF",
+    "name": "الغوين"
+  },
+  "TAF-007": {
+    "governorateId": "JO-TAF",
+    "name": "حي الصفا"
+  },
+  "TAF-008": {
+    "governorateId": "JO-TAF",
+    "name": "حي النور"
+  },
+  "ZAR-001": {
+    "governorateId": "JO-ZAR",
+    "name": "الزرقاء (المركز)"
+  },
+  "ZAR-002": {
+    "governorateId": "JO-ZAR",
+    "name": "جريبا"
+  },
+  "ZAR-003": {
+    "governorateId": "JO-ZAR",
+    "name": "نصار"
+  },
+  "ZAR-004": {
+    "governorateId": "JO-ZAR",
+    "name": "الطافح"
+  },
+  "ZAR-005": {
+    "governorateId": "JO-ZAR",
+    "name": "الركبان"
+  },
+  "ZAR-006": {
+    "governorateId": "JO-ZAR",
+    "name": "الرصيفة"
+  },
+  "ZAR-007": {
+    "governorateId": "JO-ZAR",
+    "name": "أبو صياح"
+  },
+  "ZAR-008": {
+    "governorateId": "JO-ZAR",
+    "name": "الهاشمية"
+  },
+  "ZAR-009": {
+    "governorateId": "JO-ZAR",
+    "name": "السخنة"
+  },
+  "ZAR-010": {
+    "governorateId": "JO-ZAR",
+    "name": "أبو الزيغان"
+  },
+  "ZAR-011": {
+    "governorateId": "JO-ZAR",
+    "name": "دوقرة"
+  },
+  "ZAR-012": {
+    "governorateId": "JO-ZAR",
+    "name": "عين النمرة"
+  },
+  "ZAR-013": {
+    "governorateId": "JO-ZAR",
+    "name": "غريسة"
+  },
+  "ZAR-014": {
+    "governorateId": "JO-ZAR",
+    "name": "أم صليح"
+  },
+  "ZAR-015": {
+    "governorateId": "JO-ZAR",
+    "name": "القنية"
+  },
+  "ZAR-016": {
+    "governorateId": "JO-ZAR",
+    "name": "ضبعان"
+  },
+  "ZAR-017": {
+    "governorateId": "JO-ZAR",
+    "name": "طواحين العدوان"
+  },
+  "ZAR-018": {
+    "governorateId": "JO-ZAR",
+    "name": "السمراء"
+  },
+  "ZAR-019": {
+    "governorateId": "JO-ZAR",
+    "name": "الحصب"
+  },
+  "ZAR-020": {
+    "governorateId": "JO-ZAR",
+    "name": "حي المصفاة"
+  },
+  "ZAR-021": {
+    "governorateId": "JO-ZAR",
+    "name": "الرحيل"
+  },
+  "ZAR-022": {
+    "governorateId": "JO-ZAR",
+    "name": "الضليل"
+  },
+  "ZAR-023": {
+    "governorateId": "JO-ZAR",
+    "name": "قصر الحلابات الشرقي"
+  },
+  "ZAR-024": {
+    "governorateId": "JO-ZAR",
+    "name": "قصر الحلابات الغربي"
+  },
+  "ZAR-025": {
+    "governorateId": "JO-ZAR",
+    "name": "الدهيثم"
+  },
+  "ZAR-026": {
+    "governorateId": "JO-ZAR",
+    "name": "سايح الذيب"
+  },
+  "ZAR-027": {
+    "governorateId": "JO-ZAR",
+    "name": "الناصرية (المشاقبة)"
+  },
+  "ZAR-028": {
+    "governorateId": "JO-ZAR",
+    "name": "بيرين"
+  },
+  "ZAR-029": {
+    "governorateId": "JO-ZAR",
+    "name": "أم رمانة"
+  },
+  "ZAR-030": {
+    "governorateId": "JO-ZAR",
+    "name": "الكمشة"
+  },
+  "ZAR-031": {
+    "governorateId": "JO-ZAR",
+    "name": "العالوك"
+  },
+  "ZAR-032": {
+    "governorateId": "JO-ZAR",
+    "name": "صروت"
+  },
+  "ZAR-033": {
+    "governorateId": "JO-ZAR",
+    "name": "مرحب"
+  },
+  "ZAR-034": {
+    "governorateId": "JO-ZAR",
+    "name": "الميدان"
+  },
+  "ZAR-035": {
+    "governorateId": "JO-ZAR",
+    "name": "الجبل الشمالي"
+  },
+  "ZAR-036": {
+    "governorateId": "JO-ZAR",
+    "name": "الزرقاء الجديدة"
+  },
+  "ZAR-037": {
+    "governorateId": "JO-ZAR",
+    "name": "الزواهرة"
+  },
+  "ZAR-038": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأمير محمد"
+  },
+  "ZAR-039": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الجندي"
+  },
+  "ZAR-040": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الحسين"
+  },
+  "ZAR-041": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الضباط"
+  },
+  "ZAR-042": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الفلاح"
+  },
+  "ZAR-043": {
+    "governorateId": "JO-ZAR",
+    "name": "حي جناعة"
+  },
+  "ZAR-044": {
+    "governorateId": "JO-ZAR",
+    "name": "حي رمزي"
+  },
+  "ZAR-045": {
+    "governorateId": "JO-ZAR",
+    "name": "حي معصوم"
+  },
+  "ZAR-046": {
+    "governorateId": "JO-ZAR",
+    "name": "عوجان"
+  },
+  "ZAR-047": {
+    "governorateId": "JO-ZAR",
+    "name": "وادي الحجر"
+  },
+  "ZAR-048": {
+    "governorateId": "JO-ZAR",
+    "name": "المنطقة الحرة"
+  },
+  "ZAR-049": {
+    "governorateId": "JO-ZAR",
+    "name": "حي ابن سينا"
+  },
+  "ZAR-050": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأميرة هيا"
+  },
+  "ZAR-051": {
+    "governorateId": "JO-ZAR",
+    "name": "مدينة الشرق"
+  },
+  "ZAR-052": {
+    "governorateId": "JO-ZAR",
+    "name": "ياجوز"
+  },
+  "ZAR-053": {
+    "governorateId": "JO-ZAR",
+    "name": "حي جبر"
+  },
+  "ZAR-054": {
+    "governorateId": "JO-ZAR",
+    "name": "مدينة المجد"
+  },
+  "ZAR-055": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الجنينة"
+  },
+  "ZAR-056": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأمير عبد الله"
+  },
+  "ZAR-057": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأمير علي"
+  },
+  "ZAR-058": {
+    "governorateId": "JO-ZAR",
+    "name": "جبل الأمير حسن"
+  },
+  "ZAR-059": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأمير حمزة"
+  },
+  "ZAR-060": {
+    "governorateId": "JO-ZAR",
+    "name": "حي الأميرة رحمة"
+  },
+  "ZAR-061": {
+    "governorateId": "JO-ZAR",
+    "name": "إسكان الأمير هاشم"
+  },
+  "ZAR-062": {
+    "governorateId": "JO-ZAR",
+    "name": "تطوير النقب"
+  },
+  "ZAR-063": {
+    "governorateId": "JO-ZAR",
+    "name": "الفاخورة"
+  },
+  "ZAR-064": {
+    "governorateId": "JO-ZAR",
+    "name": "حي العراتفة"
+  },
+  "ZAR-065": {
+    "governorateId": "JO-ZAR",
+    "name": "حي النزهة"
+  },
+  "ZAR-066": {
+    "governorateId": "JO-ZAR",
+    "name": "جبل طارق الحلايبة"
+  },
+  "ZAR-067": {
+    "governorateId": "JO-ZAR",
+    "name": "الأزرق"
+  },
+  "ZAR-068": {
+    "governorateId": "JO-ZAR",
+    "name": "بيرين"
+  },
+  "ZAR-069": {
+    "governorateId": "JO-ZAR",
+    "name": "الضليل"
+  }
+}
