@@ -905,9 +905,14 @@
           <div class="adm-login-sub">مخصصة للمشرفين المخوّلين فقط</div>
         </div>
         <div class="adm-uid-field">
-          <label class="adm-uid-label" for="adm-uid-input">معرّف المشرف (UID)</label>
-          <input class="adm-uid-input" id="adm-uid-input" type="text"
-                 placeholder="أدخل الـ UID هنا" autocomplete="off" spellcheck="false">
+          <label class="adm-uid-label" for="adm-email-input">البريد الإلكتروني</label>
+          <input class="adm-uid-input" id="adm-email-input" type="email"
+                 placeholder="admin@example.com" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="adm-uid-field">
+          <label class="adm-uid-label" for="adm-pass-input">كلمة المرور</label>
+          <input class="adm-uid-input" id="adm-pass-input" type="password"
+                 placeholder="••••••••" autocomplete="current-password">
         </div>
         <button class="adm-login-btn" id="adm-login-btn">
           <i class="ph-bold ph-sign-in"></i>
@@ -1644,7 +1649,8 @@
   ════════════════════════════════════════════════════ */
   var loginEl    = document.getElementById('adm-login');
   var loginCard  = document.getElementById('adm-login-card');
-  var uidInput   = document.getElementById('adm-uid-input');
+  var emailInput = document.getElementById('adm-email-input');
+  var passInput  = document.getElementById('adm-pass-input');
   var loginBtn   = document.getElementById('adm-login-btn');
   var loginBtnLbl= document.getElementById('adm-login-btn-lbl');
   var loginErr   = document.getElementById('adm-login-err');
@@ -1755,35 +1761,68 @@
     loginBtnLbl.textContent = 'تسجيل الدخول';
   }
 
+  function checkAdminAllowlist(uid) {
+    /* يُقرأ عبر Firebase SDK (وليس fetch REST) لأن القواعد الجديدة تتطلب
+       auth.uid === $uid لقراءة عقدة admin/{uid} — وهذا يمرّر توكن الهوية تلقائيًا. */
+    var d = getDb();
+    if (!d) return Promise.reject(new Error('تعذّر الوصول لقاعدة البيانات'));
+    return d.ref('admin/' + uid).once('value').then(function(snap){ return snap.val(); });
+  }
+
   function doLogin() {
-    var uid = uidInput.value.trim();
-    if (!uid) { showLoginErr('أدخل الـ UID أولاً'); return; }
+    var email = emailInput.value.trim();
+    var pass  = passInput.value;
+    if (!email || !pass) { showLoginErr('أدخل البريد الإلكتروني وكلمة المرور'); return; }
     loginErr.style.display  = 'none';
     loginOk.style.display   = 'none';
     loginBtn.disabled       = true;
     loginBtnLbl.textContent = 'جارٍ التحقق…';
 
-    fetch(DB_URL + '/admin/' + encodeURIComponent(uid) + '.json')
-      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function(data){
-        if (data === null || data === undefined) {
-          showLoginErr('هذا الـ UID غير مصرّح له بالوصول');
-          return;
-        }
-        var label = (data && data.email) ? data.email : uid;
-        currentAdmin = { uid: uid, label: label };
-        loginBtn.style.display = 'none';
-        loginOk.style.display  = 'block';
-        setTimeout(function(){
-          loginCard.classList.add('adm-card-exit');
-          setTimeout(enterDashboard, 380);
-        }, 700);
+    var auth = window.JDAuth && window.JDAuth.auth;
+    if (!auth) { showLoginErr('تعذّر الوصول لخدمة تسجيل الدخول'); return; }
+
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(function(cred){
+        var uid = cred.user.uid;
+        return checkAdminAllowlist(uid).then(function(data){
+          if (data === null || data === undefined) {
+            auth.signOut();
+            showLoginErr('هذا الحساب غير مصرّح له بالوصول للوحة الإدارة');
+            return;
+          }
+          var label = (data && data.email) ? data.email : email;
+          currentAdmin = { uid: uid, label: label };
+          loginBtn.style.display = 'none';
+          loginOk.style.display  = 'block';
+          setTimeout(function(){
+            loginCard.classList.add('adm-card-exit');
+            setTimeout(enterDashboard, 380);
+          }, 700);
+        });
       })
-      .catch(function(e){ showLoginErr('خطأ في الاتصال: ' + e.message); });
+      .catch(function(e){
+        var msg = 'فشل تسجيل الدخول';
+        if (e && e.code === 'auth/invalid-credential') msg = 'البريد أو كلمة المرور غير صحيحة';
+        else if (e && e.code === 'auth/too-many-requests') msg = 'محاولات كثيرة، حاول لاحقًا';
+        else if (e && e.message) msg = e.message;
+        showLoginErr(msg);
+      });
   }
 
   loginBtn.addEventListener('click', doLogin);
-  uidInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+  passInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+
+  /* استعادة الجلسة تلقائيًا إن كان المستخدم مسجّلاً دخوله فعليًا عبر Firebase Auth */
+  if (window.JDAuth) {
+    window.JDAuth.onReady(function(user){
+      if (!user || currentAdmin) return;
+      checkAdminAllowlist(user.uid).then(function(data){
+        if (data === null || data === undefined) { window.JDAuth.auth.signOut(); return; }
+        currentAdmin = { uid: user.uid, label: (data && data.email) ? data.email : user.email };
+        enterDashboard();
+      }).catch(function(){ /* تعذّر التحقق - يبقى المستخدم في شاشة الدخول */ });
+    });
+  }
 
   function enterDashboard() {
     unameEl.textContent    = currentAdmin.label;
@@ -1805,7 +1844,8 @@
   logoutBtn.addEventListener('click', function(){
     currentAdmin = null; allQuestions = {}; allCenters = {}; allRequests = {};
     allUsers = {}; allReviews = {}; allGovs = {}; govAreas = {};
-    db = null; uidInput.value = '';
+    db = null; emailInput.value = ''; passInput.value = '';
+    if (window.JDAuth && window.JDAuth.auth) window.JDAuth.auth.signOut();
     loginErr.style.display = 'none';
     mainEl.classList.remove('adm-active');
     loginEl.classList.add('adm-active');
