@@ -1,42 +1,57 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>لوحة تحكم | driverjo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 
-<!-- ════ Firebase + JDAuth (مطلوب عند التشغيل خارج قالب Blogger) ════ -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script>
-(function(){
-  if (window.JDAuth) return; /* لا تُعيد التهيئة إذا كان القالب قد حمّلها */
-  var FB_CFG={
-    apiKey:'AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ',
-    authDomain:'driverjo.firebaseapp.com',
-    databaseURL:'https://driverjo-default-rtdb.firebaseio.com',
-    projectId:'driverjo',
-    storageBucket:'driverjo.firebasestorage.app',
-    messagingSenderId:'716209135475',
-    appId:'1:716209135475:web:0a8188a18017c5880aaf06'
-  };
-  var app=firebase.apps.length?firebase.app():firebase.initializeApp(FB_CFG);
-  var db=firebase.database(app);
-  var auth=firebase.auth(app);
-  var _user=null,_ready=false,_cbs=[];
-  function _fire(){
-    _ready=true;
-    var list=_cbs.splice(0);
-    list.forEach(function(cb){try{cb(_user);}catch(e){}});
-  }
-  auth.onAuthStateChanged(function(u){_user=u;if(!_ready)_fire();});
-  window.JDAuth={
-    get user(){return _user;},
-    get db(){return db;},
-    get app(){return app;},
-    get auth(){return auth;},
-    onReady:function(cb){if(_ready){try{cb(_user);}catch(e){}}else{_cbs.push(cb);}},
-    wasWelcomeShown:function(uid){try{return sessionStorage.getItem('jd_wuid')===uid;}catch(e){return false;}},
-    markWelcomeShown:function(uid){try{sessionStorage.setItem('jd_wuid',uid);}catch(e){}},
-    signOut:function(){try{sessionStorage.removeItem('jd_wuid');}catch(e){}return auth.signOut();}
-  };
-}());
-</script>
+  <!-- ════ الخطوط ════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ════ أيقونات Phosphor ════ -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/index.js" defer></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/index.js" defer></script>
+
+  <!-- ════ Firebase ════ -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- ════ JDAuth — مدير الجلسة ════ -->
+  <script>
+  (function(){
+    if (window.JDAuth) return;
+    var FB_CFG={
+      apiKey:'AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ',
+      authDomain:'driverjo.firebaseapp.com',
+      databaseURL:'https://driverjo-default-rtdb.firebaseio.com',
+      projectId:'driverjo',
+      storageBucket:'driverjo.firebasestorage.app',
+      messagingSenderId:'716209135475',
+      appId:'1:716209135475:web:0a8188a18017c5880aaf06'
+    };
+    var app=firebase.apps.length?firebase.app():firebase.initializeApp(FB_CFG);
+    var db=firebase.database(app);
+    var auth=firebase.auth(app);
+    var _user=null,_ready=false,_cbs=[];
+    function _fire(){_ready=true;var list=_cbs.splice(0);list.forEach(function(cb){try{cb(_user);}catch(e){}});}
+    auth.onAuthStateChanged(function(u){_user=u;if(!_ready)_fire();});
+    window.JDAuth={
+      get user(){return _user;},
+      get db(){return db;},
+      get app(){return app;},
+      get auth(){return auth;},
+      onReady:function(cb){if(_ready){try{cb(_user);}catch(e){}}else{_cbs.push(cb);}},
+      wasWelcomeShown:function(uid){try{return sessionStorage.getItem('jd_wuid')===uid;}catch(e){return false;}},
+      markWelcomeShown:function(uid){try{sessionStorage.setItem('jd_wuid',uid);}catch(e){}},
+      signOut:function(){try{sessionStorage.removeItem('jd_wuid');}catch(e){}return auth.signOut();}
+    };
+  }());
+  </script>
 
 <style>
 /* ══════════════════════════════════════════════════════
@@ -44,7 +59,23 @@
    IBM Plex Sans Arabic · RTL · Phosphor Icons
    تطبيق جوال بالكامل: شريط علوي + محتوى + شريط تبويبات سفلي
 ══════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
+
+/* ── قاعدة المستند ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  direction: rtl;
+  font-family: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  min-height: 100vh;
+  background: #F1F4FB;
+  color: #101828;
+  overflow-x: hidden;
+}
 
 #adm-root {
   /* — نظام ألوان سند — */
@@ -995,11 +1026,9 @@
 }
 .adm-cat-all .adm-cat-count { background:var(--bg2); color:var(--txt2); }
 </style>
+</head>
 
-<!-- ════ SCRIPTS ════════════════════════════════════ -->
-<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/index.js" defer></script>
-<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/index.js" defer></script>
-
+<body>
 <div id="adm-root">
 
   <!-- ════ LOGIN ═══════════════════════════════════════ -->
@@ -3184,3 +3213,6 @@
 
 })();
 </script>
+
+</body>
+</html>
