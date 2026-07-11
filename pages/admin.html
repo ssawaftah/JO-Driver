@@ -134,6 +134,14 @@ body {
   color: var(--txt);
   -webkit-font-smoothing: antialiased;
 }
+#adm-root {
+  width: 100%;
+  overflow-x: hidden;
+}
+#adm-main {
+  width: 100%;
+  overflow-x: hidden;
+}
 #adm-root *, #adm-root *::before, #adm-root *::after { box-sizing: border-box; }
 .adm-hide { display: none !important; }
 
@@ -612,7 +620,7 @@ body {
 .adm-ctr-pill-phone { font-size:12px; color:var(--txt2); direction:ltr; display:flex; align-items:center; gap:3px; }
 .adm-ctr-pill-rating{ font-size:12px; color:#B4790A; font-weight:700; }
 
-.adm-ctr-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; margin-right:auto; flex-wrap:wrap; }
+.adm-ctr-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; margin-inline-start:auto; flex-wrap:wrap; }
 
 .adm-btn-promote {
   padding:8px 14px; border-radius:999px; border:none;
@@ -1025,6 +1033,71 @@ body {
   padding:3px 13px; border-radius:999px;
 }
 .adm-cat-all .adm-cat-count { background:var(--bg2); color:var(--txt2); }
+
+/* ══════════════════════════════════════════════════════
+   MOBILE — إصلاحات الهاتف الشاملة
+══════════════════════════════════════════════════════ */
+
+/* شريط الأدوات: الأزرار تملأ العرض كاملاً على الهاتف */
+@media (max-width: 480px) {
+  .adm-ph { padding: 16px 16px 0; gap: 10px; }
+  .adm-ph-title { font-size: 17px; }
+  .adm-ph-actions { width: 100%; justify-content: flex-end; }
+  .adm-add-btn { font-size: 13px; padding: 10px 16px; }
+  .adm-toolbar { gap: 8px; }
+  .adm-search-wrap { min-width: 0; }
+}
+
+/* بطاقات المراكز: الأزرار تتحول لأيقونات فقط */
+@media (max-width: 520px) {
+  .adm-ctr-card-head { gap: 8px; }
+  .adm-ctr-actions { gap: 4px; }
+  .adm-btn-promote span,
+  .adm-btn-pin span { display: none; }
+  .adm-btn-promote,
+  .adm-btn-pin { padding: 8px 10px; }
+}
+
+/* شبكة الإحصاءات: عمودان على الهواتف الصغيرة */
+@media (max-width: 480px) {
+  .adm-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .adm-stat-value { font-size: 20px; }
+  .adm-dash-wrap { padding: 14px; }
+  .adm-dash-greet { padding: 18px 16px; }
+  .adm-dash-greet-name { font-size: 17px; }
+}
+
+/* أزرار التبويب السفلي: تصغير النص على الشاشات الضيقة */
+@media (max-width: 380px) {
+  .adm-nav-item span { font-size: 10px; }
+  .adm-nav-item i { font-size: 20px; }
+  #adm-topbar { padding: 0 12px; }
+  .adm-body { padding: 12px; }
+  .adm-more-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .adm-more-icon { width: 50px; height: 50px; font-size: 21px; }
+  .adm-more-label { font-size: 11.5px; }
+}
+
+/* منع الفيض الأفقي في كل العناصر */
+.adm-content,
+.adm-panel,
+.adm-body,
+.adm-dash-wrap,
+.adm-toolbar,
+.adm-ph {
+  max-width: 100%;
+}
+
+/* safe-area للـ notch على iPhone */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #adm-bottomnav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  }
+  .adm-content {
+    padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  }
+}
 </style>
 </head>
 
