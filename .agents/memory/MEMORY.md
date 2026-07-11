@@ -1,1 +1,2 @@
 - [admin.html shell rewrites](admin-shell-rewrite.md) — renaming a shared nav variable breaks unrelated features silently; grep the whole script for every old name after a rename, don't trust visual QA alone.
+- [Phosphor Icons Web CDN usage](phosphor-icons-web-cdn.md) — must link per-weight `style.css`, not `index.js`; wrong path 404s silently and leaves icons blank.
