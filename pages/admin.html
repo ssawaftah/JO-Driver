@@ -1711,6 +1711,67 @@
   function getDb() { if (!db) db = (window.JDAuth && window.JDAuth.db) || null; return db; }
 
   /* ════════════════════════════════════════════════════
+     CF — Cloudflare Worker/D1 API client for centers, join
+     requests, governorates & areas (moved off Firebase).
+     Mimics the small subset of the Firebase compat ref() API
+     already used by this file (once/update/remove/push/
+     orderByChild+equalTo) so the call sites below stay unchanged.
+     Reviews, questions and users stay on Firebase (getDb()).
+  ════════════════════════════════════════════════════ */
+  var CF_API_BASE  = 'https://upload.idriverjo.workers.dev/api';
+  var CF_ADMIN_KEY = 'e16ec4d2354fd60c83ff97428f38af4b';
+  var CF_RESOURCE_MAP = { centers:'centers', CenterRequests:'center-requests', governorates:'governorates', areas:'areas' };
+
+  function cfPathFor(path) {
+    var parts = String(path||'').split('/').filter(Boolean);
+    if (parts.length) parts[0] = CF_RESOURCE_MAP[parts[0]] || parts[0];
+    return '/' + parts.join('/');
+  }
+
+  function cfFetch(apiPath, opts) {
+    opts = opts || {};
+    var headers = { 'X-Admin-Key': CF_ADMIN_KEY };
+    if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+    return fetch(CF_API_BASE + apiPath, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined
+    }).then(function(r){
+      if (!r.ok) {
+        return r.json().catch(function(){ return {}; }).then(function(e){
+          throw new Error(e.error || ('HTTP ' + r.status));
+        });
+      }
+      return r.status === 204 ? {} : r.json();
+    });
+  }
+
+  function CFRef(path) { this.path = path || ''; this._orderField = null; this._equalVal = null; }
+  CFRef.prototype.orderByChild = function(field) { this._orderField = field; return this; };
+  CFRef.prototype.equalTo = function(val) { this._equalVal = val; return this; };
+  CFRef.prototype.once = function() {
+    var qs = '';
+    if (this._orderField && this._equalVal != null) {
+      qs = '?' + this._orderField + '=' + encodeURIComponent(this._equalVal);
+    }
+    return cfFetch(cfPathFor(this.path) + qs).then(function(data) {
+      return {
+        val: function(){ return data; },
+        numChildren: function(){ return Object.keys(data||{}).length; }
+      };
+    });
+  };
+  CFRef.prototype.update = function(payload) { return cfFetch(cfPathFor(this.path), { method:'PATCH', body: payload }); };
+  CFRef.prototype.remove = function() { return cfFetch(cfPathFor(this.path), { method:'DELETE' }); };
+  CFRef.prototype.push = function(payload) {
+    return cfFetch(cfPathFor(this.path), { method:'POST', body: payload }).then(function(created){
+      return { key: created.id };
+    });
+  };
+
+  var CF = { ref: function(path){ return new CFRef(path); } };
+
+  /* ════════════════════════════════════════════════════
      SIDEBAR NAVIGATION
   ════════════════════════════════════════════════════ */
   var panels   = document.querySelectorAll('.adm-panel');
@@ -1894,7 +1955,7 @@
     }).catch(function(){});
 
     /* Centers */
-    d.ref('centers').once('value').then(function(snap){
+    CF.ref('centers').once().then(function(snap){
       setStatEl('adm-stat-ctrs', snap.numChildren());
     }).catch(function(){});
 
@@ -1904,8 +1965,8 @@
     }).catch(function(){});
 
     /* Pending requests */
-    d.ref('CenterRequests').orderByChild('status').equalTo('pending')
-      .once('value').then(function(snap){
+    CF.ref('CenterRequests').orderByChild('status').equalTo('pending')
+      .once().then(function(snap){
         var count = snap.numChildren();
         setStatEl('adm-stat-reqs', count);
         var badge = document.getElementById('adm-sb-req-badge');
@@ -1916,7 +1977,7 @@
       }).catch(function(){});
 
     /* Governorates */
-    d.ref('governorates').once('value').then(function(snap){
+    CF.ref('governorates').once().then(function(snap){
       setStatEl('adm-stat-govs', snap.numChildren());
     }).catch(function(){});
   }
@@ -2597,8 +2658,7 @@
     /* centers delete */
     if (deletingCtrId) {
       delConfirm.disabled = true; delLbl.textContent = 'جارٍ الحذف…';
-      var dc = getDb(); if (!dc) { delConfirm.disabled=false; delLbl.textContent='حذف'; return; }
-      dc.ref('centers/'+deletingCtrId).remove().then(function(){
+      CF.ref('centers/'+deletingCtrId).remove().then(function(){
         delete allCenters[deletingCtrId]; deletingCtrId=null;
         closeDeleteModal(); renderCenters(); updateCtrDashCount();
       }).catch(function(e){ delConfirm.disabled=false; delLbl.textContent='حذف'; alert('فشل الحذف: '+e.message); });
@@ -2617,8 +2677,7 @@
     /* area delete */
     if (deletingAreaId) {
       delConfirm.disabled = true; delLbl.textContent = 'جارٍ الحذف…';
-      var da = getDb(); if (!da) { delConfirm.disabled=false; delLbl.textContent='حذف'; return; }
-      da.ref('areas/'+deletingAreaId).remove().then(function(){
+      CF.ref('areas/'+deletingAreaId).remove().then(function(){
         delete govAreas[deletingAreaId]; deletingAreaId=null;
         closeDeleteModal(); renderAreas();
       }).catch(function(e){ delConfirm.disabled=false; delLbl.textContent='حذف'; alert('فشل الحذف: '+e.message); });
@@ -2889,9 +2948,7 @@
         allCenters = {}; ctrSpinner.style.display = 'flex'; ctrListEl.style.display = 'none';
       }
     } catch(e){ allCenters={}; ctrSpinner.style.display='flex'; ctrListEl.style.display='none'; }
-    var d = getDb();
-    if (!d) { ctrSpinner.style.display='none'; ctrBadge.textContent='تعذّر التحميل'; if (!Object.keys(allCenters).length) ctrEmptyEl.style.display='flex'; return; }
-    d.ref('centers').once('value').then(function(snap){
+    CF.ref('centers').once().then(function(snap){
       allCenters = snap.val() || {};
       try { sessionStorage.setItem(ADM_CACHE_C, JSON.stringify(allCenters)); } catch(e){}
       ctrSpinner.style.display = 'none'; renderCenters();
@@ -2926,7 +2983,7 @@
   function makeCtrCard(id, data) {
     var now=Date.now(), isProm=!!data.promoted&&(!data.promotedUntil||data.promotedUntil>now), isPin=!!data.pinned;
     if (data.promoted && data.promotedUntil && data.promotedUntil<=now) {
-      var _d=getDb(); if (_d) _d.ref('centers/'+id).update({promoted:null,promotedUntil:null});
+      CF.ref('centers/'+id).update({promoted:null,promotedUntil:null}).catch(function(){});
       delete allCenters[id].promoted; delete allCenters[id].promotedUntil;
     }
     var promUntilStr = '';
@@ -2988,27 +3045,24 @@
   function onMonthSelect() {
     var months=parseInt(this.dataset.months,10), id=pendingPromoId;
     closePromoDurationModal(); if (!id) return;
-    var d=getDb(); if (!d) { alert('تعذّر الاتصال'); return; }
     var promotedUntil=Date.now()+months*30*24*60*60*1000;
-    d.ref('centers/'+id).update({promoted:true,promotedUntil:promotedUntil}).then(function(){
+    CF.ref('centers/'+id).update({promoted:true,promotedUntil:promotedUntil}).then(function(){
       allCenters[id].promoted=true; allCenters[id].promotedUntil=promotedUntil;
       renderCenters(); updateCtrDashCount();
     }).catch(function(e){ alert('فشل التمييز: '+e.message); });
   }
 
   function toggleCtrFeatured(id, currentVal) {
-    var d=getDb(); if (!d) { alert('تعذّر الاتصال'); return; }
     if (currentVal) {
-      d.ref('centers/'+id).update({promoted:null,promotedUntil:null}).then(function(){
+      CF.ref('centers/'+id).update({promoted:null,promotedUntil:null}).then(function(){
         delete allCenters[id].promoted; delete allCenters[id].promotedUntil; renderCenters(); updateCtrDashCount();
       }).catch(function(e){ alert('فشل: '+e.message); });
     } else { openPromoDurationModal(id); }
   }
 
   function toggleCtrPinned(id, currentVal) {
-    var d=getDb(); if (!d) { alert('تعذّر الاتصال'); return; }
     var upd=currentVal?{pinned:null}:{pinned:true};
-    d.ref('centers/'+id).update(upd).then(function(){
+    CF.ref('centers/'+id).update(upd).then(function(){
       if (currentVal) delete allCenters[id].pinned; else allCenters[id].pinned=true;
       renderCenters(); updateCtrDashCount();
     }).catch(function(e){ alert('فشل: '+e.message); });
@@ -3096,22 +3150,15 @@
     var busyLbl = reviewingReqId ? 'جارٍ النشر…' : 'جارٍ الحفظ…';
     var idleLbl = reviewingReqId ? 'تمت المراجعة ونشر' : (editingCtrId?'حفظ التعديلات':'حفظ المركز');
     ctrFormSave.disabled=true; ctrFormSaveLbl.textContent=busyLbl; setCtrFormMsg('','');
-    var d=getDb();
-    if (!d) { setCtrFormMsg('تعذّر الاتصال.','err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl; return; }
     var promise, newCenterId=null, reqIdBeingReviewed=reviewingReqId;
     if (editingCtrId) {
-      promise=d.ref('centers/'+editingCtrId).update(payload).then(function(){ Object.assign(allCenters[editingCtrId], payload); });
+      promise=CF.ref('centers/'+editingCtrId).update(payload).then(function(){ Object.assign(allCenters[editingCtrId], payload); });
     } else if (reqIdBeingReviewed) {
       var maxId1=Object.values(allCenters).reduce(function(m,c){ return Math.max(m,c.publicId||0); },0);
       payload.publicId=maxId1+1; payload.publishedAt=new Date().toISOString();
-      var newRef=d.ref('centers').push(); newCenterId=newRef.key;
-      var multiUpdate={};
-      multiUpdate['centers/'+newCenterId]=payload;
-      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/status']='approved';
-      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/reviewedAt']=new Date().toISOString();
-      multiUpdate['CenterRequests/'+reqIdBeingReviewed+'/publishedCenterId']=newCenterId;
-      /* كتابة واحدة متعددة المسارات: إما ينجح نشر المركز وأرشفة الطلب معاً أو يفشلان معاً */
-      promise=d.ref().update(multiUpdate).then(function(){
+      /* استدعاء واحد ذرّي: ينشر المركز ويؤرشف الطلب معاً أو يفشلان معاً */
+      promise=cfFetch('/center-requests/'+reqIdBeingReviewed+'/approve', { method:'POST', body: payload }).then(function(res){
+        newCenterId=res.centerId;
         allCenters[newCenterId]=Object.assign({},payload);
         delete allRequests[reqIdBeingReviewed];
         var pending=Object.keys(allRequests).length;
@@ -3122,7 +3169,7 @@
     } else {
       var maxId=Object.values(allCenters).reduce(function(m,c){ return Math.max(m,c.publicId||0); },0);
       payload.publicId=maxId+1; payload.publishedAt=new Date().toISOString();
-      promise=d.ref('centers').push(payload).then(function(ref){ newCenterId=ref.key; allCenters[ref.key]=Object.assign({},payload); });
+      promise=CF.ref('centers').push(payload).then(function(ref){ newCenterId=ref.key; allCenters[ref.key]=Object.assign({},payload); });
     }
     promise.then(function(){
       setCtrFormMsg(reqIdBeingReviewed?'تم نشر المركز ✓':(editingCtrId?'تم حفظ التعديلات ✓':'تم إضافة المركز ✓'),'ok');
@@ -3144,10 +3191,8 @@
 
   function loadPendingRequests() {
     allRequests = {}; reqSpinner.style.display='flex'; reqListEl.style.display='none'; reqEmptyEl.style.display='none';
-    var d=getDb();
-    if (!d) { reqSpinner.style.display='none'; reqEmptyEl.style.display='flex'; return; }
-    d.ref('CenterRequests').orderByChild('status').equalTo('pending')
-      .once('value').then(function(snap){
+    CF.ref('CenterRequests').orderByChild('status').equalTo('pending')
+      .once().then(function(snap){
         allRequests=snap.val()||{};
         var count=snap.numChildren();
         reqSpinner.style.display='none'; renderRequests();
@@ -3419,8 +3464,7 @@
 
   function loadGovernorates() {
     govListEl.innerHTML = '<div class="adm-spin-wrap" style="padding:32px 20px"><div class="adm-spinner"></div></div>';
-    var d=getDb(); if (!d) { govListEl.innerHTML='<div class="adm-areas-placeholder"><i class="ph-bold ph-wifi-slash"></i><div>تعذّر الاتصال</div></div>'; return; }
-    d.ref('governorates').once('value').then(function(snap){
+    CF.ref('governorates').once().then(function(snap){
       allGovs = snap.val() || {};
       setStatEl('adm-stat-govs', Object.keys(allGovs).length);
       renderGovernorates();
@@ -3479,8 +3523,7 @@
   function loadGovAreas(govId) {
     areasListEl.innerHTML='<div class="adm-spin-wrap" style="padding:32px 20px"><div class="adm-spinner"></div></div>';
     areasBadge.textContent='…';
-    var d=getDb(); if (!d) return;
-    d.ref('areas').orderByChild('governorateId').equalTo(govId).once('value').then(function(snap){
+    CF.ref('areas').orderByChild('governorateId').equalTo(govId).once().then(function(snap){
       govAreas={};
       var raw=snap.val()||{};
       Object.keys(raw).forEach(function(k){ var v=raw[k]; govAreas[k]={id:k,name:(typeof v==='object'&&v)?(v.name||k):String(v)}; });
@@ -3526,9 +3569,7 @@
   addAreaBtn.addEventListener('click', function(){
     var name=newAreaInput.value.trim(); if (!name||!selectedGovId) return;
     addAreaBtn.disabled=true; addAreaBtn.innerHTML='<i class="ph ph-circle-notch" style="animation:adm-spin .8s linear infinite"></i>';
-    var d=getDb(); if (!d) { addAreaBtn.disabled=false; addAreaBtn.innerHTML='<i class="ph-bold ph-plus"></i> إضافة'; return; }
-    var ref=d.ref('areas').push();
-    ref.set({name:name,governorateId:selectedGovId}).then(function(){
+    CF.ref('areas').push({name:name,governorateId:selectedGovId}).then(function(ref){
       govAreas[ref.key]={id:ref.key,name:name}; newAreaInput.value='';
       addAreaBtn.disabled=false; addAreaBtn.innerHTML='<i class="ph-bold ph-plus"></i> إضافة';
       renderAreas();
@@ -3536,8 +3577,7 @@
   });
 
   function toggleGovArchive(govId, newArchived) {
-    var d=getDb(); if (!d) { alert('تعذّر الاتصال'); return; }
-    d.ref('governorates/'+govId).update({archived:newArchived||null}).then(function(){
+    CF.ref('governorates/'+govId).update({archived:newArchived||null}).then(function(){
       if (typeof allGovs[govId]==='object') allGovs[govId].archived=newArchived;
       else allGovs[govId]={name:String(allGovs[govId]),archived:newArchived};
       renderGovernorates();
@@ -3574,9 +3614,8 @@
     if (!name) { editNameMsg.className='adm-form-msg err'; editNameMsg.textContent='يرجى إدخال اسم.'; return; }
     if (!editNameCtx) return;
     editNameSave.disabled=true; editNameSaveLbl.textContent='جارٍ الحفظ…';
-    var d=getDb(); if (!d) { editNameSave.disabled=false; editNameSaveLbl.textContent='حفظ'; return; }
     var path = editNameCtx.type==='gov' ? 'governorates/'+editNameCtx.id : 'areas/'+editNameCtx.id;
-    d.ref(path).update({name:name}).then(function(){
+    CF.ref(path).update({name:name}).then(function(){
       if (editNameCtx.type==='gov') {
         if (typeof allGovs[editNameCtx.id]==='object') allGovs[editNameCtx.id].name=name;
         else allGovs[editNameCtx.id]={name:name};

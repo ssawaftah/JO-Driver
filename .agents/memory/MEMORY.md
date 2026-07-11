@@ -2,3 +2,4 @@
 - [driverjo Google Maps migration](driverjo-google-maps.md) — server.js injects GOOGLE_MAPS_API_KEY server-side; define Maps callback before the script tag to avoid a load race.
 - [center-join link-first flow](center-join-link-first-flow.md) — name is guessed client-side by parsing the Google Maps URL, no Places/Geocoding API call needed.
 - [R2 image upload pattern](r2-image-upload-pattern.md) — reuse admin.html's dropzone/resize/upload-to-worker flow verbatim for any new image field; same hardcoded worker key is an accepted tradeoff on this backend-less site.
+- [driverjo Cloudflare D1 migration](driverjo-cloudflare-migration.md) — centers/requests/governorates/areas moved off Firebase to D1 via the Worker; public pages still read R2 JSON mirrors kept in sync automatically.

@@ -1,0 +1,15 @@
+name = "upload"
+main = "upload-worker.js"
+compatibility_date = "2026-07-10"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "driverjo-data"
+
+[vars]
+PUBLIC_BASE_URL = "https://data.driverjo.online"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "driverjo-db"
+database_id = "4c078456-2a9b-481d-a28b-e24fe6eaa9af"
