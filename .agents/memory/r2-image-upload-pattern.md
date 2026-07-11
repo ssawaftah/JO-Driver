@@ -15,3 +15,5 @@ The established client flow (first built in admin.html for question images, then
 **Why:** Keeps every page self-contained with zero server code, matching the Blogger-hosted, backend-less deployment model. The upload key being visible client-side is a known, accepted tradeoff here — not a bug to "fix" per project convention.
 
 **How to apply:** When adding any new image-upload field to a driverjo page, copy this exact flow rather than inventing a new one, and guard form submission so it can't fire while an upload is still in-flight (the async URL isn't ready yet).
+
+admin.html's add/edit/review-center form (`adm-ctr-form`) now uses this same dropzone flow for the center photo (was a manual "paste image URL" text input before) — kept consistent with center-join.html per explicit user request that admin's center forms mirror center-join.html exactly, field for field.

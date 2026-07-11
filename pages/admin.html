@@ -1501,10 +1501,15 @@
           <div class="adm-fsec">
             <div class="adm-fsec-title"><i class="ph-bold ph-image-square"></i> صورة المركز <span style="font-weight:400;opacity:.65;font-size:10px">(اختياري)</span></div>
             <div class="adm-field">
-              <label class="adm-label" for="adm-cf-image">رابط الصورة</label>
-              <input class="adm-input" type="url" id="adm-cf-image" placeholder="https://…" style="direction:ltr">
-              <div class="adm-hint"><i class="ph-bold ph-info"></i> الصق رابطاً مباشراً لصورة المركز</div>
+              <label class="adm-dropzone" id="adm-cf-dropzone">
+                <input type="file" id="adm-cf-file-input" accept="image/*">
+                <i class="ph-bold ph-image-square adm-dropzone-icon"></i>
+                <span class="adm-dropzone-label">اضغط لاختيار صورة أو اسحبها هنا</span>
+                <span class="adm-dropzone-hint">PNG · JPG · WEBP · GIF — يُضغط تلقائياً ≤ 800px</span>
+              </label>
+              <div class="adm-upload-status" id="adm-cf-upload-status"></div>
               <img id="adm-cf-image-preview" alt="معاينة الصورة" style="display:none;margin-top:8px;max-width:220px;max-height:140px;border-radius:10px;border:1.5px solid var(--bdr);object-fit:cover">
+              <button type="button" class="jf-image-remove" id="adm-cf-image-remove" style="display:none;margin-top:8px;font-size:.8rem;color:var(--err);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit">إزالة الصورة</button>
             </div>
           </div>
 
@@ -2670,8 +2675,13 @@
   var cfWaCopy       = document.getElementById('adm-cf-wa-copy');
   var cfMaplink      = document.getElementById('adm-cf-maplink');
   var cfAddress      = document.getElementById('adm-cf-address');
-  var cfImageUrl     = document.getElementById('adm-cf-image');
+  var cfDropzone     = document.getElementById('adm-cf-dropzone');
+  var cfFileInput    = document.getElementById('adm-cf-file-input');
+  var cfUploadStatus = document.getElementById('adm-cf-upload-status');
   var cfImagePreview = document.getElementById('adm-cf-image-preview');
+  var cfImageRemove  = document.getElementById('adm-cf-image-remove');
+  var cfImageUrlVal  = '';
+  var cfImageUploading = false;
   var cfRating       = document.getElementById('adm-cf-rating');
   var cfRcount       = document.getElementById('adm-cf-rcount');
   var cfScheduleEl   = document.getElementById('adm-cf-schedule');
@@ -2924,13 +2934,68 @@
     delModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
   }
 
+  /* رفع صورة المركز — نفس منطق الرفع إلى R2 المستخدم في نموذج الأسئلة ونموذج center-join.html */
+  function setCfUploadStatus(kind, msg) {
+    cfUploadStatus.className = 'adm-upload-status' + (kind ? ' ' + kind : '');
+    cfUploadStatus.textContent = msg || '';
+  }
   function updateCfImagePreview() {
-    var url = cfImageUrl.value.trim();
-    if (url) { cfImagePreview.src=url; cfImagePreview.style.display='block'; }
-    else { cfImagePreview.src=''; cfImagePreview.style.display='none'; }
+    if (cfImageUrlVal) { cfImagePreview.src=cfImageUrlVal; cfImagePreview.style.display='block'; cfImageRemove.style.display='inline-block'; }
+    else { cfImagePreview.src=''; cfImagePreview.style.display='none'; cfImageRemove.style.display='none'; }
   }
   cfImagePreview.addEventListener('error', function(){ cfImagePreview.style.display='none'; });
-  cfImageUrl.addEventListener('input', updateCfImagePreview);
+
+  function cfUploadBlobToWorker(blob, mimeType) {
+    setCfUploadStatus('loading','جارٍ رفع الصورة…'); cfImageUploading=true;
+    var fd = new FormData();
+    var ext = mimeType==='image/gif'?'gif':mimeType==='image/png'?'png':mimeType==='image/webp'?'webp':'jpg';
+    fd.append('file', blob, 'upload.'+ext);
+    fetch(UPLOAD_WORKER_URL, { method:'POST', headers:{ 'X-Upload-Key': UPLOAD_KEY }, body: fd })
+      .then(function(r){ return r.json().then(function(d){ if (!r.ok) throw new Error(d.error||('HTTP '+r.status)); return d; }); })
+      .then(function(d){
+        cfImageUrlVal=d.url; updateCfImagePreview();
+        var kb=Math.round(blob.size/1024); setCfUploadStatus('ok','تم الرفع ✓ — ~'+kb+' كيلوبايت');
+      })
+      .catch(function(err){ setCfUploadStatus('err','فشل رفع الصورة: '+err.message); })
+      .then(function(){ cfImageUploading=false; });
+  }
+  function cfProcessImageFile(file) {
+    if (!file.type.startsWith('image/')) { setCfUploadStatus('err','الملف المحدد ليس صورة'); return; }
+    setCfUploadStatus('loading','جارٍ معالجة الصورة…');
+    if (file.type==='image/gif') { cfUploadBlobToWorker(file,'image/gif'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var w=img.naturalWidth, h=img.naturalHeight;
+        if (w>800||h>800) { if (w>=h){ h=Math.round(h*800/w); w=800; } else { w=Math.round(w*800/h); h=800; } }
+        var canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+        var ctx=canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
+        var outType = file.type==='image/png'?'image/png'
+          : (file.type==='image/webp' && canvas.toDataURL('image/webp').indexOf('data:image/webp')===0) ? 'image/webp' : 'image/jpeg';
+        canvas.toBlob(function(blob){
+          if (!blob) { setCfUploadStatus('err','تعذّرت معالجة الصورة'); return; }
+          cfUploadBlobToWorker(blob, outType);
+        }, outType, 0.82);
+      };
+      img.onerror = function(){ setCfUploadStatus('err','تعذّر قراءة الصورة'); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function(){ setCfUploadStatus('err','فشل قراءة الملف'); };
+    reader.readAsDataURL(file);
+  }
+  cfDropzone.addEventListener('dragover', function(e){ e.preventDefault(); cfDropzone.classList.add('drag-over'); });
+  cfDropzone.addEventListener('dragleave', function(){ cfDropzone.classList.remove('drag-over'); });
+  cfDropzone.addEventListener('drop', function(e){
+    e.preventDefault(); cfDropzone.classList.remove('drag-over');
+    var files=e.dataTransfer && e.dataTransfer.files; if (files && files[0]) cfProcessImageFile(files[0]);
+  });
+  cfFileInput.addEventListener('change', function(){
+    if (cfFileInput.files && cfFileInput.files[0]) { cfProcessImageFile(cfFileInput.files[0]); cfFileInput.value=''; }
+  });
+  cfImageRemove.addEventListener('click', function(){
+    cfImageUrlVal=''; updateCfImagePreview(); setCfUploadStatus('','');
+  });
 
   cfWaCopy.addEventListener('click', function(){ var ph=cfPhone.value.trim(); if (ph) cfWhatsapp.value=ph; else cfPhone.focus(); });
 
@@ -2940,7 +3005,7 @@
     editingCtrId=null; ctrFormTitle.textContent='إضافة مركز جديد'; ctrFormSub.textContent='أكمل البيانات ثم احفظ'; ctrFormSaveLbl.textContent='حفظ المركز';
     cfName.value=''; cfPhone.value=''; cfWhatsapp.value=''; cfMaplink.value='';
     cfAddress.value='';
-    cfImageUrl.value=''; cfRating.value=''; cfRcount.value=''; cfDesc.value=''; updateCfImagePreview();
+    cfImageUrlVal=''; cfRating.value=''; cfRcount.value=''; cfDesc.value=''; updateCfImagePreview(); setCfUploadStatus('','');
     setCtrFormMsg('',''); buildCtrScheduleUI(null);
     ctrFormModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
   }
@@ -2949,7 +3014,7 @@
     var data=allCenters[id]; if (!data) return;
     editingCtrId=id; ctrFormTitle.textContent='تعديل المركز'; ctrFormSub.textContent='عدّل ما تريد ثم احفظ'; ctrFormSaveLbl.textContent='حفظ التعديلات';
     cfName.value=data.name||''; cfPhone.value=data.phone||''; cfWhatsapp.value=data.whatsapp||'';
-    cfMaplink.value=data.mapLink||''; cfImageUrl.value=data.imageUrl||''; updateCfImagePreview();
+    cfMaplink.value=data.mapLink||''; cfImageUrlVal=data.imageUrl||''; updateCfImagePreview(); setCfUploadStatus('','');
     cfRating.value=data.rating!=null?data.rating:''; cfRcount.value=data.reviewCount!=null?data.reviewCount:'';
     cfDesc.value=data.description||''; setCtrFormMsg('',''); buildCtrScheduleUI(data.schedule||null);
     cfAddress.value=data.address||'';
@@ -2968,9 +3033,10 @@
     if (!mapLink||!/^https?:\/\//i.test(mapLink)) { setCtrFormMsg('يرجى إدخال رابط جوجل مابس صالح.','err'); return; }
     var addrVal=cfAddress.value.trim();
     if (!addrVal) { setCtrFormMsg('يرجى إدخال العنوان.','err'); return; }
+    if (cfImageUploading) { setCtrFormMsg('يرجى الانتظار حتى تنتهي عملية رفع الصورة.','err'); return; }
     var schedule=readCtrSchedule(), workingDays=computeWorkingDays(schedule);
     var payload={ name:name, phone:phone, mapLink:mapLink, schedule:schedule, workingDays:workingDays, address:addrVal };
-    var wa=cfWhatsapp.value.trim(), imgUrl=cfImageUrl.value.trim(), rat=parseFloat(cfRating.value), rcnt=parseInt(cfRcount.value,10), desc=cfDesc.value.trim();
+    var wa=cfWhatsapp.value.trim(), imgUrl=cfImageUrlVal, rat=parseFloat(cfRating.value), rcnt=parseInt(cfRcount.value,10), desc=cfDesc.value.trim();
     if (wa) payload.whatsapp=wa; if (imgUrl) payload.imageUrl=imgUrl;
     if (!isNaN(rat)) payload.rating=rat; if (!isNaN(rcnt)) payload.reviewCount=rcnt; if (desc) payload.description=desc;
     var busyLbl = reviewingReqId ? 'جارٍ النشر…' : 'جارٍ الحفظ…';
@@ -3089,7 +3155,7 @@
     ctrFormSub.textContent='تحقّق من البيانات ثم انشر المركز';
     ctrFormSaveLbl.textContent='تمت المراجعة ونشر';
     cfName.value=data.centerName||''; cfPhone.value=data.phone||''; cfWhatsapp.value=data.whatsapp||'';
-    cfMaplink.value=data.mapsLink||''; cfImageUrl.value=data.imageUrl||''; updateCfImagePreview();
+    cfMaplink.value=data.mapsLink||''; cfImageUrlVal=data.imageUrl||''; updateCfImagePreview(); setCfUploadStatus('','');
     cfRating.value=data.googleRating!=null?data.googleRating:''; cfRcount.value=data.reviewCount!=null?data.reviewCount:'';
     cfDesc.value=data.description||''; setCtrFormMsg('',''); buildCtrScheduleUI(requestScheduleToCtrSchedule(data.schedule));
     cfAddress.value=data.address||'';
