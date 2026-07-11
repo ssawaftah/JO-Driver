@@ -1,4 +1,0 @@
-- [driverjo Google Maps usage](driverjo-google-maps.md) — link-only flow; short goo.gl links carry no lat/lng, resolved server-side via Worker `/api/resolve-maps-link` at save time. Superseded Leaflet notes.
-- [center-join link-first flow](center-join-link-first-flow.md) — name is guessed client-side by parsing the Google Maps URL, no Places/Geocoding API call needed.
-- [R2 image upload pattern](r2-image-upload-pattern.md) — reuse admin.html's dropzone/resize/upload-to-worker flow verbatim for any new image field; same hardcoded worker key is an accepted tradeoff on this backend-less site.
-- [driverjo Cloudflare D1 migration](driverjo-cloudflare-migration.md) — centers/requests/governorates/areas moved off Firebase to D1 via the Worker; public pages still read R2 JSON mirrors kept in sync automatically.
