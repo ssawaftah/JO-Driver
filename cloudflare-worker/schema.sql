@@ -30,3 +30,11 @@ CREATE TABLE IF NOT EXISTS center_requests (
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_requests_status ON center_requests(status);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id         TEXT PRIMARY KEY,
+  category   TEXT,
+  data       TEXT NOT NULL,      -- JSON: { category, question, options, correctAnswer, mediaType, mediaUrl? }
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category);

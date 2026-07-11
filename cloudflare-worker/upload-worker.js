@@ -10,16 +10,17 @@
  *
  * 2) `/api/*` -> a small REST API backed by a Cloudflare D1 database, which
  *    replaces the old Firebase Realtime Database for: centers, center-join
- *    requests, governorates and areas. Public GET endpoints serve the data
- *    that used to be manually exported to R2 as centers.json (now always
+ *    requests, governorates, areas, and questions. Public GET endpoints serve
+ *    the data that used to be manually exported to R2 as *.json (now always
  *    live, no manual export/upload step). Admin write endpoints (create,
  *    update, delete; and reading pending requests) require the
  *    `X-Admin-Key` header. Submitting a new join request stays public
  *    (no key), same as the old Firebase write rules.
  *
  * Firebase is still used elsewhere in the project ONLY for pages/reviews.html
- * (its data + login) and pages/theory-test-practice.html - do not route those
- * through this Worker.
+ * (its data + login) and the admin login itself (admin.html's Firebase
+ * email/password + RTDB `users` role check) - do not route those through
+ * this Worker.
  *
  * خطوات النشر: تم النشر تلقائيًا عبر Wrangler (D1 binding DB + R2 binding BUCKET).
  * راجع cloudflare-worker/README.md لمعرفة كل الروابط والمفاتيح المُنشأة.
@@ -92,6 +93,7 @@ async function bumpVersion(env) {
 async function syncCenters(env)      { await syncSnapshot(env, 'centers', 'centers.json'); await bumpVersion(env); }
 async function syncGovernorates(env) { await syncSnapshot(env, 'governorates', 'governorates.json'); await bumpVersion(env); }
 async function syncAreas(env)        { await syncSnapshot(env, 'areas', 'areas.json'); await bumpVersion(env); }
+async function syncQuestions(env)    { await syncSnapshot(env, 'questions', 'questions.json'); await bumpVersion(env); }
 
 async function handleApi(request, env, url) {
   const cors = corsHeadersFor(request);
@@ -250,6 +252,51 @@ async function handleApi(request, env, url) {
       }
       if (id && request.method === 'DELETE') {
         await env.DB.prepare('DELETE FROM center_requests WHERE id = ?').bind(id).run();
+        return json({ ok: true }, 200, cors);
+      }
+    }
+
+    /* ── resync: admin utility to regenerate all R2 JSON mirrors from D1 on
+       demand (e.g. after a bulk/manual D1 seed that bypassed this API) ── */
+    if (resource === 'resync' && request.method === 'POST') {
+      if (!isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401, cors);
+      await syncGovernorates(env);
+      await syncAreas(env);
+      await syncCenters(env);
+      await syncQuestions(env);
+      return json({ ok: true }, 200, cors);
+    }
+
+    /* ── questions ── */
+    if (resource === 'questions') {
+      if (request.method === 'GET') {
+        if (id) {
+          const row = await env.DB.prepare('SELECT data FROM questions WHERE id = ?').bind(id).first();
+          if (!row) return json({ error: 'Not found' }, 404, cors);
+          return json({ id, ...JSON.parse(row.data) }, 200, cors);
+        }
+        return json(await rowsToDict(env.DB.prepare('SELECT id, data FROM questions')), 200, cors);
+      }
+      if (!isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401, cors);
+      if (request.method === 'POST') {
+        const body = await request.json();
+        const qId = newId();
+        await env.DB.prepare('INSERT INTO questions (id, category, data, updated_at) VALUES (?, ?, ?, ?)').bind(qId, body.category || null, JSON.stringify(body), nowIso()).run();
+        await syncQuestions(env);
+        return json({ id: qId, ...body }, 201, cors);
+      }
+      if (id && request.method === 'PATCH') {
+        const body = await request.json();
+        const existing = await env.DB.prepare('SELECT data FROM questions WHERE id = ?').bind(id).first();
+        if (!existing) return json({ error: 'Not found' }, 404, cors);
+        const merged = { ...JSON.parse(existing.data), ...body };
+        await env.DB.prepare('UPDATE questions SET data = ?, category = ?, updated_at = ? WHERE id = ?').bind(JSON.stringify(merged), merged.category || null, nowIso(), id).run();
+        await syncQuestions(env);
+        return json({ id, ...merged }, 200, cors);
+      }
+      if (id && request.method === 'DELETE') {
+        await env.DB.prepare('DELETE FROM questions WHERE id = ?').bind(id).run();
+        await syncQuestions(env);
         return json({ ok: true }, 200, cors);
       }
     }

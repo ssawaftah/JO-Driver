@@ -1941,7 +1941,7 @@
     }).catch(function(){});
 
     /* Questions + cats */
-    d.ref('questions').once('value').then(function(snap){
+    CF.ref('questions').once().then(function(snap){
       var data = snap.val() || {};
       var qCount = snap.numChildren();
       var cats = {};
@@ -2028,9 +2028,7 @@
         updateQsSubtitle();
       }
     } catch(e){}
-    var d = getDb();
-    if (!d) { updateQsSubtitle(); return; }
-    d.ref('questions').once('value').then(function(snap){
+    CF.ref('questions').once().then(function(snap){
       allQuestions = snap.val() || {};
       try { sessionStorage.setItem(ADM_CACHE_Q, JSON.stringify(allQuestions)); } catch(e){}
       updateQsSubtitle();
@@ -2086,11 +2084,10 @@
     if (btn.dataset.panel === 'qs') {
       btn.addEventListener('click', function(){
         if (Object.keys(allQuestions).length === 0) {
-          var d = getDb();
-          if (d) { d.ref('questions').once('value').then(function(snap){
+          CF.ref('questions').once().then(function(snap){
             allQuestions = snap.val() || {};
             renderCatGrid();
-          }); } else { renderCatGrid(); }
+          }).catch(function(){ renderCatGrid(); });
         } else { renderCatGrid(); }
       });
     }
@@ -2399,8 +2396,7 @@
     return uploadPromise
       .then(function(r){ return r.json().then(function(data){ if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status)); return data; }); })
       .then(function(data){
-        var db = getDb();
-        return db.ref('questions/' + id).update({ mediaUrl: data.url }).then(function(){
+        return CF.ref('questions/' + id).update({ mediaUrl: data.url }).then(function(){
           d.mediaUrl = data.url; /* keep local cache in sync */
           return data.url;
         });
@@ -2625,11 +2621,9 @@
     var payload = { category:cat, mediaType:selectedType, question:qTxt, options:opts, correctAnswer:correctIdx };
     if (selectedType !== 'text') payload.mediaUrl = url;
     formSave.disabled = true; formSaveLbl.textContent = 'جارٍ الحفظ…'; setFormMsg('','');
-    var d = getDb();
-    if (!d) { setFormMsg('تعذّر الاتصال بقاعدة البيانات','err'); formSave.disabled=false; formSaveLbl.textContent=editingId?'حفظ التعديلات':'حفظ السؤال'; return; }
     var ref = editingId
-      ? d.ref('questions/'+editingId).update(payload)
-      : d.ref('questions').push(payload).then(function(r){ return r; });
+      ? CF.ref('questions/'+editingId).update(payload)
+      : CF.ref('questions').push(payload);
     ref.then(function(result){
       if (editingId) { Object.assign(allQuestions[editingId], payload); }
       else           { allQuestions[result.key] = payload; }
@@ -2686,8 +2680,7 @@
     /* question delete */
     if (!deleteId) return;
     delConfirm.disabled = true; delLbl.textContent = 'جارٍ الحذف…';
-    var d = getDb(); if (!d) { delConfirm.disabled=false; delLbl.textContent='حذف'; return; }
-    d.ref('questions/'+deleteId).remove().then(function(){
+    CF.ref('questions/'+deleteId).remove().then(function(){
       delete allQuestions[deleteId]; closeDeleteModal(); renderQuestions(); updateQsSubtitle();
     }).catch(function(e){ delConfirm.disabled=false; delLbl.textContent='حذف'; alert('فشل الحذف: '+e.message); });
   });

@@ -17,4 +17,8 @@ Rather than rewriting ~30 call sites individually, added a small shim (`CF`/`CFR
 **Why:** minimizes risk/diff size on a 3500+ line file while keeping write semantics (including Firebase's "set field to null = delete field" convention, which the Worker's PATCH handlers replicate).
 
 ## Admin auth
-Every write endpoint requires `X-Admin-Key` header (Worker secret `ADMIN_KEY`), hardcoded client-side in `admin.html` (same accepted tradeoff as the pre-existing `UPLOAD_KEY`/`X-Upload-Key` image-upload flow). Public GET (all four resources) and public POST (`/api/center-requests` only) need no key.
+Every write endpoint requires `X-Admin-Key` header (Worker secret `ADMIN_KEY`), hardcoded client-side in `admin.html` (same accepted tradeoff as the pre-existing `UPLOAD_KEY`/`X-Upload-Key` image-upload flow). Public GET (all resources) and public POST (`/api/center-requests` only) need no key.
+
+## Questions also migrated (later addition)
+`questions` (used by `theory-test-practice.html` and `driving-theory-questions.html` via `window.JDQURL` → `questions.json` on R2) followed the exact same pattern: new D1 `questions` table, `/api/questions` REST routes, `syncQuestions` mirror helper. Those two front-end pages needed zero changes (same "keep the R2 JSON mirror" reasoning as centers). Firebase now only holds `reviews` data/login and the admin-login `users` role check — confirmed explicitly with the user before excluding those from any further migration.
+Added a `POST /api/resync` admin endpoint (regenerates all R2 mirrors from D1) — needed once because raw `wrangler d1 execute` bulk-seeding bypasses the API and thus never calls the `sync*` hooks; keep this endpoint for any future bulk-load scenario.
