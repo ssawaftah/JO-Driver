@@ -33,8 +33,7 @@
 ├── pages/                    → كل صفحات الموقع (HTML+CSS+JS)، تُنسخ يدوياً إلى Blogger
 │   ├── admin.html            → لوحة التحكم الإدارية
 │   ├── center-join.html      → نموذج "انضم كمركز" العام
-│   ├── driving-schools.html  → صفحة قائمة/بحث المراكز
-│   ├── center-details.html   → صفحة تفاصيل مركز واحد
+│   ├── driving-schools.html  → صفحة قائمة/بحث المراكز (تعرض أيضاً تفاصيل المركز داخل نفس الصفحة عبر `showDetail()`)
 │   ├── theory-test-practice.html      → منصة التدريب/الاختبار النظري
 │   ├── driving-theory-questions.html  → بنك أسئلة النظري (تصفح/فئات)
 │   ├── reviews.html          → صفحة التقييمات
@@ -43,7 +42,6 @@
 │   ├── upload-worker.js      → كل كود الـ Worker (API + رفع صور + مزامنة R2)
 │   ├── schema.sql            → تعريف جداول قاعدة بيانات D1
 │   ├── wrangler.toml         → إعدادات النشر (اسم الـ Worker، ربط D1/R2)
-│   ├── seed.sql / seed-questions.sql → نسخ ترحيل تاريخية من Firebase إلى D1 (يمكن حذفها لاحقاً)
 ├── template                  → قالب Blogger XML (ثيم الموقع العام، منفصل عن pages/)
 ├── replit.md                 → ملخص مختصر للمشروع وتفضيلات المستخدم (يُقرأ تلقائياً من قبل الوكيل)
 └── .replit                   → إعداد الـ workflow الخاص بالمعاينة داخل Replit فقط
@@ -57,7 +55,7 @@
 - **قاعدة البيانات الفعلية**: Cloudflare D1، اسمها `driverjo-db`.
 - **كل القراءة/الكتابة** تمر حصراً عبر الـ Worker المنشور على `https://upload.idriverjo.workers.dev` (نقاط API مفصّلة في `cloudflare-worker/README.md`).
 - بعد كل عملية كتابة (إضافة/تعديل/حذف)، الـ Worker يُعيد توليد نسخة JSON مطابقة للجدول ويرفعها إلى **R2** (bucket اسمه `driverjo-data`)، والتي تظهر للعامة على `https://data.driverjo.online/<اسم-الملف>.json` (مثال: `centers.json`, `governorates.json`, `areas.json`, `questions.json`).
-- صفحات القراءة العامة (`driving-schools.html`, `center-details.html`, صفحات النظري) **لا تتصل بالـ Worker مباشرة** — هي تقرأ فقط من ملفات JSON الثابتة على `data.driverjo.online` (أسرع وأرخص، ولأن Blogger لا يحتاج مصادقة لهذه القراءات).
+- صفحات القراءة العامة (`driving-schools.html`, صفحات النظري) **لا تتصل بالـ Worker مباشرة** — هي تقرأ فقط من ملفات JSON الثابتة على `data.driverjo.online` (أسرع وأرخص، ولأن Blogger لا يحتاج مصادقة لهذه القراءات).
 - صفحة `admin.html` تتصل بالـ Worker مباشرة لأنها تحتاج كتابة (تتطلب `X-Admin-Key`)، وكذلك `center-join.html` عند إرسال طلب انضمام جديد (`POST /api/center-requests`، بلا مصادقة لأنه نموذج عام).
 - **ملاحظة تخزين مؤقت (Cache)**: نطاق `data.driverjo.online` (عبر R2) لديه ذاكرة تخزين مؤقت على حافة الشبكة (edge cache) مدتها ~60 ثانية، لذلك أي تعديل عبر لوحة التحكم قد يستغرق حتى دقيقة ليظهر للزوار العاديين.
 
@@ -97,4 +95,4 @@
 - لا تفترض وجود سيرفر خلفي مستضاف على Replit في بيئة الإنتاج — أي منطق سيرفر يجب أن يكون داخل `cloudflare-worker/upload-worker.js`.
 - لا تُعدّل ملف `template` إلا إذا طُلب ذلك صراحةً — هو قالب Blogger مدفوع ومنفصل عن صفحات `pages/`.
 - عند إضافة حقل بيانات جديد لمركز/سؤال/محافظة، يجب تحديث: (1) `schema.sql` إن لزم عمود مفهرس جديد، (2) منطق `admin.html` (النموذج + العرض)، (3) أي صفحة عامة تعرض هذا الحقل، (4) التأكد من أن `syncSnapshot` في الـ Worker يعكس الحقل تلقائياً (لأنه يخزّن الكائن كاملاً كـ JSON، عادة لا حاجة لتغييره).
-- ملفات `cloudflare-worker/seed.sql` و`seed-questions.sql` هي نسخ ترحيل تاريخية (Firebase → D1) للأرشفة فقط، يمكن حذفها بأمان لاحقاً.
+- انتهى الاعتماد على أي ملف ترحيل (seed) تاريخي — تم حذفها بعد استقرار البيانات في D1، ولا حاجة للرجوع إليها.
