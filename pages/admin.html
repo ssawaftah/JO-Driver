@@ -1,4 +1,43 @@
 
+<!-- ════ Firebase + JDAuth (مطلوب عند التشغيل خارج قالب Blogger) ════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  if (window.JDAuth) return; /* لا تُعيد التهيئة إذا كان القالب قد حمّلها */
+  var FB_CFG={
+    apiKey:'AIzaSyBBFk8kQgf7qRKy-Psi18-jSv4qmeTYQBQ',
+    authDomain:'driverjo.firebaseapp.com',
+    databaseURL:'https://driverjo-default-rtdb.firebaseio.com',
+    projectId:'driverjo',
+    storageBucket:'driverjo.firebasestorage.app',
+    messagingSenderId:'716209135475',
+    appId:'1:716209135475:web:0a8188a18017c5880aaf06'
+  };
+  var app=firebase.apps.length?firebase.app():firebase.initializeApp(FB_CFG);
+  var db=firebase.database(app);
+  var auth=firebase.auth(app);
+  var _user=null,_ready=false,_cbs=[];
+  function _fire(){
+    _ready=true;
+    var list=_cbs.splice(0);
+    list.forEach(function(cb){try{cb(_user);}catch(e){}});
+  }
+  auth.onAuthStateChanged(function(u){_user=u;if(!_ready)_fire();});
+  window.JDAuth={
+    get user(){return _user;},
+    get db(){return db;},
+    get app(){return app;},
+    get auth(){return auth;},
+    onReady:function(cb){if(_ready){try{cb(_user);}catch(e){}}else{_cbs.push(cb);}},
+    wasWelcomeShown:function(uid){try{return sessionStorage.getItem('jd_wuid')===uid;}catch(e){return false;}},
+    markWelcomeShown:function(uid){try{sessionStorage.setItem('jd_wuid',uid);}catch(e){}},
+    signOut:function(){try{sessionStorage.removeItem('jd_wuid');}catch(e){}return auth.signOut();}
+  };
+}());
+</script>
+
 <style>
 /* ══════════════════════════════════════════════════════
    ADMIN PANEL — driverjo  |  هوية سند (SANAD)
