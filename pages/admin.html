@@ -668,88 +668,6 @@
 }
 
 /* ══════════════════════════════════════════════════════
-   LOCATIONS
-══════════════════════════════════════════════════════ */
-.adm-loc-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-}
-@media (max-width:700px) { .adm-loc-grid { grid-template-columns:1fr; } }
-
-.adm-loc-panel {
-  background: var(--card); border: none; border-radius: var(--radius-xl);
-  display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-sm);
-}
-.adm-loc-panel-head {
-  padding: 16px 18px; border-bottom: 1.5px solid var(--bdr2);
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-}
-.adm-loc-panel-title { font-size:15px; font-weight:700; color:var(--txt); display:flex; align-items:center; gap:8px; }
-.adm-loc-panel-title i { color:var(--p); font-size:16px; }
-.adm-loc-panel-body { flex:1; overflow-y:auto; max-height:460px; }
-.adm-loc-panel-toolbar {
-  padding:10px 14px; border-bottom:1px solid var(--bdr2);
-  display:flex; gap:8px; align-items:center;
-}
-.adm-loc-search {
-  flex:1; padding:8px 12px 8px 32px; border:none;
-  border-radius: 999px; font-size:13px; color:var(--txt); background:var(--bg2);
-  outline:none; transition:box-shadow .18s; font-family:inherit; direction:rtl;
-}
-.adm-loc-search:focus { box-shadow: 0 0 0 3px var(--p-bd); background:#fff; }
-
-.adm-gov-row, .adm-area-row {
-  display:flex; align-items:center; gap:10px; padding:12px 16px;
-  border-bottom:1px solid var(--bdr2); transition:background .12s; cursor:pointer;
-}
-.adm-gov-row:hover, .adm-area-row:hover { background:var(--p-lt); }
-.adm-gov-row.selected { background:var(--p-lt); border-right:4px solid var(--p); }
-.adm-gov-row:last-child, .adm-area-row:last-child { border-bottom:none; }
-.adm-gov-name, .adm-area-name { flex:1; font-size:14px; font-weight:600; color:var(--txt); }
-.adm-gov-count {
-  font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px;
-  background:var(--p-lt); color:var(--p);
-}
-.adm-gov-row.archived .adm-gov-name { color:var(--txt3); text-decoration:line-through; }
-.adm-gov-archived-pill {
-  font-size:10px; font-weight:700; background:var(--bg2); color:var(--txt3);
-  padding:2px 8px; border-radius:999px;
-}
-.adm-loc-actions { display:flex; gap:5px; align-items:center; }
-.adm-loc-btn {
-  width:30px; height:30px; border-radius:999px; border:none;
-  background:var(--bg2); cursor:pointer; font-size:13px;
-  display:flex; align-items:center; justify-content:center;
-  transition:all .15s; color:var(--txt2);
-}
-.adm-loc-btn:hover        { background:var(--p-lt);   color:var(--p); }
-.adm-loc-btn.del:hover    { background:var(--err-lt); color:var(--err); }
-.adm-loc-btn.archive:hover{ background:var(--warn-lt);color:var(--warn); }
-
-.adm-loc-add-row {
-  padding:12px 16px; border-top:1.5px solid var(--bdr2);
-  display:flex; gap:8px; align-items:center;
-}
-.adm-loc-add-input {
-  flex:1; padding:10px 14px; border:none; border-radius:999px;
-  font-size:13px; color:var(--txt); background:var(--bg2);
-  outline:none; font-family:inherit; direction:rtl; transition:box-shadow .18s;
-}
-.adm-loc-add-input:focus { box-shadow: 0 0 0 3px var(--p-bd); background:#fff; }
-.adm-loc-add-btn {
-  padding:10px 16px; background:var(--p); color:#fff; border:none;
-  border-radius:999px; cursor:pointer; font-size:13px; font-weight:700;
-  font-family:inherit; white-space:nowrap; transition:background .15s;
-  display:flex; align-items:center; gap:5px;
-}
-.adm-loc-add-btn:hover { background: var(--p-hover); }
-
-.adm-areas-placeholder {
-  padding:32px 20px; text-align:center; color:var(--txt3); font-size:13px;
-  display:flex; flex-direction:column; align-items:center; gap:10px;
-}
-.adm-areas-placeholder i { font-size:36px; }
-
-/* ══════════════════════════════════════════════════════
    MODAL BASE — نافذة منزلقة من الأسفل (bottom sheet)
 ══════════════════════════════════════════════════════ */
 .adm-overlay {
@@ -1005,8 +923,6 @@
 .adm-sched-day    { min-width:68px; font-weight:700; color:var(--txt); }
 .adm-sched-time   { color:var(--accent); font-weight:700; flex:1; direction:ltr; text-align:right; }
 .adm-sched-closed { color:var(--txt3); flex:1; font-size:12px; }
-.adm-areas-pills { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
-.adm-area-pill { background:var(--p-lt); color:var(--p); font-size:12px; font-weight:700; padding:3px 12px; border-radius:999px; }
 .adm-btn-reviewed {
   width:100%; padding:14px; border-radius:999px;
   background:var(--accent); color:#fff; border:none;
@@ -1016,9 +932,6 @@
 }
 .adm-btn-reviewed:hover    { background:#0E8A45; }
 .adm-btn-reviewed:disabled { opacity:.45; cursor:not-allowed; }
-
-/* edit name modal */
-.adm-edit-name-modal-inner { max-width:420px; }
 
 /* questions categories */
 .adm-cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
@@ -1143,13 +1056,6 @@
               <div>
                 <div class="adm-stat-label">طلبات معلّقة</div>
                 <div class="adm-stat-value" id="adm-stat-reqs">—</div>
-              </div>
-            </div>
-            <div class="adm-stat-card" style="--stat-color:#0891B2" data-goto="locations">
-              <div class="adm-stat-icon"><i class="ph-bold ph-map-trifold"></i></div>
-              <div>
-                <div class="adm-stat-label">المحافظات</div>
-                <div class="adm-stat-value" id="adm-stat-govs">—</div>
               </div>
             </div>
           </div>
@@ -1370,71 +1276,6 @@
         </div>
       </div>
 
-      <!-- ── LOCATIONS ──────────────────────────────── -->
-      <div class="adm-panel" id="adm-panel-locations">
-        <div class="adm-ph" style="padding-bottom:16px">
-          <div>
-            <div class="adm-ph-title"><i class="ph-bold ph-map-trifold"></i> المحافظات والمناطق</div>
-            <div class="adm-ph-sub">إدارة المحافظات ومناطقها الجغرافية</div>
-          </div>
-        </div>
-        <div class="adm-body" style="max-width:100%">
-          <div class="adm-loc-grid">
-
-            <!-- Governorates panel -->
-            <div class="adm-loc-panel">
-              <div class="adm-loc-panel-head">
-                <div class="adm-loc-panel-title">
-                  <i class="ph-bold ph-globe-hemisphere-west"></i> المحافظات
-                </div>
-                <span class="adm-badge-pill" id="adm-gov-badge">0</span>
-              </div>
-              <div class="adm-loc-panel-toolbar">
-                <div style="position:relative;flex:1">
-                  <i class="ph-bold ph-magnifying-glass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:13px;pointer-events:none"></i>
-                  <input class="adm-loc-search" id="adm-gov-search" placeholder="ابحث بالمحافظة…" style="padding-right:34px">
-                </div>
-              </div>
-              <div class="adm-loc-panel-body" id="adm-gov-list">
-                <div class="adm-spin-wrap" style="padding:32px 20px">
-                  <div class="adm-spinner"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Areas panel -->
-            <div class="adm-loc-panel">
-              <div class="adm-loc-panel-head">
-                <div class="adm-loc-panel-title">
-                  <i class="ph-bold ph-map-pin"></i>
-                  مناطق: <span id="adm-areas-gov-name" style="color:var(--p)">—</span>
-                </div>
-                <span class="adm-badge-pill" id="adm-areas-badge">0</span>
-              </div>
-              <div class="adm-loc-panel-toolbar">
-                <div style="position:relative;flex:1">
-                  <i class="ph-bold ph-magnifying-glass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:13px;pointer-events:none"></i>
-                  <input class="adm-loc-search" id="adm-areas-search" placeholder="ابحث بالمنطقة…" style="padding-right:34px">
-                </div>
-              </div>
-              <div class="adm-loc-panel-body" id="adm-areas-list">
-                <div class="adm-areas-placeholder">
-                  <i class="ph-bold ph-cursor-click"></i>
-                  <div>اختر محافظة من القائمة لعرض مناطقها</div>
-                </div>
-              </div>
-              <div class="adm-loc-add-row" id="adm-area-add-row" style="display:none">
-                <input class="adm-loc-add-input" id="adm-new-area-input" placeholder="اسم المنطقة الجديدة…">
-                <button class="adm-loc-add-btn" id="adm-add-area-btn">
-                  <i class="ph-bold ph-plus"></i> إضافة
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
     </div><!-- .adm-content -->
 
     <!-- Bottom tab bar -->
@@ -1467,10 +1308,6 @@
         <button class="adm-more-item" data-panel="reviews">
           <div class="adm-more-icon" style="--item-color:var(--warn); --item-color-lt:var(--warn-lt)"><i class="ph-bold ph-star"></i></div>
           <span class="adm-more-label">تقييمات التطبيق</span>
-        </button>
-        <button class="adm-more-item" data-panel="locations">
-          <div class="adm-more-icon" style="--item-color:var(--accent); --item-color-lt:var(--accent-lt)"><i class="ph-bold ph-map-trifold"></i></div>
-          <span class="adm-more-label">المحافظات والمناطق</span>
         </button>
       </div>
       <div class="adm-more-divider"></div>
@@ -1701,31 +1538,6 @@
     </div>
   </div>
 
-  <!-- ════ EDIT NAME MODAL (gov / area) ═════════════════ -->
-  <div id="adm-edit-name-modal" class="adm-overlay adm-hide">
-    <div class="adm-modal adm-edit-name-modal-inner">
-      <div class="adm-modal-head">
-        <div class="adm-modal-title-wrap">
-          <div class="adm-modal-title" id="adm-edit-name-title">تعديل الاسم</div>
-        </div>
-        <button class="adm-modal-close" id="adm-edit-name-close">&#215;</button>
-      </div>
-      <div class="adm-modal-body">
-        <div class="adm-field" style="margin-bottom:16px">
-          <label class="adm-label">الاسم الجديد</label>
-          <input class="adm-input" id="adm-edit-name-input" type="text" placeholder="…">
-        </div>
-        <div class="adm-form-msg" id="adm-edit-name-msg"></div>
-        <div class="adm-form-actions" style="margin-top:12px">
-          <button class="adm-btn-cancel" id="adm-edit-name-cancel">إلغاء</button>
-          <button class="adm-btn-primary" id="adm-edit-name-save">
-            <i class="ph-bold ph-floppy-disk"></i>
-            <span id="adm-edit-name-save-lbl">حفظ</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </div><!-- #adm-root -->
 
@@ -1773,7 +1585,6 @@
   var allRequests  = {};
   var allUsers     = {};
   var allReviews   = {};
-  var allGovs      = {};
   var currentCat   = null;
   var activeFilter = 'all';
   var editingId      = null;
@@ -1781,12 +1592,8 @@
   var selectedType   = 'text';
   var deletingCtrId  = null;
   var deletingRevId  = null;
-  var deletingAreaId = null;
-  var selectedGovId  = null;
-  var govAreas       = {};
   var activeUserFilter = 'all';
   var activeRevFilter  = 'all';
-  var editNameCtx = null;
 
   var LETTERS = ['أ','ب','ج','د','هـ','و'];
   var ADM_CACHE_Q = 'adm_questions_cache';
@@ -1800,7 +1607,7 @@
   ════════════════════════════════════════════════════ */
   var CF_API_BASE  = 'https://upload.idriverjo.workers.dev/api';
   var CF_ADMIN_KEY = 'e16ec4d2354fd60c83ff97428f38af4b';
-  var CF_RESOURCE_MAP = { centers:'centers', CenterRequests:'center-requests', governorates:'governorates', areas:'areas' };
+  var CF_RESOURCE_MAP = { centers:'centers', CenterRequests:'center-requests' };
 
   function cfPathFor(path) {
     var parts = String(path||'').split('/').filter(Boolean);
@@ -1873,7 +1680,7 @@
 
     var titles = {
       dash:'لوحة التحكم', qs:'الأسئلة', centers:'مراكز التدريب',
-      users:'المستخدمون', reviews:'تقييمات التطبيق', locations:'المحافظات والمناطق'
+      users:'المستخدمون', reviews:'تقييمات التطبيق'
     };
     var mTitle = document.getElementById('adm-mobile-title');
     if (mTitle) mTitle.textContent = titles[panelId] || 'driverjo';
@@ -1884,7 +1691,6 @@
     if (panelId === 'centers' && Object.keys(allCenters).length === 0) loadAllCenters();
     if (panelId === 'users'   && Object.keys(allUsers).length === 0)    loadUsers();
     if (panelId === 'reviews' && Object.keys(allReviews).length === 0)  loadReviews();
-    if (panelId === 'locations' && Object.keys(allGovs).length === 0)   loadGovernorates();
   }
 
   navItems.forEach(function(btn){
@@ -2025,7 +1831,7 @@
 
   function doLogout() {
     currentAdmin = null; allQuestions = {}; allCenters = {}; allRequests = {};
-    allUsers = {}; allReviews = {}; allGovs = {}; govAreas = {};
+    allUsers = {}; allReviews = {};
     db = null; emailInput.value = ''; passInput.value = '';
     if (window.JDAuth && window.JDAuth.auth) window.JDAuth.auth.signOut();
     loginErr.style.display = 'none';
@@ -2086,10 +1892,6 @@
         var data = snap.val() || {};
         renderDashReqs(data);
       }).catch(function(){});
-
-    CF.ref('governorates').once().then(function(snap){
-      setStatEl('adm-stat-govs', snap.numChildren());
-    }).catch(function(){});
   }
 
   function renderDashCats() {
@@ -2581,14 +2383,14 @@
 
   /* ── Question delete ─────────────────────────────── */
   function openDeleteConfirm(id) {
-    deleteId = id; deletingCtrId = null; deletingRevId = null; deletingAreaId = null;
+    deleteId = id; deletingCtrId = null; deletingRevId = null;
     delTitle.textContent = 'حذف السؤال';
     delSub.innerHTML = 'هل أنت متأكد من حذف هذا السؤال؟<br>لا يمكن التراجع عن هذا الإجراء.';
     delLbl.textContent = 'حذف'; delConfirm.disabled = false;
     delModal.classList.remove('adm-hide'); document.body.style.overflow = 'hidden';
   }
 
-  function closeDeleteModal() { delModal.classList.add('adm-hide'); document.body.style.overflow=''; deleteId=null; deletingCtrId=null; deletingRevId=null; deletingAreaId=null; }
+  function closeDeleteModal() { delModal.classList.add('adm-hide'); document.body.style.overflow=''; deleteId=null; deletingCtrId=null; deletingRevId=null; }
   delCancel.addEventListener('click', closeDeleteModal);
   delModal.addEventListener('click', function(e){ if (e.target === delModal) closeDeleteModal(); });
 
@@ -2607,14 +2409,6 @@
       dr.ref('reviews/'+deletingRevId).remove().then(function(){
         delete allReviews[deletingRevId]; deletingRevId=null;
         closeDeleteModal(); renderReviews(); setStatEl('adm-stat-reviews', Object.keys(allReviews).length);
-      }).catch(function(e){ delConfirm.disabled=false; delLbl.textContent='حذف'; alert('فشل الحذف: '+e.message); });
-      return;
-    }
-    if (deletingAreaId) {
-      delConfirm.disabled = true; delLbl.textContent = 'جارٍ الحذف…';
-      CF.ref('areas/'+deletingAreaId).remove().then(function(){
-        delete govAreas[deletingAreaId]; deletingAreaId=null;
-        closeDeleteModal(); renderAreas();
       }).catch(function(e){ delConfirm.disabled=false; delLbl.textContent='حذف'; alert('فشل الحذف: '+e.message); });
       return;
     }
@@ -2894,7 +2688,7 @@
   }
 
   function openCtrDeleteConfirm(id) {
-    deletingCtrId=id; deleteId=null; deletingRevId=null; deletingAreaId=null;
+    deletingCtrId=id; deleteId=null; deletingRevId=null;
     delTitle.textContent = 'حذف المركز';
     delSub.innerHTML = 'هل أنت متأكد من حذف هذا المركز؟<br>لا يمكن التراجع عن هذا الإجراء.';
     delLbl.textContent='حذف'; delConfirm.disabled=false;
@@ -3340,7 +3134,7 @@
       '<div class="adm-review-stars">'+starsHtml+'</div>' +
       (data.comment?'<div class="adm-review-comment">'+escHtml(data.comment)+'</div>':'');
     card.querySelector('.adm-review-del').addEventListener('click', function(){
-      deletingRevId=id; deleteId=null; deletingCtrId=null; deletingAreaId=null;
+      deletingRevId=id; deleteId=null; deletingCtrId=null;
       delTitle.textContent='حذف التقييم';
       delSub.innerHTML='هل أنت متأكد من حذف هذا التقييم؟<br>لا يمكن التراجع عن هذا الإجراء.';
       delLbl.textContent='حذف'; delConfirm.disabled=false;
@@ -3348,191 +3142,6 @@
     });
     return card;
   }
-
-  /* ════════════════════════════════════════════════════
-     LOCATIONS — Governorates + Areas
-  ════════════════════════════════════════════════════ */
-  var govListEl    = document.getElementById('adm-gov-list');
-  var govBadge     = document.getElementById('adm-gov-badge');
-  var govSearch    = document.getElementById('adm-gov-search');
-  var areasListEl  = document.getElementById('adm-areas-list');
-  var areasBadge   = document.getElementById('adm-areas-badge');
-  var areasGovName = document.getElementById('adm-areas-gov-name');
-  var areasSearch  = document.getElementById('adm-areas-search');
-  var areaAddRow   = document.getElementById('adm-area-add-row');
-  var newAreaInput = document.getElementById('adm-new-area-input');
-  var addAreaBtn   = document.getElementById('adm-add-area-btn');
-
-  var GOV_ORDER = ['عمان','اربد','الزرقاء','البلقاء','المفرق','الكرك','جرش','مادبا','عجلون','العقبة','معان','الطفيلة'];
-
-  function loadGovernorates() {
-    govListEl.innerHTML = '<div class="adm-spin-wrap" style="padding:32px 20px"><div class="adm-spinner"></div></div>';
-    CF.ref('governorates').once().then(function(snap){
-      allGovs = snap.val() || {};
-      setStatEl('adm-stat-govs', Object.keys(allGovs).length);
-      renderGovernorates();
-    }).catch(function(){ govListEl.innerHTML='<div class="adm-areas-placeholder"><div>تعذّر التحميل</div></div>'; });
-  }
-
-  govSearch.addEventListener('input', renderGovernorates);
-
-  function renderGovernorates() {
-    var q=govSearch.value.trim().toLowerCase();
-    var list=[];
-    Object.keys(allGovs).forEach(function(k){
-      var v=allGovs[k];
-      var name=(typeof v==='object'&&v)?(v.name||k):String(v);
-      var archived=(typeof v==='object'&&v&&v.archived);
-      list.push({id:k,name:name,archived:archived});
-    });
-    list.sort(function(a,b){ var ai=GOV_ORDER.indexOf(a.name),bi=GOV_ORDER.indexOf(b.name); if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi; });
-    if (q) list=list.filter(function(g){ return g.name.toLowerCase().includes(q); });
-    govBadge.textContent=list.length;
-    govListEl.innerHTML='';
-    list.forEach(function(gov){
-      var row=document.createElement('div');
-      row.className='adm-gov-row'+(gov.archived?' archived':'')+(selectedGovId===gov.id?' selected':'');
-      row.innerHTML =
-        '<span class="adm-gov-name">'+escHtml(gov.name)+'</span>' +
-        (gov.archived?'<span class="adm-gov-archived-pill">مؤرشف</span>':'') +
-        '<div class="adm-loc-actions">' +
-          '<button class="adm-loc-btn" title="تعديل الاسم"><i class="ph-bold ph-pencil-simple"></i></button>' +
-          '<button class="adm-loc-btn archive" title="'+(gov.archived?'إلغاء الأرشفة':'أرشفة')+'">'+
-            '<i class="ph-bold ph-'+(gov.archived?'arrow-counter-clockwise':'archive')+'"></i></button>' +
-        '</div>';
-      row.addEventListener('click', function(e){
-        if (e.target.closest('.adm-loc-actions')) return;
-        selectGov(gov.id, gov.name);
-      });
-      row.querySelector('.adm-loc-btn:first-child').addEventListener('click', function(e){
-        e.stopPropagation(); openEditNameModal('gov', gov.id, gov.name, null);
-      });
-      row.querySelector('.adm-loc-btn.archive').addEventListener('click', function(e){
-        e.stopPropagation(); toggleGovArchive(gov.id, !gov.archived);
-      });
-      govListEl.appendChild(row);
-    });
-  }
-
-  function selectGov(govId, govName) {
-    selectedGovId=govId;
-    areasGovName.textContent=govName;
-    areaAddRow.style.display='flex';
-    newAreaInput.value='';
-    loadGovAreas(govId);
-    renderGovernorates();
-  }
-
-  function loadGovAreas(govId) {
-    areasListEl.innerHTML='<div class="adm-spin-wrap" style="padding:32px 20px"><div class="adm-spinner"></div></div>';
-    areasBadge.textContent='…';
-    CF.ref('areas').orderByChild('governorateId').equalTo(govId).once().then(function(snap){
-      govAreas={};
-      var raw=snap.val()||{};
-      Object.keys(raw).forEach(function(k){ var v=raw[k]; govAreas[k]={id:k,name:(typeof v==='object'&&v)?(v.name||k):String(v)}; });
-      renderAreas();
-    }).catch(function(){ areasListEl.innerHTML='<div class="adm-areas-placeholder"><div>تعذّر التحميل</div></div>'; });
-  }
-
-  areasSearch.addEventListener('input', renderAreas);
-
-  function renderAreas() {
-    if (!selectedGovId) return;
-    var q=areasSearch.value.trim().toLowerCase();
-    var list=Object.values(govAreas).sort(function(a,b){ return a.name.localeCompare(b.name,'ar'); });
-    if (q) list=list.filter(function(a){ return a.name.toLowerCase().includes(q); });
-    areasBadge.textContent=list.length;
-    areasListEl.innerHTML='';
-    if (list.length===0) {
-      areasListEl.innerHTML='<div class="adm-areas-placeholder"><i class="ph-bold ph-map-pin"></i><div>لا توجد مناطق'+(q?' تطابق البحث':'')+'</div></div>'; return;
-    }
-    list.forEach(function(area){
-      var row=document.createElement('div'); row.className='adm-area-row';
-      row.innerHTML =
-        '<span class="adm-area-name">'+escHtml(area.name)+'</span>' +
-        '<div class="adm-loc-actions">' +
-          '<button class="adm-loc-btn" title="تعديل"><i class="ph-bold ph-pencil-simple"></i></button>' +
-          '<button class="adm-loc-btn del" title="حذف"><i class="ph-bold ph-trash"></i></button>' +
-        '</div>';
-      row.querySelector('.adm-loc-btn:first-child').addEventListener('click', function(e){
-        e.stopPropagation(); openEditNameModal('area', area.id, area.name, selectedGovId);
-      });
-      row.querySelector('.adm-loc-btn.del').addEventListener('click', function(e){
-        e.stopPropagation();
-        deletingAreaId=area.id; deleteId=null; deletingCtrId=null; deletingRevId=null;
-        delTitle.textContent='حذف المنطقة';
-        delSub.innerHTML='هل أنت متأكد من حذف منطقة <strong>'+escHtml(area.name)+'</strong>؟<br>لا يمكن التراجع عن هذا الإجراء.';
-        delLbl.textContent='حذف'; delConfirm.disabled=false;
-        delModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
-      });
-      areasListEl.appendChild(row);
-    });
-  }
-
-  addAreaBtn.addEventListener('click', function(){
-    var name=newAreaInput.value.trim(); if (!name||!selectedGovId) return;
-    addAreaBtn.disabled=true; addAreaBtn.innerHTML='<i class="ph ph-circle-notch" style="animation:adm-spin .8s linear infinite"></i>';
-    CF.ref('areas').push({name:name,governorateId:selectedGovId}).then(function(ref){
-      govAreas[ref.key]={id:ref.key,name:name}; newAreaInput.value='';
-      addAreaBtn.disabled=false; addAreaBtn.innerHTML='<i class="ph-bold ph-plus"></i> إضافة';
-      renderAreas();
-    }).catch(function(){ addAreaBtn.disabled=false; addAreaBtn.innerHTML='<i class="ph-bold ph-plus"></i> إضافة'; alert('تعذّر إضافة المنطقة'); });
-  });
-
-  function toggleGovArchive(govId, newArchived) {
-    CF.ref('governorates/'+govId).update({archived:newArchived||null}).then(function(){
-      if (typeof allGovs[govId]==='object') allGovs[govId].archived=newArchived;
-      else allGovs[govId]={name:String(allGovs[govId]),archived:newArchived};
-      renderGovernorates();
-    }).catch(function(e){ alert('فشل: '+e.message); });
-  }
-
-  /* ── Edit name modal ────────────────────────────── */
-  var editNameModal   = document.getElementById('adm-edit-name-modal');
-  var editNameTitle   = document.getElementById('adm-edit-name-title');
-  var editNameInput   = document.getElementById('adm-edit-name-input');
-  var editNameMsg     = document.getElementById('adm-edit-name-msg');
-  var editNameSave    = document.getElementById('adm-edit-name-save');
-  var editNameSaveLbl = document.getElementById('adm-edit-name-save-lbl');
-  var editNameClose   = document.getElementById('adm-edit-name-close');
-  var editNameCancel  = document.getElementById('adm-edit-name-cancel');
-
-  function openEditNameModal(type, id, currentName, govId) {
-    editNameCtx = {type:type, id:id, govId:govId};
-    editNameTitle.textContent = type==='gov' ? 'تعديل اسم المحافظة' : 'تعديل اسم المنطقة';
-    editNameInput.value = currentName||'';
-    editNameMsg.className='adm-form-msg'; editNameMsg.textContent='';
-    editNameSaveLbl.textContent='حفظ'; editNameSave.disabled=false;
-    editNameModal.classList.remove('adm-hide'); document.body.style.overflow='hidden';
-    setTimeout(function(){ editNameInput.focus(); editNameInput.select(); },100);
-  }
-
-  function closeEditNameModal() { editNameModal.classList.add('adm-hide'); document.body.style.overflow=''; editNameCtx=null; }
-  editNameClose.addEventListener('click', closeEditNameModal);
-  editNameCancel.addEventListener('click', closeEditNameModal);
-  editNameModal.addEventListener('click', function(e){ if (e.target===editNameModal) closeEditNameModal(); });
-
-  editNameSave.addEventListener('click', function(){
-    var name=editNameInput.value.trim();
-    if (!name) { editNameMsg.className='adm-form-msg err'; editNameMsg.textContent='يرجى إدخال اسم.'; return; }
-    if (!editNameCtx) return;
-    editNameSave.disabled=true; editNameSaveLbl.textContent='جارٍ الحفظ…';
-    var path = editNameCtx.type==='gov' ? 'governorates/'+editNameCtx.id : 'areas/'+editNameCtx.id;
-    CF.ref(path).update({name:name}).then(function(){
-      if (editNameCtx.type==='gov') {
-        if (typeof allGovs[editNameCtx.id]==='object') allGovs[editNameCtx.id].name=name;
-        else allGovs[editNameCtx.id]={name:name};
-        if (selectedGovId===editNameCtx.id) areasGovName.textContent=name;
-        renderGovernorates();
-      } else {
-        if (govAreas[editNameCtx.id]) govAreas[editNameCtx.id].name=name;
-        renderAreas();
-      }
-      editNameMsg.className='adm-form-msg ok'; editNameMsg.textContent='تم الحفظ ✓';
-      editNameSave.disabled=false; editNameSaveLbl.textContent='حفظ';
-      setTimeout(closeEditNameModal, 800);
-    }).catch(function(e){ editNameSave.disabled=false; editNameSaveLbl.textContent='حفظ'; editNameMsg.className='adm-form-msg err'; editNameMsg.textContent='خطأ: '+(e.message||''); });
-  });
 
 })();
 </script>
