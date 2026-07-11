@@ -1,10 +1,16 @@
 ---
 name: driverjo Google Maps usage
-description: Where/why Google Maps JS API is (and isn't) used across driverjo pages, and the link-only convention for center location.
+description: How driverjo pages get center coordinates for distance sorting, and the short-link pitfall that breaks it.
 ---
 
-- `center-join.html` (public join form) never embedded an interactive map — it only asks for a pasted Google Maps share link and guesses the center name client-side from the URL (`/maps/place/<name>` or `?q=`). No lat/lng field, no Places/Geocoding calls.
-- `admin.html`'s add/edit/review-center form was migrated to match that same link-only convention (2026-07-11): no embedded map, no Places search, no Geocoder, and no lat/lng fields at all. It still guesses the name from the pasted maps link, mirroring center-join.html's `extractNameFromMapsLink`.
-- **Why:** the user explicitly wanted the admin center form to be "exactly like" the join form, and decided the "nearest center" distance feature (which relied on lat/lng) can go stale for new/edited centers rather than keep the map UI.
-- **How to apply:** the public "nearest center" distance sort on `driving-schools.html` already guards with `if (c.lat && c.lng)`, so centers without coordinates just don't get a distance value — no crash. Existing centers created before this change may still have stored lat/lng in D1 (untouched since admin now sends partial updates without those keys); only new/edited centers going forward lack them.
-- The Google Maps JS API script tag/key was removed entirely from `admin.html` (no longer used anywhere in that file). It remains unused elsewhere in the project as of this note — if map-based location picking is ever wanted again, treat it as a fresh feature decision, not a revert.
+No page embeds an interactive map anymore; admin.html and center-join.html both use a link-only flow (paste a Google Maps URL, guess the center name from it client-side by regex — no Places/Geocoding API call).
+
+**Coordinate pitfall (root cause of "distance doesn't show for newly added centers"):** most users share the mobile short-link format (`maps.app.goo.gl/...` / `goo.gl/maps/...`), which contains **no embedded lat/lng** — coordinates only appear after following the redirect, and a browser can't read that cross-origin redirect target (opaque redirect / CORS). Client-side regex over the raw pasted link therefore silently fails to find coordinates for these links, so `driving-schools.html`'s `haversine()` distance never renders for such centers, even though the center itself displays fine.
+
+**Fix in place:** the Cloudflare Worker (`cloudflare-worker/upload-worker.js`) has a public `POST /api/resolve-maps-link` endpoint that follows the redirect server-side and extracts `{lat,lng}` (patterns: `@lat,lng`, `?q=`, `?ll=`, `!3d..!4d..`). Both admin.html's center form and center-join.html's submit handler call this before saving, and store `lat`/`lng` directly on the center record — `getCoords()` in driving-schools.html always prefers stored `lat`/`lng` over regex-parsing the link.
+
+**Why:** short links can't be resolved client-side at all; storing resolved coordinates once at write time avoids re-parsing an unresolvable link on every page view.
+
+**How to apply:** if a future report says "center X shows but has no distance", check whether it has `lat`/`lng` saved (most likely missing because it predates this fix, or the resolve call failed/timed out). admin.html has a "تحديث الإحداثيات" bulk-fix button on the centers panel that re-resolves and patches any center missing `lat`/`lng`.
+
+**Deployment gotcha:** the Worker is deployed separately via `wrangler`, not through the Replit workflow (per replit.md) — editing `upload-worker.js` in this repo does NOT take effect on `upload.idriverjo.workers.dev` until the user runs `wrangler deploy` themselves (no Cloudflare credentials are available in this environment to do it automatically).

@@ -53,6 +53,22 @@ function newId(prefix) {
   return (prefix ? prefix + '-' : '') + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
 }
 
+/* يحاول استخراج إحداثيات (lat, lng) من رابط جوجل مابس أو من نص صفحة HTML يحتوي رابطاً كهذا.
+   يدعم الأنماط الشائعة: @lat,lng — ?q=lat,lng — ?ll=lat,lng — !3dlat!4dlng (نمط data= في روابط /place/). */
+function extractLatLng(input) {
+  if (!input || typeof input !== 'string') return null;
+  var m;
+  m = input.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if (m) return { lat: +m[1], lng: +m[2] };
+  m = input.match(/[?&]q=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if (m) return { lat: +m[1], lng: +m[2] };
+  m = input.match(/[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if (m) return { lat: +m[1], lng: +m[2] };
+  m = input.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/);
+  if (m) return { lat: +m[1], lng: +m[2] };
+  return null;
+}
+
 function isAdmin(request, env) {
   const key = request.headers.get('X-Admin-Key') || '';
   return !!env.ADMIN_KEY && key === env.ADMIN_KEY;
@@ -253,6 +269,43 @@ async function handleApi(request, env, url) {
       if (id && request.method === 'DELETE') {
         await env.DB.prepare('DELETE FROM center_requests WHERE id = ?').bind(id).run();
         return json({ ok: true }, 200, cors);
+      }
+    }
+
+    /* ── resolve-maps-link: public utility used by admin.html and
+       center-join.html. Short Google Maps share links (maps.app.goo.gl,
+       goo.gl/maps) carry no coordinates in the URL itself - the coordinates
+       only appear after following the redirect, which a browser can't read
+       cross-origin (opaque redirect). This endpoint follows the redirect
+       server-side and extracts { lat, lng } from the final URL, so we can
+       store real coordinates on the center at save time instead of relying
+       on client-side regex over a link that may never contain coordinates. ── */
+    if (resource === 'resolve-maps-link' && request.method === 'POST') {
+      const body = await request.json();
+      const link = body && body.url;
+      if (!link || typeof link !== 'string' || !/^https?:\/\//i.test(link)) {
+        return json({ error: 'Invalid or missing url' }, 400, cors);
+      }
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+        const resp = await fetch(link, {
+          redirect: 'follow',
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DriverjoLinkResolver/1.0)' },
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timer));
+        const finalUrl = resp.url || link;
+        // نحاول أيضاً استخراج الإحداثيات من نص الصفحة (بعض الروابط القصيرة
+        // تُعيد صفحة وسيطة بدل تحويل HTTP مباشر) كخطة بديلة عن رابط الـ redirect النهائي فقط.
+        let bodyText = '';
+        try { bodyText = await resp.text(); } catch (e) { /* تجاهل: نعتمد على finalUrl فقط */ }
+        const coords = extractLatLng(finalUrl) || extractLatLng(bodyText);
+        if (!coords) {
+          return json({ lat: null, lng: null, resolvedUrl: finalUrl }, 200, cors);
+        }
+        return json({ lat: coords.lat, lng: coords.lng, resolvedUrl: finalUrl }, 200, cors);
+      } catch (e) {
+        return json({ error: 'Could not resolve link: ' + e.message }, 502, cors);
       }
     }
 

@@ -924,10 +924,14 @@
 
   function getCoords(c) {
     if (c.lat && c.lng) return { lat: +c.lat, lng: +c.lng };
+    /* الخط أدناه احتياطي فقط: روابط جوجل مابس المختصرة (maps.app.goo.gl) لا تحمل
+       إحداثيات في الرابط نفسه، لذا لا يمكن الاعتماد عليه لهذه الحالة — الحل الفعلي
+       هو حفظ lat/lng مباشرة على المركز عند الإضافة/التعديل (عبر الـ Worker). */
     var link = c.mapLink || '', m;
-    m = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);      if (m) return { lat: +m[1], lng: +m[2] };
-    m = link.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);  if (m) return { lat: +m[1], lng: +m[2] };
-    m = link.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: +m[1], lng: +m[2] };
+    m = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);        if (m) return { lat: +m[1], lng: +m[2] };
+    m = link.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);    if (m) return { lat: +m[1], lng: +m[2] };
+    m = link.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);   if (m) return { lat: +m[1], lng: +m[2] };
+    m = link.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);     if (m) return { lat: +m[1], lng: +m[2] };
     return null;
   }
 

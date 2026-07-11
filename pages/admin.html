@@ -1161,6 +1161,9 @@
           <button class="adm-add-btn purple" id="adm-ctr-add-btn">
             <i class="ph-bold ph-plus"></i> إضافة مركز
           </button>
+          <button class="adm-add-btn" id="adm-ctr-fix-coords-btn" style="background:#334155" title="يحل روابط جوجل مابس المختصرة للمراكز التي لا تظهر مسافتها للعميل ويحفظ إحداثياتها">
+            <i class="ph-bold ph-map-pin"></i> تحديث الإحداثيات
+          </button>
           <div class="adm-search-wrap">
             <i class="ph-bold ph-magnifying-glass adm-search-ico"></i>
             <input class="adm-search-input" id="adm-ctr-search" type="text" placeholder="ابحث بالاسم أو المدينة…">
@@ -3001,6 +3004,41 @@
 
   ctrAddBtn.addEventListener('click', openAddCenterForm);
 
+  /* أداة إصلاح: تمرّ على كل المراكز التي ليس لها lat/lng محفوظة (ولا يمكن استخراجها
+     من رابط جوجل مابس المختصر client-side)، وتحلّها عبر الـ Worker ثم تحفظها —
+     تعالج المراكز القديمة التي أُضيفت قبل أن يصبح حفظ الإحداثيات تلقائياً. */
+  var ctrFixCoordsBtn = document.getElementById('adm-ctr-fix-coords-btn');
+  if (ctrFixCoordsBtn) {
+    ctrFixCoordsBtn.addEventListener('click', function () {
+      var missing = Object.keys(allCenters).filter(function (id) {
+        var c = allCenters[id];
+        return c && c.mapLink && !(c.lat && c.lng);
+      });
+      if (!missing.length) { alert('كل المراكز لديها إحداثيات محفوظة.'); return; }
+      if (!confirm('سيتم فحص ' + missing.length + ' مركز وتحديث إحداثياتها. متابعة؟')) return;
+      ctrFixCoordsBtn.disabled = true;
+      var origLbl = ctrFixCoordsBtn.innerHTML;
+      var fixed = 0, failed = 0, i = 0;
+      function next() {
+        if (i >= missing.length) {
+          ctrFixCoordsBtn.disabled = false; ctrFixCoordsBtn.innerHTML = origLbl;
+          renderCenters();
+          alert('تم: ' + fixed + ' مركز تم تحديثه' + (failed ? '، ' + failed + ' لم يتم حل رابطه (رابط غير قياسي)' : '') + '.');
+          return;
+        }
+        var id = missing[i]; i++;
+        ctrFixCoordsBtn.innerHTML = '<i class="ph-bold ph-spinner"></i> (' + i + '/' + missing.length + ')';
+        resolveMapsLinkCoords(allCenters[id].mapLink).then(function (coords) {
+          if (!coords) { failed++; return next(); }
+          return CF.ref('centers/' + id).update({ lat: coords.lat, lng: coords.lng }).then(function () {
+            Object.assign(allCenters[id], coords); fixed++; next();
+          }).catch(function () { failed++; next(); });
+        }).catch(function () { failed++; next(); });
+      }
+      next();
+    });
+  }
+
   function openAddCenterForm() {
     editingCtrId=null; ctrFormTitle.textContent='إضافة مركز جديد'; ctrFormSub.textContent='أكمل البيانات ثم احفظ'; ctrFormSaveLbl.textContent='حفظ المركز';
     cfName.value=''; cfPhone.value=''; cfWhatsapp.value=''; cfMaplink.value='';
@@ -3026,7 +3064,21 @@
   ctrFormCancel.addEventListener('click', closeCtrFormModal);
   ctrFormModal.addEventListener('click', function(e){ if (e.target===ctrFormModal) closeCtrFormModal(); });
 
-  ctrForm.addEventListener('submit', function(){
+  /* روابط جوجل مابس المختصرة (maps.app.goo.gl) لا تحتوي إحداثيات في الرابط نفسه —
+     تظهر فقط بعد اتّباع التحويل، وهو ما لا يستطيع المتصفح قراءته بسبب قيود CORS
+     على الروابط المتقاطعة النطاق (opaque redirect). لذلك نطلب من الـ Worker حلّ
+     الرابط على السيرفر واستخراج lat/lng، لنخزّنها مباشرة على المركز بدل الاعتماد
+     على تحليل الرابط الخام لاحقاً في صفحة العرض (وهو ما كان يفشل غالباً). */
+  function resolveMapsLinkCoords(link) {
+    return fetch(CF_API_BASE + '/resolve-maps-link', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: link })
+    }).then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(res){ return (res && res.lat != null && res.lng != null) ? { lat: res.lat, lng: res.lng } : null; })
+      .catch(function(){ return null; });
+  }
+
+  ctrForm.addEventListener('submit', function(e){
+    e.preventDefault();
     var name=cfName.value.trim(), phone=cfPhone.value.trim(), mapLink=cfMaplink.value.trim();
     if (!name)   { setCtrFormMsg('يرجى إدخال اسم المركز.','err'); return; }
     if (!phone)  { setCtrFormMsg('يرجى إدخال رقم الهاتف.','err'); return; }
@@ -3042,6 +3094,8 @@
     var busyLbl = reviewingReqId ? 'جارٍ النشر…' : 'جارٍ الحفظ…';
     var idleLbl = reviewingReqId ? 'تمت المراجعة ونشر' : (editingCtrId?'حفظ التعديلات':'حفظ المركز');
     ctrFormSave.disabled=true; ctrFormSaveLbl.textContent=busyLbl; setCtrFormMsg('','');
+    resolveMapsLinkCoords(mapLink).then(function(coords){
+    if (coords) { payload.lat=coords.lat; payload.lng=coords.lng; }
     var promise, newCenterId=null, reqIdBeingReviewed=reviewingReqId;
     if (editingCtrId) {
       promise=CF.ref('centers/'+editingCtrId).update(payload).then(function(){ Object.assign(allCenters[editingCtrId], payload); });
@@ -3067,6 +3121,7 @@
       setCtrFormMsg(reqIdBeingReviewed?'تم نشر المركز ✓':(editingCtrId?'تم حفظ التعديلات ✓':'تم إضافة المركز ✓'),'ok');
       ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl;
       updateCtrDashCount(); setTimeout(function(){ closeCtrFormModal(); renderCenters(); if (reqIdBeingReviewed) renderRequests(); }, 900);
+    }).catch(function(e){ setCtrFormMsg('خطأ: '+(e.message||''),'err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl; });
     }).catch(function(e){ setCtrFormMsg('خطأ: '+(e.message||''),'err'); ctrFormSave.disabled=false; ctrFormSaveLbl.textContent=idleLbl; });
   });
 

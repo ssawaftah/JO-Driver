@@ -373,6 +373,17 @@
   var jfImageUrl = '';
   var jfImageUploading = false;
 
+  /* روابط جوجل مابس المختصرة (maps.app.goo.gl) لا تحتوي إحداثيات في الرابط نفسه —
+     تظهر فقط بعد اتّباع التحويل، وهو ما لا يستطيع المتصفح قراءته بسبب قيود CORS
+     على الروابط المتقاطعة النطاق. لذلك نطلب من الـ Worker حلّ الرابط على السيرفر. */
+  function resolveMapsLinkCoords(link) {
+    return fetch('https://upload.idriverjo.workers.dev/api/resolve-maps-link', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: link })
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (res) { return (res && res.lat != null && res.lng != null) ? { lat: res.lat, lng: res.lng } : null; })
+      .catch(function () { return null; });
+  }
+
   /* ══════════════════════════════════════
      0. رفع صورة المركز (Cloudflare R2)
   ══════════════════════════════════════ */
@@ -720,10 +731,16 @@
       submittedAt:  new Date().toISOString()
     };
 
-    fetch('https://upload.idriverjo.workers.dev/api/center-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    /* روابط جوجل مابس المختصرة (maps.app.goo.gl) لا تحمل إحداثيات في الرابط نفسه —
+       نطلب من الـ Worker حلّ الرابط على السيرفر واستخراج lat/lng حتى تظهر المسافة
+       للعميل فوراً بعد قبول الطلب، دون انتظار تعديل يدوي من الأدمن. */
+    resolveMapsLinkCoords(jfMapsLink).then(function (coords) {
+      if (coords) { payload.lat = coords.lat; payload.lng = coords.lng; }
+      return fetch('https://upload.idriverjo.workers.dev/api/center-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
     }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
